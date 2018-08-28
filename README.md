@@ -1,5 +1,5 @@
 # Online Social Network Abuser Detection & Online Discussion Authenticity Detection Framework
-Code used in the following papers.
+Code used in the following papers. 
 
 If you are using this code for any research publication, or for preparing a technical report, you must cite the following paper as the source of the code.
 
