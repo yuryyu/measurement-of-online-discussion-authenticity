@@ -126,20 +126,23 @@ class Twitter_Rest_Api(AbstractExecutor):
 
             get_sleep_function_name = "get_sleep_time_for_get_" + author_type + "_ids_request"
             seconds_to_wait = getattr(self._twitter_api_requester, get_sleep_function_name)()
+            print(seconds_to_wait)
             if seconds_to_wait != 0:
                 self.save_connections_and_wait(seconds_to_wait)
                 init_num_of_get_user_ids_requests_func_name = "init_num_of_get_" + author_type + "_ids_requests"
                 getattr(self._twitter_api_requester, init_num_of_get_user_ids_requests_func_name)()
 
             get_user_ids_by_given_user_id_function_name = "get_" + author_type + "_ids_by_user_id"
+            print(get_user_ids_by_given_user_id_function_name)
             user_ids = getattr(self._twitter_api_requester, get_user_ids_by_given_user_id_function_name)(author_id)
 
             temp_author_connections = self._db.create_temp_author_connections(author_id, user_ids, author_type,
                                                                               self._window_start)
             self._total_author_connections = self._total_author_connections + temp_author_connections
-
+            print(user_ids)
             total_user_ids = list(set(total_user_ids + user_ids))
-
+            
+        print("--- crawl_users ---done!")
         return total_user_ids
 
     def check_already_crawled_author_guids(self, author_guids):
