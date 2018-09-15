@@ -18,6 +18,7 @@ from commons.commons import *
 from commons.consts import DB_Insertion_Type, Author_Type, Author_Connection_Type
 from commons.consts import Domains
 from configuration.config_class import getConfig
+from collections import defaultdict
 
 Base = declarative_base()
 
