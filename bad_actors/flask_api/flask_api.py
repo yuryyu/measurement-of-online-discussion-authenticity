@@ -25,6 +25,17 @@ campaigns = [
 ]
 
 
+#run the API
+@app.route('/api/v1/analyze')
+def run_api():    
+    project_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    run_command_ex='{}\\python_run.bat'.format(project_folder)      
+    try:
+        os.system(run_command_ex)
+    except:
+        logging.warn('Unable to run run.py')
+
+
 # add campaign to database
 @app.route('/api/v1/campaigns/add', methods=['POST'])
 def add_campaign():

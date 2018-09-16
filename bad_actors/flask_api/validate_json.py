@@ -7,8 +7,6 @@ from jsonschema import validate
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from configuration.config_class import getConfig
 
-
-
 #setup
 config = getConfig()
 json_file = config.get('Schema', 'json_file')
