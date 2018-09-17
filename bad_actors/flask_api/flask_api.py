@@ -26,8 +26,8 @@ campaigns = [
 
 
 #run the API
-@app.route('/api/v1/analyze')
-def run_api():    
+@app.route('/api/v1/analyze/<int:campaign_id>')
+def run_api(campaign_id):
     project_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     run_command_ex='{}\\python_run.bat'.format(project_folder)      
     try:
