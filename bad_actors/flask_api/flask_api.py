@@ -24,11 +24,24 @@ campaigns = [
     {'campaign_id': 101, 'keywords': ['hello world'], 'status': 'finished prediction', 'fake_news_score': 0.9}
 ]
 
+import sqlite3
 
-#run the API
+''' DB Init Part '''
+project_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+conn = sqlite3.connect('{}\\data\\input\\database.db'.format(project_folder))
+logging.info("Opened database successfully")
+
+# if table doesn't exist
+#conn.execute('CREATE TABLE compaign (compain_ID INTEGER, name TEXT, timestamp TEXT)')
+#logging.info("Table created successfully")
+conn.close()
+logging.info("Init DB is done")
+
+
+
+#run Analyzer
 @app.route('/api/v1/analyze/<int:campaign_id>')
-def run_api(campaign_id):
-    project_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+def run_analyze(campaign_id):    
     run_command_ex='{}\\python_run.bat'.format(project_folder)      
     try:
         os.system(run_command_ex)

@@ -20,3 +20,6 @@ pip install xgboost==0.80
 pip install pillow==5.2.0
 pip install flask==1.0.2
 pip install jsonschema==2.6.0
+pip install connexion==1.5.3
+pip install flask-sqlalchemy==2.3.2
+pip install flask-marshmallow==0.9.0
