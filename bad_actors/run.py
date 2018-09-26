@@ -76,80 +76,85 @@ modules_dict["KNNWithLinkPrediction"] = KNNWithLinkPrediction
 modules_dict["Kernel_Performance_Evaluator"] = Kernel_Performance_Evaluator
 modules_dict["TopicDistrobutionVisualizationGenerator"] = TopicDistrobutionVisualizationGenerator
 
-###############################################################
-## SETUP
-logging.config.fileConfig(getConfig().get("DEFAULT", "Logger_conf_file"))
-config = getConfig()
-domain = unicode(config.get("DEFAULT", "domain"))
-logging.info("Start Execution ... ")
-logging.info("SETUP global variables")
-
-window_start = getConfig().eval("DEFAULT", "start_date")
-newbmrk = os.path.isfile("benchmark.csv")
-bmrk_file = file("benchmark.csv", "a")
-bmrk_results = csv.DictWriter(bmrk_file,
-                              ["time", "jobnumber", "config", "window_size", "window_start", "dones", "posts",
-                               "authors"] + modules_dict.keys(),
-                              dialect="excel", lineterminator="\n")
-
-if not newbmrk:
-    bmrk_results.writeheader()
-
-logging.info("CREATE pipeline")
-db = DB()
-modules_dict["DB"] = lambda x: x
-pipeline = []
-for module in getConfig().sections():
-    parameters = {}
-    if modules_dict.get(module):
-        pipeline.append(modules_dict.get(module)(db))
-
-logging.info("SETUP pipeline")
-bmrk = {"config": getConfig().getfilename(), "window_start": "setup"}
-
-for module in pipeline:
-    logging.info("setup module: {0}".format(module))
-    T = time.time()
-    module.setUp()
-    T = time.time() - T
-    bmrk[module.__class__.__name__] = T
-
-bmrk_results.writerow(bmrk)
-bmrk_file.flush()
-
-clean_authors_features = getConfig().eval("DatasetBuilderConfig", "clean_authors_features_table")
-if clean_authors_features:
-    db.delete_authors_features()
-
-#check defenition
-logging.info("checking module definition")
-for module in pipeline:
-    if not module.is_well_defined():
-        raise Exception("module: "+ module.__class__.__name__ +" config not well defined")
-    logging.info("module "+str(module) + " is well defined")
-
-###############################################################
-## EXECUTE
-bmrk = {"config": getConfig().getfilename(), "window_start": "execute"}
-for module in pipeline:
-    logging.info("execute module: {0}".format(module))
-    T = time.time()
-    logging.info('*********Started executing ' + module.__class__.__name__)
-
-    module.execute(window_start)
-
-    logging.info('*********Finished executing ' + module.__class__.__name__)
-    T = time.time() - T
-    bmrk[module.__class__.__name__] = T
-
-num_of_authors = db.get_number_of_targeted_osn_authors(domain)
-bmrk["authors"] = num_of_authors
-
-num_of_posts = db.get_number_of_targeted_osn_posts(domain)
-bmrk["posts"] = num_of_posts
-
-bmrk_results.writerow(bmrk)
-bmrk_file.flush()
+try:
+    ###############################################################
+    ## SETUP
+    logging.config.fileConfig(getConfig().get("DEFAULT", "Logger_conf_file"))
+    config = getConfig()
+    domain = unicode(config.get("DEFAULT", "domain"))
+    logging.info("Start Execution ... ")
+    logging.info("SETUP global variables")
+    
+    window_start = getConfig().eval("DEFAULT", "start_date")
+    newbmrk = os.path.isfile("benchmark.csv")
+    bmrk_file = file("benchmark.csv", "a")
+    bmrk_results = csv.DictWriter(bmrk_file,
+                                  ["time", "jobnumber", "config", "window_size", "window_start", "dones", "posts",
+                                   "authors"] + modules_dict.keys(),
+                                  dialect="excel", lineterminator="\n")
+    
+    if not newbmrk:
+        bmrk_results.writeheader()
+    
+    logging.info("CREATE pipeline")
+    db = DB()
+    modules_dict["DB"] = lambda x: x
+    pipeline = []
+    for module in getConfig().sections():
+        parameters = {}
+        if modules_dict.get(module):
+            pipeline.append(modules_dict.get(module)(db))
+    
+    logging.info("SETUP pipeline")
+    bmrk = {"config": getConfig().getfilename(), "window_start": "setup"}
+    
+    for module in pipeline:
+        logging.info("setup module: {0}".format(module))
+        T = time.time()
+        module.setUp()
+        T = time.time() - T
+        bmrk[module.__class__.__name__] = T
+    
+    bmrk_results.writerow(bmrk)
+    bmrk_file.flush()
+    
+    clean_authors_features = getConfig().eval("DatasetBuilderConfig", "clean_authors_features_table")
+    if clean_authors_features:
+        db.delete_authors_features()
+    
+    #check defenition
+    logging.info("checking module definition")
+    for module in pipeline:
+        if not module.is_well_defined():
+            raise Exception("module: "+ module.__class__.__name__ +" config not well defined")
+        logging.info("module "+str(module) + " is well defined")
+    
+    ###############################################################
+    ## EXECUTE
+    bmrk = {"config": getConfig().getfilename(), "window_start": "execute"}
+    for module in pipeline:
+        logging.info("execute module: {0}".format(module))
+        T = time.time()
+        logging.info('*********Started executing ' + module.__class__.__name__)
+    
+        module.execute(window_start)
+    
+        logging.info('*********Finished executing ' + module.__class__.__name__)
+        T = time.time() - T
+        bmrk[module.__class__.__name__] = T
+    
+    num_of_authors = db.get_number_of_targeted_osn_authors(domain)
+    bmrk["authors"] = num_of_authors
+    
+    num_of_posts = db.get_number_of_targeted_osn_posts(domain)
+    bmrk["posts"] = num_of_posts
+    
+    bmrk_results.writerow(bmrk)
+    bmrk_file.flush()
+except:
+    logging.info('*********Fail in run process!!**********')
+    pass
+    
 
 if __name__ == '__main__':
     pass
