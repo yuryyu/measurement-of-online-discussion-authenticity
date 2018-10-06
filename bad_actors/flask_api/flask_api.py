@@ -16,11 +16,18 @@ app = Flask(__name__)
 
 ''' DB Init Part '''
 import sqlite3
-from_scrach = True
+from_scrach = False
+back_up = False
 db_path_file = '{}\\data\\input\\database.db'.format(project_folder)
-# Delete database file if it exists - case new installation
-if os.path.exists(db_path_file) and from_scrach :
-    os.remove(db_path_file)
+db_path_file_BU = db_path_file.replace(".db", "BACKUP{}.db".format(datetime.datetime.now()).replace(':',"-").replace(" ","-"))
+
+if os.path.exists(db_path_file) and back_up :
+    os.rename(db_path_file, db_path_file_BU )
+    logging.info("For existing DB made backup: " +db_path_file_BU)
+
+if from_scrach :
+    if os.path.exists(db_path_file):
+        os.remove(db_path_file)
     conn = sqlite3.connect(db_path_file)
     logging.info("Database created successfully")  
     # TODO - take table headers from csv or some external source - not hard coded
@@ -52,7 +59,7 @@ def add2list():
         except:
             con.rollback()
             logging.info("Error in insert operation")
-            abort(400)                    
+            abort(409)                    
         finally:           
             con.close()                   
     return jsonify({'Added to campaigns_list table campaign_id': request.json['campaign_id']})
@@ -61,7 +68,11 @@ def add2list():
 @app.route('/api/v1/campaigns/add_data/', methods=['POST'])
 def add_data():
     if not request.json:
-        abort(400)        
+        abort(400)
+    if not check_campaignID(request.json['campaign_id']):
+        logging.error("Error in data read operation")
+        abort(410)  
+                
     logging.info(request.json)        
     if request.method == 'POST':
         try:          
@@ -83,7 +94,10 @@ def add_data():
 
 #run Analyzer
 @app.route('/api/v1/run_analyze/<int:campaign_id>')
-def run_analyze(campaign_id):         
+def run_analyze(campaign_id):
+    if not check_campaignID(campaign_id):
+        logging.error("Error in data read operation")
+        abort(410)         
     try:
         #run_command_ex='{}\\python_run.bat {}'.format(project_folder,campaign_id) 
         #TODO - rebuild to function with return, update status in campaigns_list table 
@@ -108,23 +122,42 @@ def run_analyze(campaign_id):
 # check campaign status
 @app.route('/api/v1/campaigns/<int:campaign_id>/status', methods=['GET'])
 def check_status(campaign_id):
+    if not check_campaignID(campaign_id):
+        logging.error("Error 1in data read operation")
+        abort(410)        
+        
+    try:          
+        with sqlite3.connect(db_path_file) as con:
+            con.row_factory = sqlite3.Row            
+            cur = con.cursor()
+            cur.execute("select * from campaigns_list where campaign_id={}".format(campaign_id))    
+            campaign = cur.fetchall();            
+            logging.info("Record "+str(campaign_id)+" successfully read")            
+    except:       
+        logging.error("Error check status read operation")              
+        con.close()
+                
+    return jsonify({'Campaign ID': campaign[0]['campaign_id'],'Campagn Title': campaign[0]['title'],'Data time stamp': campaign[0]['timestamp'],'Status': campaign[0]['status'], 'Fake_news_score': campaign[0]['score']})
+
+def check_campaignID(campaign_id):    
     try:          
         with sqlite3.connect(db_path_file) as con:
             con.row_factory = sqlite3.Row            
             cur = con.cursor()
             cur.execute("select * from campaigns_list where campaign_id={}".format(campaign_id))    
             campaign = cur.fetchall();
-            if len(campaign) == 0:
-                abort(404)
-            logging.info("Record successfully read")
+            if len(campaign) == 0:                
+                logging.info("Record for campaign_id not found!")
+                con.rollback()
+                con.close()
+                return False
+            logging.info("Record for campaign_id successfully read")
     except:
-        con.rollback()
-        logging.error("Error in data read operation")    
-    finally:           
-        con.close()                          
-    # TODO: request about status from campaigns_list table       
-    return jsonify({'Campaign ID': campaign[0]['campaign_id'],'Campagn Title': campaign[0]['title'],'Data time stamp': campaign[0]['timestamp'],'Status': campaign[0]['status'], 'Fake_news_score': campaign[0]['score']})
-
+        logging.error("Error in campaign_id read operation")
+#         con.rollback()                     
+        con.close()
+        return False
+    return True
 
 ''' Handlers Part   '''
 # error handlers
@@ -139,6 +172,10 @@ def not_found(error):
 @app.errorhandler(409)
 def object_exists(error):
     return make_response(jsonify({'error': 'Item already exists'}),409)
+
+@app.errorhandler(410)
+def campaign_non_exists(error):
+    return make_response(jsonify({'error': 'Campaign does not exist'}),410)
 
 @app.errorhandler(500)
 def internal_error(error):

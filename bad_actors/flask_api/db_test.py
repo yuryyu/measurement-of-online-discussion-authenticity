@@ -19,6 +19,8 @@ db_path_file = '{}\\data\\input\\database.db'.format(project_folder)
 # Delete database file if it exists - case new installation
 if os.path.exists(db_path_file) and from_scrach :
     os.remove(db_path_file)
+    
+    os.rename(db_path_file, db_path_file.replace(".db", "BACKUP{}.db".format(datetime.datetime.now())))
     conn = sqlite3.connect(db_path_file)
     print "Database created successfully"    
     #TODO if tables doesn't exist - create 
@@ -42,10 +44,11 @@ print random.random()
 try:          
     with sqlite3.connect(db_path_file) as con:
         cur = con.cursor()              
-        cur.execute("UPDATE campaigns_list SET timestamp='{}' , status='{}' , score='{}' WHERE campaign_id={};".format(datetime.datetime.now(),'Updated', 0.7, 2))                             
-        con.commit()
+        cur.execute("select * from campaigns_list where campaign_id={}".format(4))    
+        campaign = cur.fetchall();
+        if len(campaign) == 0:
         
-        print "Record successfully updated"
+            print "Record unsuccessfully updated"
         
 except:
     con.rollback()
