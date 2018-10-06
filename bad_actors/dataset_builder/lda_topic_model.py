@@ -1,11 +1,13 @@
+from __future__ import print_function
+
 from preprocessing_tools.abstract_executor import AbstractExecutor
-from DB import *
+
 try:
     from gensim import *
 
     lda_model = models.ldamodel
 except:
-    print "WARNING! gensim is not available! This module is not usable."
+    print("WARNING! gensim is not available! This module is not usable.")
 
 from operator import itemgetter
 
@@ -36,14 +38,14 @@ class LDATopicModel(AbstractExecutor):
         logging.info("LDATopicModel execute window_start %s" % self._window_start)
         # self._db.deleteTopics(None)
         self.cleanUp()
-        curr_posts = self._db.getPostsListWithoutEmptyRowsByDate(self._window_start, self._window_end)
+        curr_posts = self._db.getPostsListWithoutEmptyRowsByDomain(self._domain)
 
         if len(curr_posts) > 0:
             post_id_to_words = self._create_post_id_to_content_words(curr_posts)
             self.calculate_topics(post_id_to_words)
 
     def _create_post_id_to_content_words(self, curr_posts):
-        post_id_to_content = {post[2]: post[6] for post in curr_posts}
+        post_id_to_content = {post[0]: post[6] for post in curr_posts}
         post_id_to_ngrams = {}
         for doc_id, content in post_id_to_content.iteritems():
             if content is not None:
@@ -77,19 +79,28 @@ class LDATopicModel(AbstractExecutor):
             ptm = self._db.create_post_topic_mapping_obj(max_topic_probability, post_id)
             post_topic_mappings.append(ptm)
         self._db.addPostTopicMappings(post_topic_mappings)
+        self._db.delete_author_topic_mapping()
         self.create_author_topic_mapping_table(post_to_topic_id)
 
     def create_author_topic_mapping_table(self, post_to_topic_id):
         authors = self._db.get_authors_by_domain(self._domain)
         self._db.create_author_topic_mapping_table(self.num_topics)
-        for author in authors:
-            posts_by_domain = self._db.get_posts_by_author_guid(author.author_guid)
-            topics_probabilities = [None] * self.num_topics
+        author_guid_posts_dict = self._db.get_author_guid_post_dict()
+        author_topic_mapping_items = []
+        for i, author in enumerate(authors):
+            if i % 1000 == 0 or i >= len(authors) - 1:
+                msg = "\rGenerate author_topic_mapping {0}/{1}".format(str(i + 1), str(len(authors)))
+                print(msg, end="")
+            posts_by_domain = author_guid_posts_dict[author.author_guid]
+            topics_probabilities = [0.0] * self.num_topics
             for post in posts_by_domain:
-                for key in post_to_topic_id[post.guid]:
-                    topics_probabilities[key] = post_to_topic_id[post.guid][key]
+                for key in post_to_topic_id[post.post_id]:
+                    topics_probabilities[key] = post_to_topic_id[post.post_id][key]
 
-            self._db.insert_into_author_toppic_mapping(author.author_guid, topics_probabilities)
+            author_topic_mapping_items.append((author.author_guid, topics_probabilities))
+
+        print()
+        self._db.insert_into_author_toppic_mappings(author_topic_mapping_items)
 
     def add_to_db_topic_object(self, topic_id):
         topic = self.model.show_topic(topic_id, self._num_of_terms_in_topic)

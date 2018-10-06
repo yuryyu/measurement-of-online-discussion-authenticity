@@ -23,3 +23,7 @@ pip install jsonschema==2.6.0
 pip install connexion==1.5.3
 pip install flask-sqlalchemy==2.3.2
 pip install flask-marshmallow==0.9.0
+pip install clarifai==2.3.2
+pip install pytesseract==0.2.5
+pip install langdetect==1.0.7
+pip install wordcloud==1.5.0

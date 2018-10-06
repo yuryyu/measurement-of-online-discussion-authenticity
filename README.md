@@ -38,12 +38,16 @@ praw                     - 6.0.0
 gensim                   - 3.5.0 
 sympy                    - 1.2
 xgboost                  - 0.80
-pillow                   - 5.2.0
+pillow         	         - 5.2.0
+flask 						1.0.2
+jsonschema 					2.6.0
+connexion					1.5.3
+flask-sqlalchemy 			2.3.2
+flask-marshmallow 			0.9.0
+clarifai 					2.3.2
+pytesseract 				0.2.5
+langdetect 					1.0.7
+wordcloud 					1.5.0
 
 
-Troubleshooting, if needed
-h. If this Error apper “distributed 1.21.8 requires msgpack, which is not
-installed.”
-Install msgpack (pip install msgpack || conda install -c anaconda msgpack-python)
-i. If this error apper “grin 1.2.1 requires argparse&gt;=1.1, which is not installed.”
-Install argparse (pip install argparse)
+
