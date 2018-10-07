@@ -16,7 +16,7 @@ app = Flask(__name__)
 
 ''' DB Init Part '''
 import sqlite3
-from_scrach = False
+from_scrach = True
 back_up = False
 db_path_file = '{}\\data\\input\\database.db'.format(project_folder)
 db_path_file_BU = db_path_file.replace(".db", "BACKUP{}.db".format(datetime.datetime.now()).replace(':',"-").replace(" ","-"))
@@ -31,7 +31,7 @@ if from_scrach :
     conn = sqlite3.connect(db_path_file)
     logging.info("Database created successfully")  
     # TODO - take table headers from csv or some external source - not hard coded
-    conn.execute('CREATE TABLE campaigns_list (campaign_id INTEGER PRIMARY KEY, title TEXT, timestamp DATETIME, status TEXT, score FLOAT)')
+    conn.execute('CREATE TABLE campaigns_list (campaign_id INTEGER PRIMARY KEY, title TEXT, category TEXT, class TEXT, date TEXT, timestamp DATETIME, status TEXT, score FLOAT)')
     conn.execute('CREATE TABLE campaigns_data (campaign_id INTEGER, tweet_ID TEXT, parent_tweet_ID TEXT, url TEXT, author TEXT, text TEXT, date DATETIME, retweets INTEGER)')
     logging.info("Tables created successfully")
     conn.close()
@@ -51,8 +51,8 @@ def add2list():
         try:          
             with sqlite3.connect(db_path_file) as con:
                 cur = con.cursor()              
-                cur.execute("INSERT INTO campaigns_list (campaign_id , title , timestamp , status , score ) VALUES (?,?,?,?,?)",
-                            (int(request.json['campaign_id']),request.json['title'],
+                cur.execute("INSERT INTO campaigns_list (campaign_id , title , category , class , date ,timestamp , status , score ) VALUES (?,?,?,?,?,?,?,?)",
+                            (int(request.json['campaign_id']),request.json['title'],request.json['category'],request.json['class'],request.json['date'],
                             "{}".format(datetime.datetime.now()),'Init',0.5))                              
                 con.commit()
                 logging.info("Record successfully added")
@@ -137,8 +137,10 @@ def check_status(campaign_id):
         logging.error("Error check status read operation")              
         con.close()
                 
-    return jsonify({'Campaign ID': campaign[0]['campaign_id'],'Campagn Title': campaign[0]['title'],'Data time stamp': campaign[0]['timestamp'],'Status': campaign[0]['status'], 'Fake_news_score': campaign[0]['score']})
-
+    return jsonify({'Campaign ID': campaign[0]['campaign_id'],'Campagn Title': campaign[0]['title'],
+                    'Category': campaign[0]['category'],'Class': campaign[0]['class'], 'Campaign date': campaign[0]['date'],
+                    'System timestamp': campaign[0]['timestamp'],'Status': campaign[0]['status'], 'Fake_news_score': campaign[0]['score']})
+#category , class , date
 def check_campaignID(campaign_id):    
     try:          
         with sqlite3.connect(db_path_file) as con:
