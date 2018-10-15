@@ -6,6 +6,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import logging.config
 from validate_json import validate_json
 from configuration.config_class import getConfig
+import urllib
+import pandas
 
 
 # setup
@@ -32,7 +34,7 @@ if from_scrach :
     logging.info("Database created successfully")  
     # TODO - take table headers from csv or some external source - not hard coded
     conn.execute('CREATE TABLE campaigns_list (campaign_id INTEGER PRIMARY KEY, title TEXT, category TEXT, class TEXT, date TEXT, timestamp DATETIME, status TEXT, score FLOAT)')
-    conn.execute('CREATE TABLE campaigns_data (campaign_id INTEGER, tweet_ID TEXT, parent_tweet_ID TEXT, url TEXT, author TEXT, text TEXT, date DATETIME, retweets INTEGER)')
+    conn.execute('CREATE TABLE campaigns_data (campaign_id INTEGER, tweet_id TEXT, parent_tweet_id TEXT, url TEXT, author_id TEXT, text TEXT, date DATETIME, retweets INTEGER, post_favorites TEXT, author_followers TEXT)')
     logging.info("Tables created successfully")
     conn.close()
     logging.info("Init DB is done!")
@@ -41,6 +43,78 @@ else:
     logging.info("Database opened successfully")
     conn.close()
     logging.info("DB check is done")
+
+
+''' download csv file to local PC '''
+def dl_save(url, localname):
+    try:   
+        csvfile = urllib.URLopener()
+        csvfile.retrieve(url, localname)
+        logging.info("donloaded csv file")
+        return True
+    except:
+        logging.error("download csv file FAILED!")
+        return False
+
+def check_campaignID(campaign_id):    
+    try:          
+        with sqlite3.connect(db_path_file) as con:
+            con.row_factory = sqlite3.Row            
+            cur = con.cursor()
+            cur.execute("select * from campaigns_list where campaign_id={}".format(campaign_id))    
+            campaign = cur.fetchall();
+            if len(campaign) == 0:                
+                logging.info("Record for campaign_id not found!")                
+                con.close()
+                return False
+            logging.info("Record for campaign_id successfully read")
+    except:
+        logging.error("Error in campaign_id read operation")                    
+        con.close()
+        return False
+    return True
+
+
+
+
+# add campaign from csv to campaings_list table and in database 
+@app.route('/api/v1/campaigns/add_campaign/', methods=['POST'])
+def add_campaign():
+    if not request.json:
+        abort(400)     
+    # check if campaign id exist
+    if not check_campaignID(request.json['campaign_id']):
+        logging.info("Campaign does not exist")
+        try:          
+            with sqlite3.connect(db_path_file) as con:
+                cur = con.cursor()              
+                cur.execute("INSERT INTO campaigns_list (campaign_id, title, category, class, date, timestamp, status, score) VALUES (?,?,?,?,?,?,?,?)",
+                            (int(request.json['campaign_id']),'Unknown','Unknown','Unknown','Unknown',"{}".format(datetime.datetime.now()),'Init',0.5))                              
+                con.commit()
+                con.close()
+                logging.info("Campaign successfully added!")
+                
+        except:
+#             con.rollback()
+            con.close()
+            logging.info("Error in add new campaign")
+#            abort(400) 
+    # add data to campaign_data table
+    try:          
+        with sqlite3.connect(db_path_file) as con:            
+            if request.json['csv_url'] != '':
+                logging.info("Adding csv file")                
+                df = pandas.read_csv(request.json['csv_url'])
+                df.to_sql("campaigns_data", con, if_exists='append', index=False)
+                logging.info("Added data from csv file")               
+    except:       
+        con.close()
+        logging.info("Error in data insert operation")
+        abort(400)                    
+    finally:           
+        con.close()                   
+    return jsonify({'Added data for campaign_id': request.json['campaign_id']})
+
 
 # add campaign to campaings_list table in database 
 @app.route('/api/v1/campaigns/add2list/', methods=['POST'])
@@ -56,6 +130,13 @@ def add2list():
                             "{}".format(datetime.datetime.now()),'Init',0.5))                              
                 con.commit()
                 logging.info("Record successfully added")
+                
+            if request.json['csv_url'] != '':
+                logging.info("Adding csv file")     
+                
+                df = pandas.read_csv(request.json['csv_url'])
+                df.to_sql("campaigns_data", con, if_exists='append', index=False)
+                logging.info("Added data from csv file")
         except:
             con.rollback()
             logging.info("Error in insert operation")
@@ -78,15 +159,15 @@ def add_data():
         try:          
             with sqlite3.connect(db_path_file) as con:
                 cur = con.cursor()              
-                cur.execute("INSERT INTO campaigns_data (campaign_id, tweet_ID, parent_tweet_ID, url, author, text, date, retweets ) VALUES (?,?,?,?,?,?,?,?)",
-                            (int(request.json['campaign_id']),request.json['tweet_ID'],request.json['parent_tweet_ID'],
-                             request.json['url'],request.json['author'],request.json['text'],request.json['date'],
-                             int(request.json['retweets'])))                             
+                cur.execute("INSERT INTO campaigns_data (campaign_id, tweet_id, parent_tweet_id, url, author_id, text, date, retweets, post_favorites, author_followers) VALUES (?,?,?,?,?,?,?,?,?,?)",
+                            (int(request.json['campaign_id']),request.json['tweet_id'],request.json['parent_tweet_id'],
+                             request.json['url'],request.json['author_id'],request.json['text'],request.json['date'],
+                             int(request.json['retweets']),request.json['post_favorites'],request.json['author_followers']))                             
                 con.commit()
                 logging.info("Record successfully added")
         except:
             con.rollback()
-            logging.info("error in insert operation")
+            logging.info("error in insert operation2")
             abort(400)        
         finally:           
             con.close()    
@@ -140,26 +221,8 @@ def check_status(campaign_id):
     return jsonify({'Campaign ID': campaign[0]['campaign_id'],'Campagn Title': campaign[0]['title'],
                     'Category': campaign[0]['category'],'Class': campaign[0]['class'], 'Campaign date': campaign[0]['date'],
                     'System timestamp': campaign[0]['timestamp'],'Status': campaign[0]['status'], 'Fake_news_score': campaign[0]['score']})
-#category , class , date
-def check_campaignID(campaign_id):    
-    try:          
-        with sqlite3.connect(db_path_file) as con:
-            con.row_factory = sqlite3.Row            
-            cur = con.cursor()
-            cur.execute("select * from campaigns_list where campaign_id={}".format(campaign_id))    
-            campaign = cur.fetchall();
-            if len(campaign) == 0:                
-                logging.info("Record for campaign_id not found!")
-                con.rollback()
-                con.close()
-                return False
-            logging.info("Record for campaign_id successfully read")
-    except:
-        logging.error("Error in campaign_id read operation")
-#         con.rollback()                     
-        con.close()
-        return False
-    return True
+
+
 
 ''' Handlers Part   '''
 # error handlers

@@ -40,15 +40,52 @@ else:
 import random
 print random.random()
 
+csvfile='\\\\localhost\\C$\\Installation\\csv_file1.csv'
 
+url="http://www.rba.gov.au/statistics/tables/csv/f17-yields.csv"
+
+import urllib
+# csvfile1 = urllib.URLopener()
+# csvfile1.retrieve(url, csvfile)
+
+# import csv
+# with open(csvfile, 'rb') as csvfile:
+#     csvreader = csv.reader(csvfile, delimiter=' ', quotechar='|')
+#     data_list=list(csvreader)
+#     header_line=list(data_list[0])
+#     print(header_line)
+    
 try:          
     with sqlite3.connect(db_path_file) as con:
-        cur = con.cursor()              
-        cur.execute("select * from campaigns_list where campaign_id={}".format(4))    
-        campaign = cur.fetchall();
-        if len(campaign) == 0:
+#         cur = con.cursor()
         
-            print "Record unsuccessfully updated"
+        import pandas
+        df = pandas.read_csv(url)
+        df.to_sql("campaigns_data", con, if_exists='append', index=False) 
+#         for ll in range(1,len(data_list)) :            
+#             cur.execute("INSERT INTO campaigns_data (campaign_id, tweet_ID, parent_tweet_ID, url, author, text, date, retweets ) VALUES (?,?,?,?,?,?,?,?)",
+#                         (int(data_list[ll][0]),# (int(request.json['campaign_id']),
+#                         data_list[ll][1],# request.json['tweet_ID'],
+#                         data_list[ll][2],# request.json['parent_tweet_ID'],
+#                         data_list[ll][3],# request.json['url'],
+#                         data_list[ll][4],# request.json['author'],
+#                         data_list[ll][5],# request.json['text'],
+#                         data_list[ll][6],# request.json['date'],
+#                         int(data_list[ll][7])))# int(request.json['retweets'])))                             
+#             con.commit()
+        
+            #logging.info("Records successfully added")
+
+
+
+# try:          
+#     with sqlite3.connect(db_path_file) as con:
+#         cur = con.cursor()              
+#         cur.execute("select * from campaigns_list where campaign_id={}".format(4))    
+#         campaign = cur.fetchall();
+#         if len(campaign) == 0:
+#         
+#             print "Record unsuccessfully updated"
         
 except:
     con.rollback()
