@@ -40,9 +40,38 @@ else:
 import random
 print random.random()
 
-csvfile='\\\\localhost\\C$\\Installation\\csv_file1.csv'
+csvfile='\\\\localhost\\C$\\Installation\\campaigns2.csv'
 
-url="http://www.rba.gov.au/statistics/tables/csv/f17-yields.csv"
+csvfile='C:\\Users\\Administrator\\Downloads\\campaigns2.csv'
+csvfile2='C:\\Users\\Administrator\\Downloads\\campaigns22.csv'
+file3='C:\\Users\\Administrator\\Downloads\\campaigns223.csv'
+#url="https://s3.us-east-2.amazonaws.com/vigeolabs/camp.csv"
+url="https://s3.us-east-2.amazonaws.com/vigeolabs/campaigns2.csv"
+
+import codecs
+
+#read input file
+with codecs.open(csvfile, 'r') as file1:
+    lines = file1.read()
+
+lines1 = lines.decode("windows-1252")
+lines2 = lines.encode('ascii','ignore')
+
+import unicodedata
+
+unicodedata.normalize('NFKD', lines).encode('ascii','ignore')
+
+#write output file
+with codecs.open(csvfile2, 'w', encoding = 'utf-8') as file2:
+    file2.write(lines1)
+    file2.close()
+from Npp import notepad
+
+import unidecode
+
+unaccented_string = unidecode.unidecode(lines)
+
+
 
 import urllib
 # csvfile1 = urllib.URLopener()
@@ -60,7 +89,8 @@ try:
 #         cur = con.cursor()
         
         import pandas
-        df = pandas.read_csv(url)
+        
+        df = pandas.read_csv(csvfile, encoding="windows-1252", quotechar='"', delimiter=',')
         df.to_sql("campaigns_data", con, if_exists='append', index=False) 
 #         for ll in range(1,len(data_list)) :            
 #             cur.execute("INSERT INTO campaigns_data (campaign_id, tweet_ID, parent_tweet_ID, url, author, text, date, retweets ) VALUES (?,?,?,?,?,?,?,?)",
@@ -75,6 +105,9 @@ try:
 #             con.commit()
         
             #logging.info("Records successfully added")
+
+
+
 
 
 

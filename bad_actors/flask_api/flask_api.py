@@ -103,10 +103,11 @@ def add_campaign():
     try:          
         with sqlite3.connect(db_path_file) as con:            
             if request.json['csv_url'] != '':
-                logging.info("Adding csv file")                
-                df = pandas.read_csv(request.json['csv_url'])
+                logging.info("Adding csv file")           
+                df = pandas.read_csv(request.json['csv_url'], encoding="windows-1252", quotechar='"', delimiter=',')                
                 df.to_sql("campaigns_data", con, if_exists='append', index=False)
-                logging.info("Added data from csv file")               
+                logging.info("Added data from csv file")
+                               
     except:       
         con.close()
         logging.info("Error in data insert operation")
@@ -133,8 +134,7 @@ def add2list():
                 
             if request.json['csv_url'] != '':
                 logging.info("Adding csv file")     
-                
-                df = pandas.read_csv(request.json['csv_url'])
+                df = pandas.read_csv(request.json['csv_url'], encoding="windows-1252", quotechar='"', delimiter=',')                
                 df.to_sql("campaigns_data", con, if_exists='append', index=False)
                 logging.info("Added data from csv file")
         except:
