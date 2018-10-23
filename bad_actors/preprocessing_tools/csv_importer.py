@@ -34,7 +34,7 @@ class CsvImporter(PostImporter):
 
         print ("Insert posts to DB")
         self.insertPostsIntoDB()
-
+ 
     def parse_csv(self, csv_file, f):
         # try:
             reader = csv.DictReader(f, delimiter=',')
