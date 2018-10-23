@@ -15,7 +15,7 @@ class LeadspottingPostsImporter(CsvImporter):
         post_dict = {}
         post_dict["content"] = unicode(["title"])
         post_dict["date"] = unicode(row["DATE"])
-        post_dict["guid"] = guid
+        post_dict["guid"] = guid.replace('-', '')
         post_dict["author"] = unicode(row["name"])
         author_guid = compute_author_guid_by_author_name(unicode(row["name"])).replace('-', '')
         post_dict["author_guid"] = author_guid
