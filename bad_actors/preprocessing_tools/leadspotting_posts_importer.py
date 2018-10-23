@@ -22,5 +22,5 @@ class LeadspottingPostsImporter(CsvImporter):
         post_dict["references"] = u""
         post_dict["domain"] = self._domain
         post_dict["author_osn_id"] = unicode(row["userId"])
-        post_dict["url"] = u"https://twitter.com/{0}/status/{1}".format(row["name"].encode(), unicode(row["userId"]))
+        post_dict["url"] = unicode(row["userUrl"])
         return post_dict
