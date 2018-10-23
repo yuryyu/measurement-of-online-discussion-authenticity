@@ -456,7 +456,7 @@ class DB():
         self.Session.configure(bind=self.engine)
 
         self.session = self.Session()
-
+ 
         self.posts = "posts"
         self.authors = "authors"
         self.author_features = "author_features"
