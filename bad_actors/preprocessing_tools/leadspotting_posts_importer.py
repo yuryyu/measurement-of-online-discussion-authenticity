@@ -1,9 +1,14 @@
 from csv_importer import CsvImporter
 from commons.commons import *
+from configuration.config_class import getConfig
+
 
 class LeadspottingPostsImporter(CsvImporter):
     def __init__(self, db):
         CsvImporter.__init__(self, db)
+        config_parser = getConfig()
+        self.start_date = config_parser.eval("DEFAULT", "start_date")
+        self.end_date = config_parser.eval("DEFAULT", "end_date")
 
     def create_post_dict_from_row(self, row):
         #guid = unicode(generate_random_guid())
