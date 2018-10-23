@@ -11,11 +11,11 @@ class LeadspottingPostsImporter(CsvImporter):
         self.end_date = config_parser.eval("DEFAULT", "end_date")
 
     def create_post_dict_from_row(self, row):
-        #guid = unicode(generate_random_guid())
+        guid = unicode(generate_random_guid())
         post_dict = {}
         post_dict["content"] = unicode(["title"])
         post_dict["date"] = unicode(row["DATE"])
-        post_dict["guid"] = unicode(row["tweetId"])
+        post_dict["guid"] = guid
         post_dict["author"] = unicode(row["name"])
         author_guid = compute_author_guid_by_author_name(unicode(row["name"])).replace('-', '')
         post_dict["author_guid"] = author_guid
