@@ -771,8 +771,7 @@ class DB():
 
         if window_start is None or window_end is None:
             query = text("SELECT EXISTS(SELECT * FROM posts WHERE (url= :url)  limit 1)")
-            self.session.text_factory = lambda x: unicode(x, 'utf-8', 'ignore')
-            result = self.session.execute(query, params=dict(url=str(url)))
+            result = self.session.execute(query, params=dict(url=unicode(url)))
             return [r for (r,) in result][0]
         else:
             query = text(
