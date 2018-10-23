@@ -15,8 +15,8 @@ class LeadspottingPostsImporter(CsvImporter):
         post_dict = {}
         post_dict["content"] = unicode(row["title"])
         post_dict["date"] = unicode(row["DATE"])
-        post_dict["guid"] = unicode(guid.replace('-', ''))
-      #  post_dict["guid"] = unicode(row["tweetId"])
+       # post_dict["guid"] = guid.replace('-', '')
+        post_dict["guid"] = unicode(row["tweetId"])
         post_dict["author"] = row["name"].replace(' ', '_').decode('utf-8')
       #  author_guid = compute_author_guid_by_author_name(unicode(row["name"]).replace('-', ''))
       #  post_dict["author_guid"] = author_guid
@@ -24,5 +24,6 @@ class LeadspottingPostsImporter(CsvImporter):
         post_dict["references"] = u""
         post_dict["domain"] = self._domain
         post_dict["author_osn_id"] = unicode(row["userId"])
-        post_dict["url"] = unicode("https://twitter.com/{0}/status/{1}".format(post_dict["author"], row["tweetId"]))
+        post_dict["url"] = unicode("https://twitter.com/{0}/status/{1}".format(post_dict["author"], row["tweetId"]).decode('utf-8'))
         return post_dict
+    
