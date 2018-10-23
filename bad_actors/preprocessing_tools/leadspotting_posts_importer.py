@@ -2,6 +2,9 @@ from csv_importer import CsvImporter
 from commons.commons import *
 
 class LeadspottingPostsImporter(CsvImporter):
+    def __init__(self, db):
+        CsvImporter.__init__(self, db)
+
     def create_post_dict_from_row(self, row):
         #guid = unicode(generate_random_guid())
         post_dict = {}
