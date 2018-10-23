@@ -110,7 +110,7 @@ class PostImporter(AbstractExecutor):  # define child class
             postsRefsDictList.append(postRefsDictList)
 
     def create_post(self, dictItem):
-        url = dictItem.get('url')
+        url = dictItem.get('url').decode('utf-8').encode('utf-16')
         author_name = unicode(dictItem.get('author'))
         publication_date = dictItem.get('date')
         post_id = dictItem.get('post_id')
