@@ -1,7 +1,7 @@
 from csv_importer import CsvImporter
 from commons.commons import *
 from configuration.config_class import getConfig
-
+encoding = 'utf-8'
 
 class LeadspottingPostsImporter(CsvImporter):
     def __init__(self, db):
@@ -22,5 +22,5 @@ class LeadspottingPostsImporter(CsvImporter):
         post_dict["references"] = u""
         post_dict["domain"] = self._domain
         post_dict["author_osn_id"] = row["userId"]
-        post_dict["url"] = u"https://twitter.com/{0}/status/{1}".format(post_dict["author"], row["userId"])
+        post_dict["url"] = u"https://twitter.com/{0}/status/{1}".format(post_dict["author"].decode(encoding), row["userId"].decode(encoding))
         return post_dict
