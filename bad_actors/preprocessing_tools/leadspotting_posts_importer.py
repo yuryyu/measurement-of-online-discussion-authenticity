@@ -26,4 +26,3 @@ class LeadspottingPostsImporter(CsvImporter):
         post_dict["author_osn_id"] = unicode(row["userId"])
         post_dict["url"] = unicode("https://twitter.com/{0}/status/{1}".format(post_dict["author"], row["tweetId"]).decode('utf-8'))
         return post_dict
-    
