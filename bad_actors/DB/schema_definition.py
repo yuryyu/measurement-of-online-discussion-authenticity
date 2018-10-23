@@ -826,7 +826,7 @@ class DB():
     def isPostNotDetailed(self, url, guid):
         q = text("SELECT EXISTS(SELECT * FROM posts WHERE (url= :url or guid= :guid) and \
             is_detailed=0 limit 1)")
-        res = self.session.execute(q, params=dict(url=str(url), guid=str(guid)))
+        res = self.session.execute(q, params=dict(url=unicode(url), guid=unicode(guid)))
         return [r for (r,) in res][0]
 
     def addReference(self, reference):
