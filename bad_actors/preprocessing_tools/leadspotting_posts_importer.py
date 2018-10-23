@@ -13,7 +13,7 @@ class LeadspottingPostsImporter(CsvImporter):
     def create_post_dict_from_row(self, row):
         guid = unicode(generate_random_guid())
         post_dict = {}
-        post_dict["content"] = unicode(["title"])
+        post_dict["content"] = unicode(row["title"])
         post_dict["date"] = unicode(row["DATE"])
         post_dict["guid"] = guid.replace('-', '')
         post_dict["author"] = unicode(row["name"])
