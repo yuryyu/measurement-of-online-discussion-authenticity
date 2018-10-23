@@ -15,15 +15,9 @@ class LeadspottingPostsImporter(CsvImporter):
         post_dict = {}
         post_dict["content"] = unicode(row["title"])
         post_dict["date"] = unicode(row["DATE"])
-<<<<<<< HEAD
         #post_dict["guid"] = guid.replace('-', '')
         post_dict["guid"] = unicode(row["tweetId"])
         post_dict["author"] = row["name"].replace(' ', '_').decode(encoding)
-=======
-        post_dict["guid"] = guid.replace('-', '')
-        #post_dict["guid"] = unicode(row["tweetId"])
-        post_dict["author"] = row["name"].replace(' ', '_').decode('utf-8')
->>>>>>> parent of c3e9a12... t
         author_guid = compute_author_guid_by_author_name(unicode(row["name"]).replace('-', ''))
         post_dict["author_guid"] = author_guid
        # post_dict["author_guid"] = unicode(row["userId"])

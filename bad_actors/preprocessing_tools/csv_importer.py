@@ -19,7 +19,6 @@ class CsvImporter(PostImporter):
         self.end_date = config_parser.eval("DEFAULT", "end_date")
         self._data_folder = self._config_parser.eval(self.__class__.__name__, "data_folder")
 
-
     def execute(self, window_start=None):
         self.readFromFolders()
         self._db.insert_or_update_authors_from_posts(self._domain, self._author_classify_dict, self._author_prop_dict)
