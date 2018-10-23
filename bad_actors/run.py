@@ -59,7 +59,6 @@ from preprocessing_tools.xml_importer import XMLImporter
 from topic_distribution_visualization.topic_distribution_visualization_generator import \
     TopicDistrobutionVisualizationGenerator
 from twitter_crawler.twitter_crawler import Twitter_Crawler
-from preprocessing_tools import leadspotting_posts_importer
 
 ###############################################################
 # MODULES
@@ -71,7 +70,7 @@ modules_dict["XMLImporter"] = XMLImporter
 modules_dict["CreateAuthorTables"] = CreateAuthorTables
 modules_dict["RankAppImporter"] = RankAppImporter
 modules_dict["JSON_Importer"] = JSON_Importer
-modules_dict["CsvImporter"] = leadspotting_posts_importer
+modules_dict["CsvImporter"] = CsvImporter
 modules_dict["GDLET_News_Importer"] = GDLET_News_Importer
 modules_dict["Twitter_Crawler"] = Twitter_Crawler
 modules_dict["MissingDataComplementor"] = MissingDataComplementor
