@@ -9,7 +9,7 @@ from configuration.config_class import getConfig
 
 #setup
 config = getConfig()
-json_file = config.get('Schema', 'json_file')
+json_file = config.get('flask_api', 'json_file')
 with open(json_file, 'r') as f:
     json_config = json.load(f)
 schema = json_config['schema']
