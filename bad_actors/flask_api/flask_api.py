@@ -179,13 +179,13 @@ def run_analyze(campaign_id):
     if not check_campaignID(campaign_id):
         logging.error("Error in data read operation")
         abort(410)         
-    try:
-        #run_command_ex='{}\\python_run.bat {}'.format(project_folder,campaign_id) 
-        #TODO - rebuild to function with return, update status in campaigns_list table 
-        #os.system(run_command_ex)        
-        print 'dummy..'
-        import random        
-        score=random.random()    
+  #  try:
+    run_command_ex='{}\\python_run.bat {}'.format(project_folder,campaign_id)
+    #TODO - rebuild to function with return, update status in campaigns_list table
+    print os.system(run_command_ex)
+    print 'dummy..'
+    #import random
+    ''' score=random.random()    
         #logging.error('Unable to run run.py')        
         with sqlite3.connect(db_path_file) as con:
             cur = con.cursor()              
@@ -197,7 +197,7 @@ def run_analyze(campaign_id):
         logging.info("Error in update operation")
         abort(500)        
     finally:           
-        con.close()      
+        con.close()  '''
     return jsonify({'Analyzer started for campaign_id: ': campaign_id})
 
 # check campaign status
