@@ -204,6 +204,24 @@ class Post_citation(Base):
             self.post_id_from, self.post_id_to, self.url_from, self.url_to)
 
 
+class Campaigns(Base):
+    
+    __tablename__ = 'campaigns'
+
+    campaign_id = Column(Unicode, primary_key=True, index=True)    
+    #post_id = Column(Unicode, ForeignKey('posts.post_id', ondelete="CASCADE"), primary_key=True)
+    campaign_date = Column(Unicode, index=True)  # need to be deleted do not use it
+    category = Column(Unicode, index=True)  # need to be deleted do not use it
+    insertion_date = Column(Unicode, index=True)
+    campaign_class = Column(Unicode, index=True)
+    fake_news_score= Column(Unicode, index=True)
+    
+    def __repr__(self):
+        return "<Campaigns(campaign_id='%s', campaign_date='%s', category='%s', insertion_date='%s', campaign_class='%s', fake_news_score='%s')>" % (
+            self.campaign_id, self.campaign_date, self.category, self.insertion_date, self.campaign_class, self.fake_news_score)
+
+
+
 class Target_Article(Base):
     __tablename__ = 'target_articles'
 
