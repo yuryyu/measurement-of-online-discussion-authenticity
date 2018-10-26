@@ -148,6 +148,7 @@ class Post(Base):
     __tablename__ = 'posts'
 
     post_id = Column(Unicode, primary_key=True, index=True)
+    
     author = Column(Unicode, default=None)
     guid = Column(Unicode, unique=True, default=None)
     title = Column(Unicode, default=None)
@@ -208,13 +209,12 @@ class Campaigns(Base):
     
     __tablename__ = 'campaigns'
 
-    campaign_id = Column(Unicode, primary_key=True, index=True)    
-    #post_id = Column(Unicode, ForeignKey('posts.post_id', ondelete="CASCADE"), primary_key=True)
-    campaign_date = Column(Unicode, index=True)  # need to be deleted do not use it
-    category = Column(Unicode, index=True)  # need to be deleted do not use it
-    insertion_date = Column(Unicode, index=True)
-    campaign_class = Column(Unicode, index=True)
-    fake_news_score= Column(Unicode, index=True)
+    campaign_id = Column(Integer, primary_key=True) 
+    campaign_date = Column(Unicode, default=None)  
+    category = Column(Unicode, default=None)  
+    insertion_date = Column(Unicode, default=None)
+    campaign_class = Column(Unicode, default=None)
+    fake_news_score= Column(FLOAT, default=0.0)
     
     def __repr__(self):
         return "<Campaigns(campaign_id='%s', campaign_date='%s', category='%s', insertion_date='%s', campaign_class='%s', fake_news_score='%s')>" % (
@@ -408,7 +408,7 @@ class Topic(Base):
     __tablename__ = "topics"
 
     topic_id = Column(Integer, primary_key=True)
-    term_id = Column(Integer, ForeignKey("terms.term_id"), primary_key=True)
+    term_id = Column(Integer, ForeignKey("terms.term_id"))
     probability = Column(FLOAT, default=None)
 
 class Text_From_Image(Base):
