@@ -144,6 +144,24 @@ class PostRetweeterConnection(Base):
             self.post_osn_id, self.retweeter_twitter_id, self.connection_type)
 
 
+class Campaigns(Base):
+    
+    __tablename__ = 'campaigns'
+
+    campaign_id = Column(Integer,  unique=True, primary_key=True) 
+    title = Column(Unicode, default=None)      
+    category = Column(Unicode, default=None) 
+    campaign_class = Column(Unicode, default=None) 
+    campaign_date = Column(Unicode, default=None)
+    insertion_date = Column(Unicode, default=None)    
+    fake_news_score= Column(FLOAT, default=0.5)
+    
+    def __repr__(self):
+        return "<Campaigns(campaign_id='%s', title='%s', category='%s', campaign_class='%s', campaign_date='%s',  insertion_date='%s',  fake_news_score='%s')>" % (
+            self.campaign_id, self.title, self.category, self.campaign_class, self.campaign_date,  self.insertion_date,  self.fake_news_score)
+
+
+
 class Post(Base):
     __tablename__ = 'posts'
 
@@ -185,10 +203,12 @@ class Post(Base):
     xml_importer_insertion_date = Column(Unicode, default=None)
     timeline_importer_insertion_date = Column(Unicode, default=None)
     original_tweet_importer_insertion_date = Column(Unicode, default=None)
+    campaign_id = Column(Integer, ForeignKey('campaigns.campaign_id', ondelete="CASCADE"), primary_key=True, default=0)
+
 
     def __repr__(self):
-        return "<Post(post_id='%s', guid='%s', title='%s', url='%s', date='%s', content='%s', author='%s', is_detailed='%s',  is_LB='%s',domain='%s',author_guid='%s')>" % (
-            self.post_id, self.guid, self.title, self.url, self.date, self.content, self.author, self.is_detailed,
+        return "<Post(campaign_id='%s', post_id='%s', guid='%s', title='%s', url='%s', date='%s', content='%s', author='%s', is_detailed='%s',  is_LB='%s',domain='%s',author_guid='%s')>" % (
+            self.campaign_id,self.post_id, self.guid, self.title, self.url, self.date, self.content, self.author, self.is_detailed,
             self.is_LB, self.domain, self.author_guid)
 
 
@@ -205,20 +225,6 @@ class Post_citation(Base):
             self.post_id_from, self.post_id_to, self.url_from, self.url_to)
 
 
-class Campaigns(Base):
-    
-    __tablename__ = 'campaigns'
-
-    campaign_id = Column(Integer, primary_key=True) 
-    campaign_date = Column(Unicode, default=None)  
-    category = Column(Unicode, default=None)  
-    insertion_date = Column(Unicode, default=None)
-    campaign_class = Column(Unicode, default=None)
-    fake_news_score= Column(FLOAT, default=0.0)
-    
-    def __repr__(self):
-        return "<Campaigns(campaign_id='%s', campaign_date='%s', category='%s', insertion_date='%s', campaign_class='%s', fake_news_score='%s')>" % (
-            self.campaign_id, self.campaign_date, self.category, self.insertion_date, self.campaign_class, self.fake_news_score)
 
 
 
