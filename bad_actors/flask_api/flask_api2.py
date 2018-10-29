@@ -17,7 +17,7 @@ app = Flask(__name__)
 
 ''' DB Init Part '''
 import sqlite3
-from_scrach = False
+from_scrach = True
 back_up = False
 db_path_file = '{}\\data\\input\\Leadspotting_twitter_database.db'.format(project_folder)
 db_path_file_BU = db_path_file.replace(".db", "BACKUP{}.db".format(datetime.datetime.now()).replace(':',"-").replace(" ","-"))
