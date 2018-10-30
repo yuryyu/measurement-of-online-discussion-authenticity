@@ -167,9 +167,8 @@ class Campaigns(Base):
 
 class CampaignsData(Base):    
     __tablename__ = 'campaigns_data'
-    campaign_id         = Column(Integer, default=0) 
-    tweet_id            = Column(Unicode, primary_key=True)
-    #tweet_id            = Column(Unicode, unique=True, primary_key=True) should be unique - TBD      
+    campaign_id         = Column(Integer, default=0)    
+    tweet_id            = Column(Unicode, primary_key=True) #should be unique - TBD      
     parent_tweet_id     = Column(Unicode, default=None) 
     url                 = Column(Unicode, default=None) 
     author_id           = Column(Unicode, default=None)
@@ -965,9 +964,9 @@ class DB():
         self.session.execute(query)
         self.session.commit()
 
-    def get_authors(self):
-        result = self.session.query(Author).all()
-        return result
+#     def get_authors(self):
+#         result = self.session.query(Author).all()
+#         return result
     def get_all_authors(self):
         result = self.session.query(Author).all()
         return result

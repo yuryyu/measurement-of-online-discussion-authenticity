@@ -157,23 +157,22 @@ def run_analyze(campaign_id):
         logging.error("Error in data read operation")
         abort(410)         
     try:
-        #run_command_ex='{}\\python_run.bat {}'.format(project_folder,campaign_id)        
-        #os.system(run_command_ex)        
-        print 'dummy..'
-        import random        
-        score=random.random()    
-        #logging.error('Unable to run run.py')        
-        with sqlite3.connect(db_path_file) as con:
-            cur = con.cursor()              
-            cur.execute("UPDATE campaigns SET insertion_date='{}' , status='{}' , fake_news_score='{}' WHERE campaign_id={};".format(datetime.datetime.now(),'Updated', score, campaign_id))                             
-            con.commit()
-            logging.info("Record successfully updated")
+        run_command_ex='{}\\prediction.bat {}'.format(project_folder,campaign_id)        
+        os.system(run_command_ex)        
+        
+#         import random        
+#         score=random.random()    
+#         #logging.error('Unable to run run.py')        
+#         with sqlite3.connect(db_path_file) as con:
+#             cur = con.cursor()              
+#             cur.execute("UPDATE campaigns SET insertion_date='{}' , status='{}' , fake_news_score='{}' WHERE campaign_id={};".format(datetime.datetime.now(),'Updated', score, campaign_id))                             
+#             con.commit()
+#             logging.info("Record successfully updated")
     except:
-        con.rollback()
-        logging.info("Error in update operation")
+        #con.rollback()
+        logging.info("Error in Analyzer run operation")
         abort(500)        
-    finally:           
-        con.close()      
+         
     return jsonify({'Analyzer started for campaign_id: ': campaign_id})
 
 # check campaign status
