@@ -27,3 +27,4 @@ pip install clarifai==2.3.2
 pip install pytesseract==0.2.5
 pip install langdetect==1.0.7
 pip install wordcloud==1.5.0
+pip install celery==4.2.1
