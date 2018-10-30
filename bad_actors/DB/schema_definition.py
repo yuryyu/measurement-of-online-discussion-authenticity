@@ -144,10 +144,58 @@ class PostRetweeterConnection(Base):
             self.post_osn_id, self.retweeter_twitter_id, self.connection_type)
 
 
+class Campaigns(Base):    
+    __tablename__ = 'campaigns'
+    campaign_id         = Column(Integer,  unique=True, primary_key=True) 
+    title               = Column(Unicode, default=None)      
+    category            = Column(Unicode, default=None) 
+    campaign_class      = Column(Unicode, default=None) 
+    campaign_date       = Column(Unicode, default=None)
+    insertion_date      = Column(Unicode, default=None)
+    status              = Column(Unicode, default=None)    
+    fake_news_score     = Column(FLOAT, default=0.5)    
+    def __repr__(self):
+        return "<Campaigns(campaign_id='%s', title='%s', category='%s', campaign_class='%s', campaign_date='%s',  insertion_date='%s', status='%s', fake_news_score='%s')>" % (
+            self.campaign_id,
+            self.title,
+            self.category,
+            self.campaign_class, 
+            self.campaign_date,  
+            self.insertion_date, 
+            self.status, 
+            self.fake_news_score)
+
+class CampaignsData(Base):    
+    __tablename__ = 'campaigns_data'
+    campaign_id         = Column(Integer,  unique=True, primary_key=True) 
+    tweet_id            = Column(Unicode, default=None)      
+    parent_tweet_id     = Column(Unicode, default=None) 
+    url                 = Column(Unicode, default=None) 
+    author_id           = Column(Unicode, default=None)
+    text                = Column(Unicode, default=None)
+    date                = Column(Unicode, default=None)    
+    retweets            = Column(Integer, default=0)
+    post_favorites      = Column(Integer, default=0)
+    author_followers    = Column(Integer, default=0)
+    
+    def __repr__(self):
+        return "<Campaigns_Data(campaign_id='%s', tweet_id='%s', parent_tweet_id='%s', url='%s', author_id='%s', text='%s', date='%s', retweets='%s', post_favorites='%s', author_followers='%s')>" % (
+            self.campaign_id, 
+            self.tweet_id, 
+            self.parent_tweet_id, 
+            self.url, 
+            self.author_id,  
+            self.text, 
+            self.date, 
+            self.retweets, 
+            self.post_favorites, 
+            self.author_followers)
+
 class Post(Base):
     __tablename__ = 'posts'
 
     post_id = Column(Unicode, primary_key=True, index=True)
+    
     author = Column(Unicode, default=None)
     guid = Column(Unicode, unique=True, default=None)
     title = Column(Unicode, default=None)
@@ -184,10 +232,12 @@ class Post(Base):
     xml_importer_insertion_date = Column(Unicode, default=None)
     timeline_importer_insertion_date = Column(Unicode, default=None)
     original_tweet_importer_insertion_date = Column(Unicode, default=None)
+    campaign_id = Column(Integer, ForeignKey('campaigns.campaign_id', ondelete="CASCADE"), primary_key=True, default=0)
+
 
     def __repr__(self):
-        return "<Post(post_id='%s', guid='%s', title='%s', url='%s', date='%s', content='%s', author='%s', is_detailed='%s',  is_LB='%s',domain='%s',author_guid='%s')>" % (
-            self.post_id, self.guid, self.title, self.url, self.date, self.content, self.author, self.is_detailed,
+        return "<Post(campaign_id='%s', post_id='%s', guid='%s', title='%s', url='%s', date='%s', content='%s', author='%s', is_detailed='%s',  is_LB='%s',domain='%s',author_guid='%s')>" % (
+            self.campaign_id,self.post_id, self.guid, self.title, self.url, self.date, self.content, self.author, self.is_detailed,
             self.is_LB, self.domain, self.author_guid)
 
 
@@ -202,6 +252,9 @@ class Post_citation(Base):
     def __repr__(self):
         return "<Post_citation(post_id_from='%s', post_id_to='%s', url_from='%s', url_to='%s')>" % (
             self.post_id_from, self.post_id_to, self.url_from, self.url_to)
+
+
+
 
 
 class Target_Article(Base):
@@ -390,7 +443,7 @@ class Topic(Base):
     __tablename__ = "topics"
 
     topic_id = Column(Integer, primary_key=True)
-    term_id = Column(Integer, ForeignKey("terms.term_id"), primary_key=True)
+    term_id = Column(Integer, ForeignKey("terms.term_id"))
     probability = Column(FLOAT, default=None)
 
 class Text_From_Image(Base):
