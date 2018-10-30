@@ -2,8 +2,6 @@
 *.log
 *.db
 *benchmark.csv
-<<<<<<< HEAD
 *.png
-=======
 *.idea*
->>>>>>> 37e9f3eef2496fe69ea343c369efaa2393e90e74
+
