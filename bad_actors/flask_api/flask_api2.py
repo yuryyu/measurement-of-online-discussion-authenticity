@@ -84,7 +84,7 @@ def add_campaign():
             if request.json['csv_url'] != '':
                 logging.info("Adding csv file")           
                 df = pandas.read_csv(request.json['csv_url'], encoding="windows-1252", quotechar='"', delimiter=',')                
-                df.to_sql("posts", con, if_exists='append', index=False)
+                df.to_sql("campaigns_data", con, if_exists='append', index=False)
                 logging.info("Added data from csv file")                               
     except:       
         con.close()
@@ -113,7 +113,7 @@ def add2list():
             if request.json['csv_url'] != '':
                 logging.info("Adding csv file")     
                 df = pandas.read_csv(request.json['csv_url'], encoding="windows-1252", quotechar='"', delimiter=',')                
-                df.to_sql("posts", con, if_exists='append', index=False)
+                df.to_sql("campaigns_data", con, if_exists='append', index=False)
                 logging.info("Added data from csv file")
         except:
             con.rollback()
