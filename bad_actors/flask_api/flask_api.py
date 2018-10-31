@@ -176,14 +176,17 @@ def add_data():
 #run Analyzer
 @app.route('/api/v1/run_analyze/<int:campaign_id>')
 def run_analyze(campaign_id):
-    '''if not check_campaignID(campaign_id):
+    if not check_campaignID(campaign_id):
         logging.error("Error in data read operation")
-        abort(410) '''
+        abort(410)
   #  try:
     run_command_ex='{}\\python_run.bat {}'.format(project_folder,campaign_id)
     #TODO - rebuild to function with return, update status in campaigns_list table
-    print os.system(run_command_ex)
-    print 'dummy..'
+    try:
+        os.system(run_command_ex)
+    except sqlite3.Error as e:
+        logging.warn(e)
+        abort(500)
     #import random
     ''' score=random.random()    
         #logging.error('Unable to run run.py')        
