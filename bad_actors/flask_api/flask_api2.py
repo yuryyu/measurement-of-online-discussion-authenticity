@@ -8,6 +8,7 @@ import logging.config
 from configuration.config_class import getConfig
 import urllib
 import pandas
+import threading
 
 # setup
 project_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -150,17 +151,25 @@ def add_data():
             con.close()    
     return jsonify({'Added data to campaigns_data table campaign_id': request.json['campaign_id']})
 
+def run_function(campaign_id):              
+    run_command_ex='"{}\\prediction_run.bat"'.format(project_folder)        
+    os.system(run_command_ex)
+    logging.info("Prediction started for campaign "+str(campaign_id))
+
 #run Analyzer
 @app.route('/api/v1/run_analyze/<int:campaign_id>')
 def run_analyze(campaign_id):
     if not check_campaignID(campaign_id):
         logging.error("Error in data read operation")
         abort(410)         
-    try:
-        import subprocess       
-        run_command_ex='"{}\\prediction_run.bat"'.format(project_folder)        
-        subprocess.call(run_command_ex)
-        logging.info("Prediction started")
+    try:        
+        prediction_run_thread = threading.Thread(target=run_function, args=[campaign_id])
+        prediction_run_thread.start()
+     
+#         import subprocess       
+#         run_command_ex='"{}\\prediction_run.bat"'.format(project_folder)        
+#         subprocess.call(run_command_ex)
+#         logging.info("Prediction started")
         #os.system(run_command_ex)        
         
 #         import random        
