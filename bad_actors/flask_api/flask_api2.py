@@ -157,8 +157,11 @@ def run_analyze(campaign_id):
         logging.error("Error in data read operation")
         abort(410)         
     try:
-        run_command_ex='{}\\prediction.bat {}'.format(project_folder,campaign_id)        
-        os.system(run_command_ex)        
+        import subprocess       
+        run_command_ex='"{}\\prediction_run.bat"'.format(project_folder)        
+        subprocess.call(run_command_ex)
+        logging.info("Prediction started")
+        #os.system(run_command_ex)        
         
 #         import random        
 #         score=random.random()    
