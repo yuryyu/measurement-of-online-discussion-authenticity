@@ -60,6 +60,7 @@ from topic_distribution_visualization.topic_distribution_visualization_generator
     TopicDistrobutionVisualizationGenerator
 from twitter_crawler.twitter_crawler import Twitter_Crawler
 from preprocessing_tools.leadspotting_posts_importer import LeadspottingPostsImporter
+from missing_data_complementor.missing_data_complementor import MissingDataComplementor
 
 ###############################################################
 # MODULES
@@ -112,6 +113,7 @@ modules_dict["Predictor"] = Predictor
 modules_dict["KNNWithLinkPrediction"] = KNNWithLinkPrediction
 modules_dict["Kernel_Performance_Evaluator"] = Kernel_Performance_Evaluator
 modules_dict["TopicDistrobutionVisualizationGenerator"] = TopicDistrobutionVisualizationGenerator
+modules_dict["MissingDataComplementor"] = MissingDataComplementor
 
 ###############################################################
 ## SETUP
