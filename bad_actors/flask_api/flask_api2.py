@@ -152,7 +152,7 @@ def add_data():
     return jsonify({'Added data to campaigns_data table campaign_id': request.json['campaign_id']})
 
 def run_function(campaign_id):              
-    run_command_ex='"{}\\prediction_run.bat"'.format(project_folder)    
+    run_command_ex='"{}\\prediction.py configuration\config_prediction.ini {}"'.format(project_folder,campaign_id)    
 #     ''' Update campaign status ''' 
 #     try:     
 #         with sqlite3.connect(db_path_file) as con:

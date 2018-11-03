@@ -6,6 +6,7 @@ import csv
 import logging.config
 import os
 import time
+import sys
 
 from DB.schema_definition import DB
 from bad_actors_collector.bad_actors_collector import BadActorsCollector
@@ -109,6 +110,8 @@ modules_dict["TopicDistrobutionVisualizationGenerator"] = TopicDistrobutionVisua
 ## SETUP
 logging.config.fileConfig(getConfig().get("DEFAULT", "Logger_conf_file"))
 config = getConfig()
+global campaign_id
+campaign_id = sys.argv[2]
 domain = unicode(config.get("DEFAULT", "domain"))
 logging.info("Start Execution ... ")
 logging.info("SETUP global variables")
@@ -142,7 +145,7 @@ for module in pipeline:
 
 ## EXECUTE
 # Update  status for campaign
-campaign_id=10 # resolve it!
+#campaign_id=10 # resolve it!
 status='"Analyzing"'
 db.update_campain_table(campaign_id, 'status', status)
 logging.info('*********Started executing update_campain_status for campaign:' + str(campaign_id))
