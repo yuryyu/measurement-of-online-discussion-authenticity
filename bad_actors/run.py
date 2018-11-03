@@ -28,6 +28,7 @@ from dataset_builder.graph_builders.topic_graph_builders.topic_graph_builder_ran
 from dataset_builder.graph_builders.word_embedding_graph_builder import GraphBuilder_Word_Embedding
 from dataset_builder.image_downloader.image_downloader import Image_Downloader
 from dataset_builder.image_recognition.image_tags_extractor import Image_Tags_Extractor
+from dataset_builder.retweet_cascade_graph_builder import GraphBuilder_RetweetCascade
 from dataset_builder.lda_topic_model import LDATopicModel
 from dataset_builder.bag_of_words_graph_builder import GraphBuilder_Bag_Of_Words
 from dataset_builder.citation_graph_builder import GraphBuilder_Citation
@@ -88,6 +89,8 @@ modules_dict["OCR_Extractor"] = OCR_Extractor
 modules_dict["TopicDistributionBuilder"] = TopicDistributionBuilder
 modules_dict["PostCitationCreator"] = PostCitationCreator
 
+
+modules_dict["GraphBuilder_RetweetCascade"] = GraphBuilder_RetweetCascade
 modules_dict["GraphBuilder_Citation"] = GraphBuilder_Citation
 modules_dict["GraphBuilder_CoCitation"] = GraphBuilder_CoCitation
 modules_dict["Randomizer"] = Randomizer

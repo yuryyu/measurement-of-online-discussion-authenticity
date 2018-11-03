@@ -7,7 +7,7 @@ import twitter
 
 
 class TwitterApiRequester:
-    def __init__(self):
+    def __init__(self, sleep_on_rate_limit=None):
         self._config_parser = getConfig()
         self._consumer_key = self._config_parser.eval("TwitterApiRequester", 'consumer_key')
         self._consumer_secret = self._config_parser.eval("TwitterApiRequester", 'consumer_secret')
@@ -15,18 +15,29 @@ class TwitterApiRequester:
         self._access_token_secret = self._config_parser.eval("TwitterApiRequester", 'access_token_secret')
         self._user_id_1 = self._config_parser.get("TwitterApiRequester", 'access_token_secret')
         self._screen_name_1 = self._config_parser.eval("TwitterApiRequester", 'screen_name')
+        if sleep_on_rate_limit is not None:
+            self._sleep_on_rate_limit = sleep_on_rate_limit
+        else:
+            try:
+                self._sleep_on_rate_limit = self._config_parser.eval("TwitterApiRequester", 'sleep_on_rate_limit')
+            except:
+                self._sleep_on_rate_limit = True
 
-        self.create_twitter_api(self._consumer_key, self._consumer_secret, self._access_token_key, self._access_token_secret)
+        self.create_twitter_api(self._consumer_key,
+                                self._consumer_secret,
+                                self._access_token_key,
+                                self._access_token_secret,
+                                self._sleep_on_rate_limit)
 
 
 
-    def create_twitter_api(self, consumer_key, consumer_secret, access_token_key, access_token_secret):
+    def create_twitter_api(self, consumer_key, consumer_secret, access_token_key, access_token_secret, sleep_on_rate_limit):
         try:
             self.api = twitter.Api(consumer_key=consumer_key,
                                    consumer_secret=consumer_secret,
                                    access_token_key=access_token_key,
                                    access_token_secret=access_token_secret,
-                                   sleep_on_rate_limit=True)
+                                   sleep_on_rate_limit=sleep_on_rate_limit)
 
             print("The twitter.Api object created")
 
@@ -128,6 +139,10 @@ class TwitterApiRequester:
         print(status)
         return status
 
+    def show_friendship(self, source, target):
+        friendship = self.api.ShowFriendship(source_user_id=source, target_user_id=target)
+        return friendship
+
     def get_timeline(self, author_name, maximal_tweets_count_in_timeline):
         timeline = self.api.GetUserTimeline(screen_name=author_name, count=maximal_tweets_count_in_timeline)
         return timeline
@@ -213,13 +228,13 @@ class TwitterApiRequester:
 
 
     def get_sleep_time_for_get_follower_ids_request(self):
-        print("---GetSleepTime /followers/ids ---")
-        logging.info("---GetSleepTime /followers/ids ---")
+        # print("---GetSleepTime /followers/ids ---")
+        # logging.info("---GetSleepTime /followers/ids ---")
 
         seconds_to_wait_object = self.api.CheckRateLimit('/statuses/retweeters/ids')
         seconds_to_wait = self.get_seconds_to_wait(seconds_to_wait_object)
-        print("Seconds to wait are: " + str(seconds_to_wait))
-        logging.info("Seconds to wait for GetSleepTime('/followers/ids') are: " + str(seconds_to_wait))
+        # print("Seconds to wait are: " + str(seconds_to_wait))
+        # logging.info("Seconds to wait for GetSleepTime('/followers/ids') are: " + str(seconds_to_wait))
         return seconds_to_wait
 
     def get_seconds_to_wait(self, seconds_to_wait_object):

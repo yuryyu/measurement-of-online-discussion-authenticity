@@ -108,6 +108,7 @@ class AuthorConnection(Base):
     destination_author_guid = Column(Unicode, primary_key=True)
     connection_type = Column(Unicode, primary_key=True)
     weight = Column(FLOAT, default=0.0)
+    claim_id = Column(Integer, ForeignKey('claims.claim_id'))
     insertion_date = Column(Unicode, default=None)
 
     def __repr__(self):
@@ -142,6 +143,20 @@ class PostRetweeterConnection(Base):
     def __repr__(self):
         return "<Post_Retweeter_Connection(post_twitter_id='%s', retweeter_twitter_id='%s', connection_type='%s')>" % (
             self.post_osn_id, self.retweeter_twitter_id, self.connection_type)
+
+
+class PostConnection(Base):
+    __tablename__ = 'post_connections'
+
+    source_post_osn_id = Column(Integer, ForeignKey('posts.post_osn_id'), primary_key=True)
+    target_post_osn_id = Column(Integer, ForeignKey('posts.post_osn_id'), primary_key=True)
+    connection_type = Column(Unicode, primary_key=True)
+    insertion_date = Column(Unicode, default=None)
+
+    def __repr__(self):
+        return "<Post_Connections(source_post_osn_id='%s', target_post_osn_id='%s', connection_type='%s', insertion_date='%s')>" % (
+            self.source_post_osn_id, self.target_post_osn_id, self.connection_type, self.insertion_date)
+
 
 
 class Post(Base):
@@ -189,6 +204,24 @@ class Post(Base):
         return "<Post(post_id='%s', guid='%s', title='%s', url='%s', date='%s', content='%s', author='%s', is_detailed='%s',  is_LB='%s',domain='%s',author_guid='%s')>" % (
             self.post_id, self.guid, self.title, self.url, self.date, self.content, self.author, self.is_detailed,
             self.is_LB, self.domain, self.author_guid)
+
+
+class Claim(Base):
+    __tablename__ = "claims"
+
+    claim_id = Column(Unicode, primary_key=True, index=True)
+    title = Column(Unicode, default=None)
+    description = Column(Unicode, default=None)
+    url = Column(Unicode, default=None)
+    verdict_date = Column(dt, default=None)
+    keywords = Column(Unicode, default=None)
+    domain = Column(Unicode, default=None)
+    verdict = Column(Unicode, default=None)
+
+    def __repr__(self):
+        return "<Claim(claim_id='%s', title='%s', description='%s', url='%s', vardict_date='%s', keywords='%s', domain='%s', verdicy='%s')>" % (
+            self.claim_id, self.title, self.description, self.url, self.verdict_date, self.keywords, self.domain, self.verdict)
+
 
 
 class Post_citation(Base):
@@ -1033,6 +1066,11 @@ class DB():
     def update_author(self, author):
         self.session.merge(author)
 
+    def update_authors(self, authors_list):
+        for au in authors_list:
+            self.update_author(au)
+        self.session.commit()
+
     def get_author_name_by_post_content(self, post_content):
         query = text("select posts.author from posts where posts.content like :post_content")
         res = self.session.execute(query, params=dict(post_content=post_content + "%"))
@@ -1266,6 +1304,16 @@ class DB():
             vector = tuple[1:]
             word_vector_dict[word] = vector
         return word_vector_dict
+
+    def add_posts_connections(self, posts_connections):
+        i = 1
+        for post_connection in posts_connections:
+            if (i % 1000 == 0):
+                msg = "\r Insert post_connection to DB: [{}".format(i) + "/" + str(len(posts_connections)) + ']'
+                print(msg, end="")
+            i += 1
+            self.session.merge(post_connection)
+        self.commit()
 
     def add_claim_connections(self, claim_connections):
         i = 1
@@ -1602,7 +1650,7 @@ class DB():
                                                                         WHERE connection_type = :connection_type)
                 AND authors.protected = 0
                 AND authors.domain = :domain
-                AND {0} > 10
+                AND {0} < 4000
                 LIMIT :limit
         """
         if (connection_type == Author_Connection_Type.FOLLOWER):
@@ -1809,18 +1857,18 @@ class DB():
             author.mark_missing_bad_actor_retweeters_insertion_date = now
 
     def create_author_connections(self, source_id, destination_author_ids, weight, author_connection_type,
-                                  insertion_date):
+                                  insertion_date, claim_id=-1):
         print("---create_author_connections---\n")
         author_connections = []
         for destination_author_id in destination_author_ids:
             author_connection = self.create_author_connection(source_id, destination_author_id, weight,
-                                                              author_connection_type, insertion_date)
+                                                              author_connection_type, insertion_date, claim_id)
             author_connections.append(author_connection)
 
         return author_connections
 
     def create_author_connection(self, source_author_guid, destination_author_guid, weight, connection_type,
-                                 insertion_date):
+                                 insertion_date, claim_id=-1):
         # print("---create_author_connection---")
         author_connection = AuthorConnection()
 
@@ -1832,6 +1880,7 @@ class DB():
         author_connection.connection_type = unicode(connection_type)
         author_connection.weight = unicode(weight)
         author_connection.insertion_date = insertion_date
+        author_connection.claim_id = claim_id
 
         return author_connection
 
@@ -1843,9 +1892,9 @@ class DB():
         save_author_connections_time = save_author_connections_end_time - save_author_connections_start_time
         print("Saving author connections in DB took in seconds: " + str(save_author_connections_time))
 
-    def create_and_save_author_connections(self, source_author_id, follower_ids, weight, connection_type):
+    def create_and_save_author_connections(self, source_author_id, follower_ids, weight, connection_type, claim_id=-1):
         author_connections = self.create_author_connections(source_author_id, follower_ids, weight, connection_type,
-                                                            self._window_start)
+                                                            self._window_start, claim_id)
         self.save_author_connections(author_connections)
 
     def get_author_connections_by_type(self, connection_type):
@@ -2674,6 +2723,22 @@ class DB():
         rows = list(cursor.fetchall())
         return rows
 
+    def add_claim(self, claim_obj):
+        self.session.merge(claim_obj)
+
+    def add_claims(self, claims_obj_list):
+        for claim_obj in claims_obj_list:
+            self.add_claim(claim_obj)
+        self.session.commit()
+
+    def insert_or_update_claims(self, claims):
+        claims_list = []
+        for claim in claims:
+            claim_obj = Claim()
+            claim_obj.claim_id = claim
+            claims_list.append(claim_obj)
+        self.add_claims(claims_list)
+
     def insert_or_update_authors_from_posts(self, domain, author_classify_dict, author_prop_dict):
         authors_to_update = []
         posts = self.session.query(Post).filter(Post.domain == domain).all()
@@ -2821,11 +2886,11 @@ class DB():
 
     def create_temp_author_connections(self, source_author_id, destination_author_ids, author_connection_type,
                                        insertion_date):
-        print("---create_temp_author_connections---")
+        # print("---create_temp_author_connections---")
         author_connections = []
         for i, destination_author_id in enumerate(destination_author_ids):
-            if i % 100 == 0:
-                print('author connection generated {0}/{1}'.format(i, len(destination_author_ids)))
+            # if i % 2000 == 0:
+            #     print('author connection generated {0}/{1}'.format(i, len(destination_author_ids)))
             author_connection = self.create_temp_author_connection(source_author_id, destination_author_id,
                                                                    author_connection_type, insertion_date)
             author_connections.append(author_connection)
@@ -2834,8 +2899,8 @@ class DB():
 
     def create_temp_author_connection(self, source_author_id, destination_author_id, connection_type, insertion_date):
         temp_author_connection = TempAuthorConnection()
-        print("Temp author connection: source -> " + str(source_author_id) + ", dest -> " + str(
-            destination_author_id) + ", connection type = " + connection_type)
+        # print("Temp author connection: source -> " + str(source_author_id) + ", dest -> " + str(
+        #     destination_author_id) + ", connection type = " + connection_type)
         temp_author_connection.source_author_osn_id = source_author_id
         temp_author_connection.destination_author_osn_id = destination_author_id
         temp_author_connection.connection_type = unicode(connection_type)
@@ -2934,6 +2999,34 @@ class DB():
             author_guid = author.author_guid
             author_osn_id_author_guid_dict[author_osn_id] = author_guid
         return author_osn_id_author_guid_dict
+
+    def get_posts_in_claim(self,claim_id):
+        query = """
+        
+        SELECT posts.post_osn_id, connections.source_post_osn_id, posts.author, authors.author_osn_id, authors.author_guid, authors.followers_count from posts 
+            INNER JOIN post_connections as connections on connections.target_post_osn_id=posts.post_osn_id
+            INNER JOIN claim_tweet_connection on posts.post_id = claim_tweet_connection.post_id
+            INNER JOIN authors on posts.author_guid=authors.author_guid
+        WHERE claim_tweet_connection.claim_id = {0} 
+        
+        """.format(claim_id)
+        query = text(query)
+        result = self.session.execute(query)
+        cursor = result.cursor
+        generator = self.result_iter(cursor)
+        return list(generator)
+
+
+    def get_claims(self):
+        query = """
+        SELECT claim_id from claims
+        """
+
+        query = text(query)
+        result = self.session.execute(query)
+        generator = self.result_iter(result)
+        return list(generator)
+
 
     def get_topic_with_maximal_posts(self):
         query = """

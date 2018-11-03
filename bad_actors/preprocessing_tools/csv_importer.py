@@ -39,8 +39,12 @@ class CsvImporter(PostImporter):
         # try:
             reader = csv.DictReader(f, delimiter=',')
             for row in reader:
-                post_dict = self.create_post_dict_from_row(row)
-                self._listdic.append(post_dict.copy())
+                try:
+                    post_dict = self.create_post_dict_from_row(row)
+                    self._listdic.append(post_dict.copy())
+                except:
+                    print "[-] Failed to parse row"
+
 
         # except:
         #     self.logger.error("Cant encode the post:{0}".format(csv_file))
