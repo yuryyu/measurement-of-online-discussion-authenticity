@@ -95,7 +95,6 @@ def add_campaign():
         con.close()                   
     return jsonify({'Added data for campaign_id': request.json['campaign_id']})
 
-
 # add campaign to campaings_list table in database 
 @app.route('/api/v1/campaigns/add2list/', methods=['POST'])
 def add2list():
@@ -109,8 +108,7 @@ def add2list():
                             (int(request.json['campaign_id']),request.json['title'],request.json['category'],request.json['class'],request.json['date'],
                             "{}".format(datetime.datetime.now()),'Init',0.5))                              
                 con.commit()
-                logging.info("Record successfully added")
-                
+                logging.info("Record successfully added")                
             if request.json['csv_url'] != '':
                 logging.info("Adding csv file")     
                 df = pandas.read_csv(request.json['csv_url'], encoding="windows-1252", quotechar='"', delimiter=',')                
@@ -152,31 +150,10 @@ def add_data():
     return jsonify({'Added data to campaigns_data table campaign_id': request.json['campaign_id']})
 
 def run_function(campaign_id):              
-    run_command_ex='"{}\\prediction.py configuration\config_prediction.ini {}"'.format(project_folder,campaign_id)    
-#     ''' Update campaign status ''' 
-#     try:     
-#         with sqlite3.connect(db_path_file) as con:
-#             cur = con.cursor()              
-#             cur.execute("UPDATE campaigns SET  status='{}'  WHERE campaign_id={};".format('Analyzing data', campaign_id))                             
-#             con.commit()
-#             logging.info("Record successfully updated")
-#     except:
-#         con.close()
-#         logging.info("error in run function")        
+    run_command_ex='"{}\\prediction.py configuration\config_prediction.ini {}"'.format(project_folder,campaign_id)       
     logging.info("Prediction started for campaign "+str(campaign_id))           
     os.system(run_command_ex)
     logging.info("Prediction ended for campaign "+str(campaign_id))
-#     try: 
-#         ''' Update campaign status '''      
-#         with sqlite3.connect(db_path_file) as con:
-#             cur = con.cursor()              
-#             cur.execute("UPDATE campaigns SET  status='{}'  WHERE campaign_id={};".format('Analyzed', campaign_id))                             
-#             con.commit()
-#             logging.info("Record successfully updated")
-#     except:
-#         con.close()
-#         logging.info("error in run function")
-
 
 #run Analyzer
 @app.route('/api/v1/run_analyze/<int:campaign_id>')
@@ -186,13 +163,10 @@ def run_analyze(campaign_id):
         abort(410)         
     try:        
         prediction_run_thread = threading.Thread(target=run_function, args=[campaign_id])
-        prediction_run_thread.start()
-        
-    except:
-        #con.rollback()
+        prediction_run_thread.start()        
+    except:        
         logging.info("Error in Analyzer run operation")
         abort(500)        
-         
     return jsonify({'Analyzer started for campaign_id: ': campaign_id})
 
 # check campaign status

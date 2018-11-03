@@ -3572,12 +3572,7 @@ class DB():
         update_query = "UPDATE campaigns SET " + key + "=" + str(
             value) + " WHERE campaign_id=" + str(campaign_id)
         self.update_query(update_query)        
-    
-    
-    
-    
-    
-    
+   
     
     
     
