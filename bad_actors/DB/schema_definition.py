@@ -3565,3 +3565,26 @@ class DB():
         # ans[u'max'] = self.get_author_guid_word_embedding_vector_dict(table_name, target_field_name, u'max')[author_guid]
         # ans[u'np.mean'] = self.get_author_guid_word_embedding_vector_dict(table_name, target_field_name, u'np.mean')[author_guid]
         return ans
+    
+    
+    def update_campain_status(self, campaign_id, status):        
+        # added by YY
+        query = """
+                UPDATE campaigns 
+                SET  status=status
+                WHERE campaign_id=campaign_id               
+        """
+        query = text(query)
+        self.session.execute(query, params=dict(campaign_id=campaign_id, status=status))
+                
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    

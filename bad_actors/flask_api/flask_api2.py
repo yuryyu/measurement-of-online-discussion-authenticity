@@ -156,6 +156,9 @@ def run_function(campaign_id):
     os.system(run_command_ex)
     logging.info("Prediction started for campaign "+str(campaign_id))
 
+
+
+
 #run Analyzer
 @app.route('/api/v1/run_analyze/<int:campaign_id>')
 def run_analyze(campaign_id):
@@ -165,21 +168,12 @@ def run_analyze(campaign_id):
     try:        
         prediction_run_thread = threading.Thread(target=run_function, args=[campaign_id])
         prediction_run_thread.start()
-     
-#         import subprocess       
-#         run_command_ex='"{}\\prediction_run.bat"'.format(project_folder)        
-#         subprocess.call(run_command_ex)
-#         logging.info("Prediction started")
-        #os.system(run_command_ex)        
-        
-#         import random        
-#         score=random.random()    
-#         #logging.error('Unable to run run.py')        
-#         with sqlite3.connect(db_path_file) as con:
-#             cur = con.cursor()              
-#             cur.execute("UPDATE campaigns SET insertion_date='{}' , status='{}' , fake_news_score='{}' WHERE campaign_id={};".format(datetime.datetime.now(),'Updated', score, campaign_id))                             
-#             con.commit()
-#             logging.info("Record successfully updated")
+        ''' Update campaign status '''      
+        with sqlite3.connect(db_path_file) as con:
+            cur = con.cursor()              
+            cur.execute("UPDATE campaigns SET  status='{}'  WHERE campaign_id={};".format('Analyzing data', campaign_id))                             
+            con.commit()
+            logging.info("Record successfully updated")
     except:
         #con.rollback()
         logging.info("Error in Analyzer run operation")

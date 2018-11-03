@@ -58,10 +58,8 @@ from topic_distribution_visualization.topic_distribution_visualization_generator
     TopicDistrobutionVisualizationGenerator
 from twitter_crawler.twitter_crawler import Twitter_Crawler
 
-###############################################################
-# MODULES
-###############################################################
 
+# MODULES
 modules_dict = {}
 modules_dict["DB"] = DB  ## DB is special, it cannot be created using db.
 modules_dict["XMLImporter"] = XMLImporter
@@ -107,7 +105,7 @@ modules_dict["KNNWithLinkPrediction"] = KNNWithLinkPrediction
 modules_dict["Kernel_Performance_Evaluator"] = Kernel_Performance_Evaluator
 modules_dict["TopicDistrobutionVisualizationGenerator"] = TopicDistrobutionVisualizationGenerator
 
-###############################################################
+
 ## SETUP
 logging.config.fileConfig(getConfig().get("DEFAULT", "Logger_conf_file"))
 config = getConfig()
@@ -116,15 +114,6 @@ logging.info("Start Execution ... ")
 logging.info("SETUP global variables")
 
 window_start = getConfig().eval("DEFAULT", "start_date")
-# newbmrk = os.path.isfile("benchmark.csv")
-# bmrk_file = file("benchmark.csv", "a")
-# bmrk_results = csv.DictWriter(bmrk_file,
-#                               ["time", "jobnumber", "config", "window_size", "window_start", "dones", "posts",
-#                                "authors"] + modules_dict.keys(),
-#                               dialect="excel", lineterminator="\n")
-# 
-# if not newbmrk:
-#     bmrk_results.writeheader()
 
 logging.info("CREATE pipeline")
 db = DB()
@@ -136,17 +125,9 @@ for module in getConfig().sections():
         pipeline.append(modules_dict.get(module)(db))
 
 logging.info("SETUP pipeline")
-# bmrk = {"config": getConfig().getfilename(), "window_start": "setup"}
-
 for module in pipeline:
     logging.info("setup module: {0}".format(module))
-#     T = time.time()
     module.setUp()
-#     T = time.time() - T
-#     bmrk[module.__class__.__name__] = T
-
-# bmrk_results.writerow(bmrk)
-# bmrk_file.flush()
 
 clean_authors_features = getConfig().eval("DatasetBuilderConfig", "clean_authors_features_table")
 if clean_authors_features:
@@ -159,28 +140,28 @@ for module in pipeline:
         raise Exception("module: "+ module.__class__.__name__ +" config not well defined")
     logging.info("module "+str(module) + " is well defined")
 
-###############################################################
 ## EXECUTE
-# bmrk = {"config": getConfig().getfilename(), "window_start": "execute"}
+# Update  status for campaign
+campaign_id=10 # resolve it!
+status='Analyze started'
+db.update_campain_status(campaign_id, status)
+logging.info('*********Started executing update_campain_status for campaign:' + str(campaign_id))
+
 for module in pipeline:
     logging.info("execute module: {0}".format(module))
-#     T = time.time()
     logging.info('*********Started executing ' + module.__class__.__name__)
-
     module.execute(window_start)
-
     logging.info('*********Finished executing ' + module.__class__.__name__)
-#     T = time.time() - T
-#     bmrk[module.__class__.__name__] = T
 
 num_of_authors = db.get_number_of_targeted_osn_authors(domain)
-# bmrk["authors"] = num_of_authors
-
 num_of_posts = db.get_number_of_targeted_osn_posts(domain)
-# bmrk["posts"] = num_of_posts
 
-# bmrk_results.writerow(bmrk)
-# bmrk_file.flush()
+
+# Update  status for campaign
+status='Analyze is done'
+db.update_campain_status(campaign_id, status)
+logging.info('*********Finished executing update_campain_status for campaign:' + str(campaign_id))
+
 
 if __name__ == '__main__':
     
