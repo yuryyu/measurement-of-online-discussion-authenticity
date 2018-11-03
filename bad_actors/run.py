@@ -59,7 +59,7 @@ from preprocessing_tools.xml_importer import XMLImporter
 from topic_distribution_visualization.topic_distribution_visualization_generator import \
     TopicDistrobutionVisualizationGenerator
 from twitter_crawler.twitter_crawler import Twitter_Crawler
-
+from missing_data_complementor.missing_data_complementor import MissingDataComplementor
 ###############################################################
 # MODULES
 ###############################################################
@@ -110,7 +110,7 @@ modules_dict["Predictor"] = Predictor
 modules_dict["KNNWithLinkPrediction"] = KNNWithLinkPrediction
 modules_dict["Kernel_Performance_Evaluator"] = Kernel_Performance_Evaluator
 modules_dict["TopicDistrobutionVisualizationGenerator"] = TopicDistrobutionVisualizationGenerator
-
+modules_dict["MissingDataComplementor"] = MissingDataComplementor
 ###############################################################
 ## SETUP
 logging.config.fileConfig(getConfig().get("DEFAULT", "Logger_conf_file"))
