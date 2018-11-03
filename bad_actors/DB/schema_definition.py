@@ -3567,16 +3567,11 @@ class DB():
         return ans
     
     
-    def update_campain_status(self, campaign_id, status):        
+    def update_campain_table(self, campaign_id, key, value):        
         # added by YY
-        query = """
-                UPDATE campaigns 
-                SET  status=status
-                WHERE campaign_id=campaign_id               
-        """
-        query = text(query)
-        self.session.execute(query, params=dict(campaign_id=campaign_id, status=status))
-                
+        update_query = "UPDATE campaigns SET " + key + "=" + str(
+            value) + " WHERE campaign_id=" + str(campaign_id)
+        self.update_query(update_query)        
     
     
     

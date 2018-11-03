@@ -153,29 +153,29 @@ def add_data():
 
 def run_function(campaign_id):              
     run_command_ex='"{}\\prediction_run.bat"'.format(project_folder)    
-    ''' Update campaign status ''' 
-    try:     
-        with sqlite3.connect(db_path_file) as con:
-            cur = con.cursor()              
-            cur.execute("UPDATE campaigns SET  status='{}'  WHERE campaign_id={};".format('Analyzing data', campaign_id))                             
-            con.commit()
-            logging.info("Record successfully updated")
-    except:
-        con.close()
-        logging.info("error in run function")        
+#     ''' Update campaign status ''' 
+#     try:     
+#         with sqlite3.connect(db_path_file) as con:
+#             cur = con.cursor()              
+#             cur.execute("UPDATE campaigns SET  status='{}'  WHERE campaign_id={};".format('Analyzing data', campaign_id))                             
+#             con.commit()
+#             logging.info("Record successfully updated")
+#     except:
+#         con.close()
+#         logging.info("error in run function")        
     logging.info("Prediction started for campaign "+str(campaign_id))           
     os.system(run_command_ex)
     logging.info("Prediction ended for campaign "+str(campaign_id))
-    try: 
-        ''' Update campaign status '''      
-        with sqlite3.connect(db_path_file) as con:
-            cur = con.cursor()              
-            cur.execute("UPDATE campaigns SET  status='{}'  WHERE campaign_id={};".format('Analyzed', campaign_id))                             
-            con.commit()
-            logging.info("Record successfully updated")
-    except:
-        con.close()
-        logging.info("error in run function")
+#     try: 
+#         ''' Update campaign status '''      
+#         with sqlite3.connect(db_path_file) as con:
+#             cur = con.cursor()              
+#             cur.execute("UPDATE campaigns SET  status='{}'  WHERE campaign_id={};".format('Analyzed', campaign_id))                             
+#             con.commit()
+#             logging.info("Record successfully updated")
+#     except:
+#         con.close()
+#         logging.info("error in run function")
 
 
 #run Analyzer

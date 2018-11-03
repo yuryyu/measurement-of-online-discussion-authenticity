@@ -143,8 +143,8 @@ for module in pipeline:
 ## EXECUTE
 # Update  status for campaign
 campaign_id=10 # resolve it!
-status='Analyze started'
-db.update_campain_status(campaign_id, status)
+status='"Analyzing"'
+db.update_campain_table(campaign_id, 'status', status)
 logging.info('*********Started executing update_campain_status for campaign:' + str(campaign_id))
 
 for module in pipeline:
@@ -156,10 +156,11 @@ for module in pipeline:
 num_of_authors = db.get_number_of_targeted_osn_authors(domain)
 num_of_posts = db.get_number_of_targeted_osn_posts(domain)
 
-
 # Update  status for campaign
-status='Analyze is done'
-db.update_campain_status(campaign_id, status)
+status='"Analyzed"'
+db.update_campain_table(campaign_id, 'status', status)
+fake_news_score=0.67
+db.update_campain_table(campaign_id, 'fake_news_score', fake_news_score)
 logging.info('*********Finished executing update_campain_status for campaign:' + str(campaign_id))
 
 
