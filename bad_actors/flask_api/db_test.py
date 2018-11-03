@@ -21,6 +21,7 @@ import subprocess
        
         
 run_command_ex='"{}\\prediction_run.bat"'.format(project_folder)        
+<<<<<<< HEAD
 #subprocess.call(run_command_ex)
 print "Prediction started"
 camp=[10]
@@ -40,6 +41,10 @@ def function_that_downloads(camp):
     os.system(run_command_ex)
 
 
+=======
+subprocess.call(run_command_ex)
+print "Prediction started"
+>>>>>>> parent of 36382d1... Revert "Merge branch 'Yury' of https://github.com/yuryyu/measurement-of-online-discussion-authenticity into Yury"
 # csvfile='\\\\localhost\\C$\\Installation\\campaigns2.csv'
 # 
 # 
@@ -99,12 +104,17 @@ def function_that_downloads(camp):
 #     print "Error in insert operation"                   
 # finally:           
 #     con.close()
+<<<<<<< HEAD
 # 
 
 if __name__ == '__main__':
     
     my_inline_function()        
     print "Done"            
+=======
+#             
+print "Done"            
+>>>>>>> parent of 36382d1... Revert "Merge branch 'Yury' of https://github.com/yuryyu/measurement-of-online-discussion-authenticity into Yury"
             
             
             
