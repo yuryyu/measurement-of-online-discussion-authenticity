@@ -176,9 +176,12 @@ class GraphBuilder_RetweetCascade(GraphBuilder):
         for grp in grps:
             if grp[0] == 0:
                 continue
-            discovery_map = self.generate_graph_for_retweet_cascade(grp[1], claim_df)
-            for key, value in discovery_map.items():
-                aggregated_dict[key] = aggregated_dict.get(key, set()).union([value])
+            try:
+                discovery_map = self.generate_graph_for_retweet_cascade(grp[1], claim_df)
+                for key, value in discovery_map.items():
+                    aggregated_dict[key] = aggregated_dict.get(key, set()).union([value])
+            except Exception as e:
+                print "Failed to generate graph for group :{0}. Reason: {1}".format(grp, e)
         self.save_cascade_graph_for_claim(aggregated_dict, claim_df, claim_id)
 
     def execute(self, window_start):
@@ -188,7 +191,7 @@ class GraphBuilder_RetweetCascade(GraphBuilder):
             try:
                 self.generate_graph_for_claim(claim[0])
             except Exception as e:
-                print("Failed for claim_id : {0}".format(claim))
+                print("Failed for claim_id : {0}".format(e))
 '''
     def test_quota_times(users):
         st = datetime.datetime.now()
