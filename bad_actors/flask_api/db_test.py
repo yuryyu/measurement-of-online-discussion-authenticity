@@ -21,8 +21,25 @@ import subprocess
        
         
 run_command_ex='"{}\\prediction_run.bat"'.format(project_folder)        
-subprocess.call(run_command_ex)
+#subprocess.call(run_command_ex)
 print "Prediction started"
+camp=[10]
+
+import threading
+def my_inline_function():
+    # do some stuff
+    download_thread = threading.Thread(target=function_that_downloads, args=camp)
+    download_thread.start()
+    print  "after thread started"
+
+
+def function_that_downloads(camp):
+    print camp
+    
+    run_command_ex='"{}\\prediction_run.bat"'.format(project_folder) 
+    os.system(run_command_ex)
+
+
 # csvfile='\\\\localhost\\C$\\Installation\\campaigns2.csv'
 # 
 # 
@@ -82,8 +99,12 @@ print "Prediction started"
 #     print "Error in insert operation"                   
 # finally:           
 #     con.close()
-#             
-print "Done"            
+# 
+
+if __name__ == '__main__':
+    
+    my_inline_function()        
+    print "Done"            
             
             
             
