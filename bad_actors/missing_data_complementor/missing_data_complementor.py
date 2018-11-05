@@ -24,7 +24,7 @@ RetweetData = namedtuple('RetweetData', ['retweet_guid', 'retweet_url', 'tweet_g
 
 class MissingDataComplementor(Method_Executor):
     def __init__(self, db):
-        AbstractExecutor.__init__(self, db)
+        Method_Executor.__init__(self, db)
         self._actions = self._config_parser.eval(self.__class__.__name__, "actions")
 
         self._minimal_num_of_posts = self._config_parser.eval(self.__class__.__name__, "minimal_num_of_posts")
@@ -43,6 +43,16 @@ class MissingDataComplementor(Method_Executor):
 
     def setUp(self):
         pass
+
+    def fill_author_guid_to_posts(self):
+        posts = self._db.get_posts()
+        num_of_posts = len(posts)
+        for i, post in enumerate(posts):
+            msg = "\rPosts to fill: [{0}/{1}]".format(i, num_of_posts)
+            print(msg, end="")
+            post.author_guid = compute_author_guid_by_author_name(post.author)
+        self._db.addPosts(posts)
+        self._db.insert_or_update_authors_from_posts(self._domain, {}, {})
 
     def fill_data_for_followers(self):
         self._fill_data_for_author_connection_type(Author_Connection_Type.FOLLOWER)
@@ -158,7 +168,7 @@ class MissingDataComplementor(Method_Executor):
     def _update_suspended_authors_by_screen_names(self, author_names_of_suspendend_or_not_exists):
         for author_name in author_names_of_suspendend_or_not_exists:
             user_guid = compute_author_guid_by_author_name(author_name).replace("-", "")
-            suspended_author = self._db.get_author_by_author_guid(user_guid)[0]
+            suspended_author = self._db.get_author_by_author_guid(user_guid)
 
             suspended_author.is_suspended_or_not_exists = self._window_start
             suspended_author.author_type = Author_Type.BAD_ACTOR
@@ -334,8 +344,6 @@ class MissingDataComplementor(Method_Executor):
                             continue
                         posts_counter = posts_counter + 1
                         tweet_author_guid = compute_author_guid_by_author_name(author_name)
-                        tweet_author_guid = cleanForAuthor(tweet_author_guid)
-                        tweet_content = post.text
                         post = self._db.create_post_from_tweet_data(post, self._domain)
                         posts.append(post)
             except Exception as e:
@@ -366,4 +374,3 @@ class MissingDataComplementor(Method_Executor):
             author_screen_names_number_of_posts_dict[author_screen_name] = num_of_posts
         logging.info("Number of users to retrieve timelines: " + str(len(author_screen_names_number_of_posts_dict)))
         return author_screen_names_number_of_posts_dict
-

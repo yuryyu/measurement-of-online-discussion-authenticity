@@ -9,7 +9,6 @@ from commons.commons import * #common and builtin functions can be used in confi
 __config =None
 __config_file = None
 
-
 def getConfig():
     """
     @description: config file given as the first commnand line param.
@@ -20,7 +19,7 @@ def getConfig():
         return __config
     else:
         try:
-            __config_file = sys.argv[1]            
+            __config_file = sys.argv[1]
             logging.info("config file %s"%__config_file)
             __config = ConfigParser.ConfigParser()
             __config.read(__config_file)

@@ -24,7 +24,7 @@ class TestBadActorCollector(unittest.TestCase):
         self._bad_actor_collector = BadActorsCollector(self.db)
 
         #The Author and Post for test_mark_missing_bad_retweeters_retrieved_from_vico
-        self._author_guid1 = u'05cd2e04ffaf3c5dabd03d13b63afab6'
+        self._author_guid1 = compute_author_guid_by_author_name(u'TechmarketNG')
         author = Author()
         author.name = u'TechmarketNG'
         author.domain = self._domain
@@ -63,8 +63,7 @@ class TestBadActorCollector(unittest.TestCase):
         self.create_author_table.setUp()
         self.create_author_table.execute(getConfig().eval("DEFAULT","start_date"))
         self._bad_actor_collector.execute()
-        res = self.db.get_author_by_author_guid_and_domain(u'5371821e67b53582bffbb293b2554dda', self._domain)
-        author = res[0]
+        author = self.db.get_author_by_author_guid(u'5371821e-67b5-3582-bffb-b293b2554dda')
         self.assertTrue(author.xml_importer_insertion_date != None and author.bad_actors_collector_insertion_date != None)
         self.db.session.close()
 
@@ -80,7 +79,7 @@ class TestBadActorCollector(unittest.TestCase):
     def test_mark_missing_bad_retweeters_retrieved_from_vico(self):
         self._bad_actor_collector.mark_missing_bad_retweeters()
         test = False
-        author = self.db.get_author_by_author_guid(self._author_guid1)[0]
+        author = self.db.get_author_by_author_guid(self._author_guid1)
         if(author.mark_missing_bad_actor_retweeters_insertion_date != None and author.author_type == Author_Type.BAD_ACTOR):
             test = True
         self.assertTrue(test)
@@ -100,8 +99,8 @@ class TestBadActorCollector(unittest.TestCase):
         try:
             self._bad_actor_collector._actions = ['ggg', 'crawl_bad_actors_followers']
             self._bad_actor_collector.execute()
-            author_guid = compute_author_guid_by_author_name(u'AnikaAhammed1').replace('-','')
-            author = self.db.get_author_by_author_guid(author_guid)[0]
+            author_guid = compute_author_guid_by_author_name(u'AnikaAhammed1')
+            author = self.db.get_author_by_author_guid(author_guid)
             if (author.bad_actors_collector_insertion_date == None or author.description == None):
                 test = False
         except:

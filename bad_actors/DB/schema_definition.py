@@ -195,7 +195,6 @@ class Post(Base):
     __tablename__ = 'posts'
 
     post_id = Column(Unicode, primary_key=True, index=True)
-    
     author = Column(Unicode, default=None)
     guid = Column(Unicode, unique=True, default=None)
     title = Column(Unicode, default=None)
@@ -232,12 +231,10 @@ class Post(Base):
     xml_importer_insertion_date = Column(Unicode, default=None)
     timeline_importer_insertion_date = Column(Unicode, default=None)
     original_tweet_importer_insertion_date = Column(Unicode, default=None)
-    campaign_id = Column(Integer, ForeignKey('campaigns.campaign_id', ondelete="CASCADE"), primary_key=True, default=0)
-
 
     def __repr__(self):
-        return "<Post(campaign_id='%s', post_id='%s', guid='%s', title='%s', url='%s', date='%s', content='%s', author='%s', is_detailed='%s',  is_LB='%s',domain='%s',author_guid='%s')>" % (
-            self.campaign_id,self.post_id, self.guid, self.title, self.url, self.date, self.content, self.author, self.is_detailed,
+        return "<Post(post_id='%s', guid='%s', title='%s', url='%s', date='%s', content='%s', author='%s', is_detailed='%s',  is_LB='%s',domain='%s',author_guid='%s')>" % (
+            self.post_id, self.guid, self.title, self.url, self.date, self.content, self.author, self.is_detailed,
             self.is_LB, self.domain, self.author_guid)
 
 
@@ -252,9 +249,6 @@ class Post_citation(Base):
     def __repr__(self):
         return "<Post_citation(post_id_from='%s', post_id_to='%s', url_from='%s', url_to='%s')>" % (
             self.post_id_from, self.post_id_to, self.url_from, self.url_to)
-
-
-
 
 
 class Target_Article(Base):
@@ -443,7 +437,7 @@ class Topic(Base):
     __tablename__ = "topics"
 
     topic_id = Column(Integer, primary_key=True)
-    term_id = Column(Integer, ForeignKey("terms.term_id"))
+    term_id = Column(Integer, ForeignKey("terms.term_id"), primary_key=True)
     probability = Column(FLOAT, default=None)
 
 class Text_From_Image(Base):
@@ -476,6 +470,23 @@ class Claim_Tweet_Connection(Base):
 
     claim_id = Column(Unicode, primary_key=True)  # PolitiFact post
     post_id = Column(Unicode, primary_key=True)  # crawled tweet by
+
+
+class Claim(Base):
+    __tablename__ = "claims"
+
+    claim_id = Column(Unicode, primary_key=True, index=True)
+    title = Column(Unicode, default=None)
+    description = Column(Unicode, default=None)
+    url = Column(Unicode, default=None)
+    verdict_date = Column(dt, default=None)
+    keywords = Column(Unicode, default=None)
+    domain = Column(Unicode, default=None)
+    verdict = Column(Unicode, default=None)
+
+    def __repr__(self):
+        return "<Claim(claim_id='%s', title='%s', description='%s', url='%s', vardict_date='%s', keywords='%s', domain='%s', verdicy='%s')>" % (
+            self.claim_id, self.title, self.description, self.url, self.verdict_date, self.keywords, self.domain, self.verdict)
 
 
 class DB():
@@ -964,9 +975,9 @@ class DB():
         self.session.execute(query)
         self.session.commit()
 
-#     def get_authors(self):
-#         result = self.session.query(Author).all()
-#         return result
+    def get_authors(self):
+        result = self.session.query(Author).all()
+        return result
     def get_all_authors(self):
         result = self.session.query(Author).all()
         return result
@@ -1294,6 +1305,9 @@ class DB():
             conditions.append(binary_exp)
         return conditions
 
+    def get_claims(self):
+        return self.session.query(Claim).all()
+
     def get_table_dictionary(self, table_name):
         table = self.get_table_by_name(table_name)
         posts = self.session.query(table).all()
@@ -1535,7 +1549,7 @@ class DB():
 
     def get_author_by_author_guid(self, author_guid):
         result = self.session.query(Author).filter(Author.author_guid == author_guid).all()
-        return result
+        return result[0]
 
     def get_author_by_author_guid_and_domain(self, author_guid, domain):
         result = self.session.query(Author).filter(and_(Author.author_guid == author_guid,
@@ -1796,7 +1810,6 @@ class DB():
     def convert_twitter_user_to_author(self, osn_user, targeted_social_network, author_type, inseration_type):
         author_screen_name = unicode(osn_user.screen_name)
         author_guid = compute_author_guid_by_author_name(author_screen_name)
-        author_guid = cleanForAuthor(author_guid)
         domain = Domains.MICROBLOG
         result = self.get_author_by_author_guid_and_domain(author_guid, domain)
         if len(result) == 0:
@@ -2727,7 +2740,7 @@ class DB():
         rows = list(cursor.fetchall())
         return rows
 
-    def insert_or_update_authors_from_posts(self, domain, author_classify_dict, author_prop_dict):
+    def insert_or_update_authors_from_posts(self, domain, author_classify_dict, author_probability_dict):
         authors_to_update = []
         posts = self.session.query(Post).filter(Post.domain == domain).all()
         logging.info("Insert or update_authors from app importer")
@@ -2752,14 +2765,14 @@ class DB():
                     author.author_type = author_classify_dict[author_name]
 
                 post_type = post.post_type
-                if post_type is not None:
-                    targeted_classes = post_type.split('/')
-                    author_sub_type = targeted_classes[0]
-                    if author_sub_type is not None:
-                        author.author_sub_type = author_sub_type
+                # if post_type is not None:
+                #     targeted_classes = post_type.split('/')
+                #     author_sub_type = targeted_classes[0]
+                #     if author_sub_type is not None:
+                #         author.author_sub_type = author_sub_type
 
-                if author_guid in author_prop_dict:
-                    for key, value in author_prop_dict[author_guid].iteritems():
+                if author_guid in author_probability_dict:
+                    for key, value in author_probability_dict[author_guid].iteritems():
                         setattr(author, key, value)
 
                 authors_to_update.append(author)
@@ -3026,7 +3039,7 @@ class DB():
     def create_post_from_tweet_data(self, tweet_data, domain):
         author_name = tweet_data.user.screen_name
         tweet_author_guid = compute_author_guid_by_author_name(author_name)
-        tweet_author_guid = cleanForAuthor(tweet_author_guid)
+        tweet_author_guid = tweet_author_guid
         tweet_post_twitter_id = str(tweet_data.id)
         tweet_url = generate_tweet_url(tweet_post_twitter_id, author_name)
         tweet_creation_time = tweet_data.created_at
@@ -3565,7 +3578,13 @@ class DB():
         # ans[u'max'] = self.get_author_guid_word_embedding_vector_dict(table_name, target_field_name, u'max')[author_guid]
         # ans[u'np.mean'] = self.get_author_guid_word_embedding_vector_dict(table_name, target_field_name, u'np.mean')[author_guid]
         return ans
-    
+		
+     def get_claim_id_posts_dict(self):
+        claim_id_posts_dict = defaultdict(list)
+        post_dict = self.get_post_dictionary()
+        for claim_id, post_id in self.get_claim_tweet_connections():
+            claim_id_posts_dict[claim_id].append(post_dict[post_id])
+        return claim_id_posts_dict
     
     def update_campain_table(self, campaign_id, key, value):        
         # added by YY
