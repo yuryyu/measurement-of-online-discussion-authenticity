@@ -144,6 +144,53 @@ class PostRetweeterConnection(Base):
             self.post_osn_id, self.retweeter_twitter_id, self.connection_type)
 
 
+class Campaigns(Base):    
+    __tablename__ = 'campaigns'
+    campaign_id         = Column(Integer,  unique=True, primary_key=True) 
+    title               = Column(Unicode, default=None)      
+    category            = Column(Unicode, default=None) 
+    campaign_class      = Column(Unicode, default=None) 
+    campaign_date       = Column(Unicode, default=None)
+    insertion_date      = Column(Unicode, default=None)
+    status              = Column(Unicode, default=None)    
+    fake_news_score     = Column(FLOAT, default=0.5)    
+    def __repr__(self):
+        return "<Campaigns(campaign_id='%s', title='%s', category='%s', campaign_class='%s', campaign_date='%s',  insertion_date='%s', status='%s', fake_news_score='%s')>" % (
+            self.campaign_id,
+            self.title,
+            self.category,
+            self.campaign_class, 
+            self.campaign_date,  
+            self.insertion_date, 
+            self.status, 
+            self.fake_news_score)
+
+class CampaignsData(Base):    
+    __tablename__ = 'campaigns_data'
+    campaign_id         = Column(Integer, default=0)    
+    tweet_id            = Column(Unicode, primary_key=True) #should be unique - TBD      
+    parent_tweet_id     = Column(Unicode, default=None) 
+    url                 = Column(Unicode, default=None) 
+    author_id           = Column(Unicode, default=None)
+    text                = Column(Unicode, default=None)
+    date                = Column(Unicode, default=None)    
+    retweets            = Column(Integer, default=0)
+    post_favorites      = Column(Integer, default=0)
+    author_followers    = Column(Integer, default=0)
+    
+    def __repr__(self):
+        return "<Campaigns_Data(campaign_id='%s', tweet_id='%s', parent_tweet_id='%s', url='%s', author_id='%s', text='%s', date='%s', retweets='%s', post_favorites='%s', author_followers='%s')>" % (
+            self.campaign_id, 
+            self.tweet_id, 
+            self.parent_tweet_id, 
+            self.url, 
+            self.author_id,  
+            self.text, 
+            self.date, 
+            self.retweets, 
+            self.post_favorites, 
+            self.author_followers)
+
 class Post(Base):
     __tablename__ = 'posts'
 
@@ -202,24 +249,6 @@ class Post_citation(Base):
     def __repr__(self):
         return "<Post_citation(post_id_from='%s', post_id_to='%s', url_from='%s', url_to='%s')>" % (
             self.post_id_from, self.post_id_to, self.url_from, self.url_to)
-
-
-class Campaigns(Base):
-    
-    __tablename__ = 'campaigns'
-
-    campaign_id = Column(Unicode, primary_key=True, index=True)    
-    #post_id = Column(Unicode, ForeignKey('posts.post_id', ondelete="CASCADE"), primary_key=True)
-    campaign_date = Column(Unicode, index=True)  # need to be deleted do not use it
-    category = Column(Unicode, index=True)  # need to be deleted do not use it
-    insertion_date = Column(Unicode, index=True)
-    campaign_class = Column(Unicode, index=True)
-    fake_news_score= Column(Unicode, index=True)
-    
-    def __repr__(self):
-        return "<Campaigns(campaign_id='%s', campaign_date='%s', category='%s', insertion_date='%s', campaign_class='%s', fake_news_score='%s')>" % (
-            self.campaign_id, self.campaign_date, self.category, self.insertion_date, self.campaign_class, self.fake_news_score)
-
 
 
 class Target_Article(Base):
@@ -441,6 +470,23 @@ class Claim_Tweet_Connection(Base):
 
     claim_id = Column(Unicode, primary_key=True)  # PolitiFact post
     post_id = Column(Unicode, primary_key=True)  # crawled tweet by
+
+
+class Claim(Base):
+    __tablename__ = "claims"
+
+    claim_id = Column(Unicode, primary_key=True, index=True)
+    title = Column(Unicode, default=None)
+    description = Column(Unicode, default=None)
+    url = Column(Unicode, default=None)
+    verdict_date = Column(dt, default=None)
+    keywords = Column(Unicode, default=None)
+    domain = Column(Unicode, default=None)
+    verdict = Column(Unicode, default=None)
+
+    def __repr__(self):
+        return "<Claim(claim_id='%s', title='%s', description='%s', url='%s', vardict_date='%s', keywords='%s', domain='%s', verdicy='%s')>" % (
+            self.claim_id, self.title, self.description, self.url, self.verdict_date, self.keywords, self.domain, self.verdict)
 
 
 class DB():
@@ -1259,6 +1305,9 @@ class DB():
             conditions.append(binary_exp)
         return conditions
 
+    def get_claims(self):
+        return self.session.query(Claim).all()
+
     def get_table_dictionary(self, table_name):
         table = self.get_table_by_name(table_name)
         posts = self.session.query(table).all()
@@ -1500,7 +1549,7 @@ class DB():
 
     def get_author_by_author_guid(self, author_guid):
         result = self.session.query(Author).filter(Author.author_guid == author_guid).all()
-        return result
+        return result[0]
 
     def get_author_by_author_guid_and_domain(self, author_guid, domain):
         result = self.session.query(Author).filter(and_(Author.author_guid == author_guid,
@@ -1761,7 +1810,6 @@ class DB():
     def convert_twitter_user_to_author(self, osn_user, targeted_social_network, author_type, inseration_type):
         author_screen_name = unicode(osn_user.screen_name)
         author_guid = compute_author_guid_by_author_name(author_screen_name)
-        author_guid = cleanForAuthor(author_guid)
         domain = Domains.MICROBLOG
         result = self.get_author_by_author_guid_and_domain(author_guid, domain)
         if len(result) == 0:
@@ -2692,7 +2740,7 @@ class DB():
         rows = list(cursor.fetchall())
         return rows
 
-    def insert_or_update_authors_from_posts(self, domain, author_classify_dict, author_prop_dict):
+    def insert_or_update_authors_from_posts(self, domain, author_classify_dict, author_probability_dict):
         authors_to_update = []
         posts = self.session.query(Post).filter(Post.domain == domain).all()
         logging.info("Insert or update_authors from app importer")
@@ -2717,14 +2765,14 @@ class DB():
                     author.author_type = author_classify_dict[author_name]
 
                 post_type = post.post_type
-                if post_type is not None:
-                    targeted_classes = post_type.split('/')
-                    author_sub_type = targeted_classes[0]
-                    if author_sub_type is not None:
-                        author.author_sub_type = author_sub_type
+                # if post_type is not None:
+                #     targeted_classes = post_type.split('/')
+                #     author_sub_type = targeted_classes[0]
+                #     if author_sub_type is not None:
+                #         author.author_sub_type = author_sub_type
 
-                if author_guid in author_prop_dict:
-                    for key, value in author_prop_dict[author_guid].iteritems():
+                if author_guid in author_probability_dict:
+                    for key, value in author_probability_dict[author_guid].iteritems():
                         setattr(author, key, value)
 
                 authors_to_update.append(author)
@@ -2991,7 +3039,7 @@ class DB():
     def create_post_from_tweet_data(self, tweet_data, domain):
         author_name = tweet_data.user.screen_name
         tweet_author_guid = compute_author_guid_by_author_name(author_name)
-        tweet_author_guid = cleanForAuthor(tweet_author_guid)
+        tweet_author_guid = tweet_author_guid
         tweet_post_twitter_id = str(tweet_data.id)
         tweet_url = generate_tweet_url(tweet_post_twitter_id, author_name)
         tweet_creation_time = tweet_data.created_at
@@ -3530,3 +3578,22 @@ class DB():
         # ans[u'max'] = self.get_author_guid_word_embedding_vector_dict(table_name, target_field_name, u'max')[author_guid]
         # ans[u'np.mean'] = self.get_author_guid_word_embedding_vector_dict(table_name, target_field_name, u'np.mean')[author_guid]
         return ans
+		
+     def get_claim_id_posts_dict(self):
+        claim_id_posts_dict = defaultdict(list)
+        post_dict = self.get_post_dictionary()
+        for claim_id, post_id in self.get_claim_tweet_connections():
+            claim_id_posts_dict[claim_id].append(post_dict[post_id])
+        return claim_id_posts_dict
+    
+    def update_campain_table(self, campaign_id, key, value):        
+        # added by YY
+        update_query = "UPDATE campaigns SET " + key + "=" + str(
+            value) + " WHERE campaign_id=" + str(campaign_id)
+        self.update_query(update_query)        
+   
+    
+    
+    
+    
+    

@@ -2,4 +2,9 @@
 *.log
 *.db
 *benchmark.csv
+*.png
 *.idea*
+
+*.png
+*.html
+*.png

@@ -10,6 +10,8 @@ import os
 import time
 
 from DB.schema_definition import DB
+from old_tweets_crawler.old_tweets_crawler import OldTweetsCrawler
+from preprocessing_tools.fake_news_snopes_importer.fake_news_snopes_importer import FakeNewsSnopesImporter
 from bad_actors_collector.bad_actors_collector import BadActorsCollector
 from configuration.config_class import getConfig
 from data_exporter.data_exporter import DataExporter
@@ -56,6 +58,7 @@ from preprocessing_tools.json_importer.json_importer import JSON_Importer
 from preprocessing_tools.post_citation_creator import PostCitationCreator
 from preprocessing_tools.rank_app_importer import RankAppImporter
 from preprocessing_tools.xml_importer import XMLImporter
+from topic_distribution_visualization.claim_to_topic_converter import ClaimToTopicConverter
 from topic_distribution_visualization.topic_distribution_visualization_generator import \
     TopicDistrobutionVisualizationGenerator
 from twitter_crawler.twitter_crawler import Twitter_Crawler
@@ -71,13 +74,16 @@ modules_dict["CreateAuthorTables"] = CreateAuthorTables
 modules_dict["RankAppImporter"] = RankAppImporter
 modules_dict["JSON_Importer"] = JSON_Importer
 modules_dict["CsvImporter"] = CsvImporter
+modules_dict["FakeNewsSnopesImporter"] = FakeNewsSnopesImporter
 modules_dict["GDLET_News_Importer"] = GDLET_News_Importer
 modules_dict["Twitter_Crawler"] = Twitter_Crawler
+modules_dict["OldTweetsCrawler"] = OldTweetsCrawler
 modules_dict["MissingDataComplementor"] = MissingDataComplementor
 modules_dict["Load_Datasets"] = Load_Datasets
 modules_dict["Image_Tags_Extractor"] = Image_Tags_Extractor
 modules_dict["Image_Downloader"] = Image_Downloader
 modules_dict["Preprocessor"] = Preprocessor
+modules_dict["ClaimToTopicConverter"] = ClaimToTopicConverter
 modules_dict["LDATopicModel"] = LDATopicModel
 modules_dict["GloveWordEmbeddingModelCreator"] = GloveWordEmbeddingModelCreator
 modules_dict["GensimWordEmbeddingsModelTrainer"] = GensimWordEmbeddingsModelTrainer
@@ -106,7 +112,6 @@ modules_dict["DataExporter"] = DataExporter
 modules_dict["LinkPredictionEvaluator"] = LinkPredictionEvaluator
 modules_dict["ExperimentalEnvironment"] = ExperimentalEnvironment
 modules_dict["Predictor"] = Predictor
-
 modules_dict["KNNWithLinkPrediction"] = KNNWithLinkPrediction
 modules_dict["Kernel_Performance_Evaluator"] = Kernel_Performance_Evaluator
 modules_dict["TopicDistrobutionVisualizationGenerator"] = TopicDistrobutionVisualizationGenerator
