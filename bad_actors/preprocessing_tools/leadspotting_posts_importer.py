@@ -2,12 +2,15 @@ from DB.schema_definition import PostConnection, Author
 from csv_importer import CsvImporter, Claim_Tweet_Connection
 from commons.commons import *
 from configuration.config_class import getConfig
+import logging
+import csv
 encoding = 'utf-8'
 
 class LeadspottingPostsImporter(CsvImporter):
     def __init__(self, db):
         CsvImporter.__init__(self, db)
         config_parser = getConfig()
+        self.author_listdic = []
         self.start_date = config_parser.eval("DEFAULT", "start_date")
         self.end_date = config_parser.eval("DEFAULT", "end_date")
 
@@ -37,13 +40,17 @@ class LeadspottingPostsImporter(CsvImporter):
 
     def updateAuthorsData(self):
         list_to_add = []
-        for dic in self._listdic:
+        for dic in self.author_listdic:
             author = Author()
             author.name = dic['author']
             author.domain = unicode('Microblog')
             author.author_osn_id = dic['author_osn_id']
             author.author_guid = dic['author_guid']
-            author.followers_count = dic['followers']
+            author.followers_count = dic['followers_count']
+            author.location = unicode(dic['location'])
+            author.favourites_count = dic['favorite']
+            author.description = unicode(dic['description'])
+            author.url = unicode(dic['url'])
             list_to_add.append(author)
         self._db.update_authors(list_to_add)
 
@@ -63,6 +70,21 @@ class LeadspottingPostsImporter(CsvImporter):
         except:
             pass
         return  pre_post, date
+
+    def parse_csv(self, csv_file, f):
+        # try:
+        reader = csv.DictReader(f, delimiter=',')
+        for row in reader:
+            try:
+                post_dict = self.create_post_dict_from_row(row)
+                self._listdic.append(post_dict.copy())
+            except:
+                print "[-] Failed to parse row"
+            try:
+                author_dic = self.create_author_dict_from_row(row, post_dict)
+                self.author_listdic.append(author_dic.copy())
+            except KeyError:
+                print "[-] Failed to parse author details from row"
 
     def create_post_dict_from_row(self, row):
         post_dict = {}
@@ -93,7 +115,22 @@ class LeadspottingPostsImporter(CsvImporter):
         post_dict["followers"] = int(row['followers'])
         post_dict["campaign_id"] = row["campaign_id"]
         post_dict["parent_osn_id"] = row["parentTweet"].replace("\"","")
-
         #TODO: Leah, please add the rest of the data from the csv (poster friends, likes etc) so we can add it later to the DB
 
         return post_dict
+
+    def create_author_dict_from_row(self, row, post_dict):
+         author_dict = {}
+         try:
+             author_dict['author'] = post_dict['author']
+             author_dict['domain'] = post_dict['domain']
+             author_dict['author_osn_id'] = post_dict['author_osn_id']
+             author_dict['author_guid'] = post_dict['author_guid']
+             author_dict['followers_count'] = post_dict['followers']
+             author_dict['location'] = row['location']
+             author_dict['favorite'] = row['favorite']
+             author_dict['description'] = row['description']
+             author_dict['url'] = row['userUrl']
+         except:
+             logging.warn('Failed to parse author details from row')
+         return author_dict
