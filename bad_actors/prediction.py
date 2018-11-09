@@ -12,6 +12,7 @@ from DB.schema_definition import DB
 from bad_actors_collector.bad_actors_collector import BadActorsCollector
 from configuration.config_class import getConfig
 from data_exporter.data_exporter import DataExporter
+from data_exporter.csv_writer import Csv_writer
 from dataset_builder.graph_builders.bag_of_words_graph_builders.bag_of_words_graph_builder_all_combinations import \
     Bag_Of_Words_Graph_Builder_All_Combinations
 from dataset_builder.graph_builders.bag_of_words_graph_builders.bag_of_words_graph_builder_k_best import \
@@ -145,7 +146,6 @@ for module in pipeline:
 
 ## EXECUTE
 # Update  status for campaign
-#campaign_id=10 # resolve it!
 status='"Analyzing"'
 db.update_campain_table(campaign_id, 'status', status)
 logging.info('*********Started executing update_campain_status for campaign:' + str(campaign_id))
@@ -158,6 +158,13 @@ for module in pipeline:
 
 num_of_authors = db.get_number_of_targeted_osn_authors(domain)
 num_of_posts = db.get_number_of_targeted_osn_posts(domain)
+
+# create C:\output\authors_labeling.csv
+table ='ttt'
+csv_ob= Csv_writer(db, table)
+output_filename = 'C:\\output\\authors_labeling.csv'
+csv_ob.write_author_features_to_csv(output_filename)
+
 
 # Update  status for campaign
 status='"Analyzed"'
