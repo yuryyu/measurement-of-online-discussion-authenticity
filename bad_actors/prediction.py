@@ -149,27 +149,28 @@ for module in pipeline:
 status='"Analyzing"'
 db.update_campain_table(campaign_id, 'status', status)
 logging.info('*********Started executing update_campain_status for campaign:' + str(campaign_id))
-
-for module in pipeline:
-    logging.info("execute module: {0}".format(module))
-    logging.info('*********Started executing ' + module.__class__.__name__)
-    module.execute(window_start)
-    logging.info('*********Finished executing ' + module.__class__.__name__)
-
+try:
+    mname='none'
+    for module in pipeline:
+        mname=module.__class__.__name_
+        logging.info("execute module: {0}".format(module))
+        logging.info('*********Started executing ' + module.__class__.__name__)
+        module.execute(window_start)
+        logging.info('*********Finished executing ' + module.__class__.__name__)
+except:
+    logging.info('*********Failed in executing ' + mname)
+     
 num_of_authors = db.get_number_of_targeted_osn_authors(domain)
 num_of_posts = db.get_number_of_targeted_osn_posts(domain)
 
 # create C:\output\authors_labeling.csv
-table ='ttt'
+table ="campaigns_data"
 csv_ob= Csv_writer(db, table)
-output_filename = 'C:\\output\\authors_labeling.csv'
-csv_ob.write_author_features_to_csv(output_filename)
-
-
+output_filename = 'C:\\output\\authors_labeling_'+str(campaign_id)+'.csv'
+fake_news_score=csv_ob.write_to_csv(output_filename, campaign_id)
 # Update  status for campaign
 status='"Analyzed"'
 db.update_campain_table(campaign_id, 'status', status)
-fake_news_score=0.67
 db.update_campain_table(campaign_id, 'fake_news_score', fake_news_score)
 logging.info('*********Finished executing update_campain_status for campaign:' + str(campaign_id))
 

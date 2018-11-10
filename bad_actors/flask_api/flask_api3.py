@@ -62,14 +62,15 @@ def check_campaignID(campaign_id):
         return False
     return True
 
-def dwnload_csv_db(db_path_file, table, scv_url):
+def dwnload_csv_db(db_path_file, db_table, scv_url):
     sts=0
     try:          
         with sqlite3.connect(db_path_file) as con:            
             if scv_url != '':
                 logging.info("Adding csv file")           
                 df = pandas.read_csv(scv_url, encoding="windows-1252", quotechar='"', delimiter=',')                
-                df.to_sql(table, con, if_exists='append', index=False)
+                logging.info("Reading csv file") 
+                df.to_sql(db_table, con, if_exists='append', index=False)
                 logging.info("Added data from csv file")                               
     except:       
         con.close()
@@ -94,9 +95,9 @@ def add_campaign():
         if not check_campaignID(request.json['campaign_id']):
             logging.info("Campaign does not exist")
             # add data to campaign_data table
-            rez=dwnload_csv_db(db_path_file, db_table1_campaigns, request.json['csv_url'])
+            rez=dwnload_csv_db(db_path_file, db_table2_campaigns_data, request.json['csv_url'])
             if rez>0:abort(rez)
-            rez=dwnload_csv_db(db_path_file, db_table3, request.json['csv_url2'])
+            #rez=dwnload_csv_db(db_path_file, db_table3, request.json['csv_url2'])
             #if rez>0:abort(rez) TBD
             # add data campaigns table
             try:          
@@ -118,8 +119,8 @@ def add2list():
     if not request.json:
         abort(400)          
     if request.method == 'POST':
-        rez=dwnload_csv_db(db_path_file, db_table1_campaigns, request.json['csv_url'])
-        if rez>0:abort(rez)
+        rez=dwnload_csv_db(db_path_file, db_table2_campaigns_data, request.json['csv_url'])
+        #if rez>0:abort(rez)
         rez=dwnload_csv_db(db_path_file, db_table3, request.json['csv_url2'])        
         try:          
             with sqlite3.connect(db_path_file) as con:
@@ -144,7 +145,7 @@ def add_data():
         abort(400)
     if request.method == 'POST':    
         if not check_campaignID(request.json['campaign_id']):
-            logging.error("Error in data read operation")
+            logging.error("Error in check campaign id")
             abort(410)                
         logging.info(request.json)        
         if request.method == 'POST':
@@ -222,7 +223,7 @@ def labeling(campaign_id):
     return jsonify({'Campaign ID': campaign[0]['campaign_id'],'Campaign Title': campaign[0]['title'],
                     'Category': campaign[0]['category'],'Class': campaign[0]['campaign_class'], 'Campaign date': campaign[0]['campaign_date'],
                     'Insertion date': campaign[0]['insertion_date'], 'Fake_news_score': campaign[0]['fake_news_score'],
-                    "Labeling_csv": "\\intelici.net/output/authors_labeling.csv"})
+                    "Labeling_csv": "intelici.net/utput/authors_labeling_"+str(campaign[0]['campaign_id'])+".csv"})
 
 
 ''' Handlers Part   '''
