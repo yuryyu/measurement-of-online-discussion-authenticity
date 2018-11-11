@@ -10,8 +10,7 @@ import pandas
 import threading
 
 import time
-import os
-import gzip
+#import gzip
 
 # setup
 project_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -244,7 +243,7 @@ def get_output_file(name):
         #resp = make_response(f.read())
     logging.info("File successfully read")
     # set headers to tell encoding and to send as an attachment
-    resp.headers["Content-Encoding"] = 'gzip'
+    #resp.headers["Content-Encoding"] = 'gzip' - enable if you wont use gzip
     resp.headers["Content-Disposition"] = "attachment; filename={0}".format(name)
     resp.headers["Content-type"] = "text/csv"
     logging.info(resp)
