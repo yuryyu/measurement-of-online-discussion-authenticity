@@ -223,7 +223,7 @@ def labeling(campaign_id):
     return jsonify({'Campaign ID': campaign[0]['campaign_id'],'Campaign Title': campaign[0]['title'],
                     'Category': campaign[0]['category'],'Class': campaign[0]['campaign_class'], 'Campaign date': campaign[0]['campaign_date'],
                     'Insertion date': campaign[0]['insertion_date'], 'Fake_news_score': campaign[0]['fake_news_score'],
-                    "Labeling_csv": "intelici.net/utput/authors_labeling_"+str(campaign[0]['campaign_id'])+".csv"})
+                    "Labeling_csv": "intelici.net/output/authors_labeling_"+str(campaign[0]['campaign_id'])+".csv"})
 
 
 ''' Handlers Part   '''
