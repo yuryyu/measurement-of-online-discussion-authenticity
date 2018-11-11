@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, abort, make_response, request
+from flask import Flask, jsonify, abort, make_response, request, Response
 import datetime
 import sys
 import os
@@ -8,6 +8,10 @@ from configuration.config_class import getConfig
 import urllib
 import pandas
 import threading
+
+import time
+import os
+import gzip
 
 # setup
 project_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -224,6 +228,29 @@ def labeling(campaign_id):
                     'Category': campaign[0]['category'],'Class': campaign[0]['campaign_class'], 'Campaign date': campaign[0]['campaign_date'],
                     'Insertion date': campaign[0]['insertion_date'], 'Fake_news_score': campaign[0]['fake_news_score'],
                     "Labeling_csv": "intelici.net/output/authors_labeling_"+str(campaign[0]['campaign_id'])+".csv"})
+
+
+# this takes the file name and returns if exists, otherwise notifies it is not yet done
+@app.route('/output/<name>')
+def get_output_file(name):
+    OUTPUT_DIR="\\\\localhost\\C$\\output\\"
+    file_name = os.path.join(OUTPUT_DIR, name)
+    logging.info(file_name)
+    if not os.path.isfile(file_name):
+        return jsonify({"message": "still processing"})
+    # read without gzip.open to keep it compressed
+    with open(file_name, 'rb') as f:
+        resp = Response(f.read())
+        #resp = make_response(f.read())
+    logging.info("File successfully read")
+    # set headers to tell encoding and to send as an attachment
+    resp.headers["Content-Encoding"] = 'gzip'
+    resp.headers["Content-Disposition"] = "attachment; filename={0}".format(name)
+    resp.headers["Content-type"] = "text/csv"
+    logging.info(resp)
+    return resp
+
+
 
 
 ''' Handlers Part   '''
