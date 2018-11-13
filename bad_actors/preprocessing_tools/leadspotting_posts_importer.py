@@ -30,13 +30,15 @@ class LeadspottingPostsImporter(CsvImporter):
     def updateOriginalPostsConnections(self):
         list_to_add = []
         for dic in self._listdic:
-            post_connection = PostConnection()
-            post_connection.source_post_osn_id = int(dic["parent_osn_id"])
-            post_connection.target_post_osn_id = dic["post_osn_id"]
-            post_connection.connection_type = unicode('retweet')
-            post_connection.insertion_date = dic["date"]
-            list_to_add.append(post_connection)
+                post_connection = PostConnection()
+                post_connection.source_post_osn_id = int(dic["parent_osn_id"])
+                post_connection.target_post_osn_id = dic["post_osn_id"]
+                post_connection.connection_type = unicode('retweet')
+                post_connection.insertion_date = dic["date"]
+                list_to_add.append(post_connection)
         self._db.add_posts_connections(list_to_add)
+
+
 
     def updateAuthorsData(self):
         list_to_add = []
@@ -78,13 +80,15 @@ class LeadspottingPostsImporter(CsvImporter):
             try:
                 post_dict = self.create_post_dict_from_row(row)
                 self._listdic.append(post_dict.copy())
-            except:
+                try:
+                    author_dic = self.create_author_dict_from_row(row, post_dict)
+                    self.author_listdic.append(author_dic.copy())
+                except KeyError:
+                    print "[-] Failed to parse author details from row"
+            except (KeyError, ValueError):
                 print "[-] Failed to parse row"
-            try:
-                author_dic = self.create_author_dict_from_row(row, post_dict)
-                self.author_listdic.append(author_dic.copy())
-            except KeyError:
-                print "[-] Failed to parse author details from row"
+
+
 
     def create_post_dict_from_row(self, row):
         post_dict = {}
@@ -115,6 +119,10 @@ class LeadspottingPostsImporter(CsvImporter):
         post_dict["followers"] = int(row['followers'])
         post_dict["campaign_id"] = row["campaign_id"]
         post_dict["parent_osn_id"] = row["parentTweet"].replace("\"","")
+        try:
+            int(post_dict["parent_osn_id"])
+        except:
+            raise ValueError
         #TODO: Leah, please add the rest of the data from the csv (poster friends, likes etc) so we can add it later to the DB
 
         return post_dict
