@@ -108,6 +108,7 @@ class AuthorConnection(Base):
     destination_author_guid = Column(Unicode, primary_key=True)
     connection_type = Column(Unicode, primary_key=True)
     weight = Column(FLOAT, default=0.0)
+    claim_id = Column(Integer, ForeignKey('claims.claim_id'))
     insertion_date = Column(Unicode, default=None)
 
     def __repr__(self):
@@ -144,52 +145,19 @@ class PostRetweeterConnection(Base):
             self.post_osn_id, self.retweeter_twitter_id, self.connection_type)
 
 
-class Campaigns(Base):    
-    __tablename__ = 'campaigns'
-    campaign_id         = Column(Integer,  unique=True, primary_key=True) 
-    title               = Column(Unicode, default=None)      
-    category            = Column(Unicode, default=None) 
-    campaign_class      = Column(Unicode, default=None) 
-    campaign_date       = Column(Unicode, default=None)
-    insertion_date      = Column(Unicode, default=None)
-    status              = Column(Unicode, default=None)    
-    fake_news_score     = Column(FLOAT, default=0.5)    
-    def __repr__(self):
-        return "<Campaigns(campaign_id='%s', title='%s', category='%s', campaign_class='%s', campaign_date='%s',  insertion_date='%s', status='%s', fake_news_score='%s')>" % (
-            self.campaign_id,
-            self.title,
-            self.category,
-            self.campaign_class, 
-            self.campaign_date,  
-            self.insertion_date, 
-            self.status, 
-            self.fake_news_score)
+class PostConnection(Base):
+    __tablename__ = 'post_connections'
 
-class CampaignsData(Base):    
-    __tablename__ = 'campaigns_data'
-    campaign_id         = Column(Integer, default=0)    
-    tweet_id            = Column(Unicode, primary_key=True) #should be unique - TBD      
-    parent_tweet_id     = Column(Unicode, default=None) 
-    url                 = Column(Unicode, default=None) 
-    author_id           = Column(Unicode, default=None)
-    text                = Column(Unicode, default=None)
-    date                = Column(Unicode, default=None)    
-    retweets            = Column(Integer, default=0)
-    post_favorites      = Column(Integer, default=0)
-    author_followers    = Column(Integer, default=0)
-    
+    source_post_osn_id = Column(Integer, ForeignKey('posts.post_osn_id'), primary_key=True)
+    target_post_osn_id = Column(Integer, ForeignKey('posts.post_osn_id'), primary_key=True)
+    connection_type = Column(Unicode, primary_key=True)
+    insertion_date = Column(Unicode, default=None)
+
     def __repr__(self):
-        return "<Campaigns_Data(campaign_id='%s', tweet_id='%s', parent_tweet_id='%s', url='%s', author_id='%s', text='%s', date='%s', retweets='%s', post_favorites='%s', author_followers='%s')>" % (
-            self.campaign_id, 
-            self.tweet_id, 
-            self.parent_tweet_id, 
-            self.url, 
-            self.author_id,  
-            self.text, 
-            self.date, 
-            self.retweets, 
-            self.post_favorites, 
-            self.author_followers)
+        return "<Post_Connections(source_post_osn_id='%s', target_post_osn_id='%s', connection_type='%s', insertion_date='%s')>" % (
+            self.source_post_osn_id, self.target_post_osn_id, self.connection_type, self.insertion_date)
+
+
 
 class Post(Base):
     __tablename__ = 'posts'
@@ -236,6 +204,24 @@ class Post(Base):
         return "<Post(post_id='%s', guid='%s', title='%s', url='%s', date='%s', content='%s', author='%s', is_detailed='%s',  is_LB='%s',domain='%s',author_guid='%s')>" % (
             self.post_id, self.guid, self.title, self.url, self.date, self.content, self.author, self.is_detailed,
             self.is_LB, self.domain, self.author_guid)
+
+
+class Claim(Base):
+    __tablename__ = "claims"
+
+    claim_id = Column(Unicode, primary_key=True, index=True)
+    title = Column(Unicode, default=None)
+    description = Column(Unicode, default=None)
+    url = Column(Unicode, default=None)
+    verdict_date = Column(dt, default=None)
+    keywords = Column(Unicode, default=None)
+    domain = Column(Unicode, default=None)
+    verdict = Column(Unicode, default=None)
+
+    def __repr__(self):
+        return "<Claim(claim_id='%s', title='%s', description='%s', url='%s', vardict_date='%s', keywords='%s', domain='%s', verdicy='%s')>" % (
+            self.claim_id, self.title, self.description, self.url, self.verdict_date, self.keywords, self.domain, self.verdict)
+
 
 
 class Post_citation(Base):
@@ -470,23 +456,6 @@ class Claim_Tweet_Connection(Base):
 
     claim_id = Column(Unicode, primary_key=True)  # PolitiFact post
     post_id = Column(Unicode, primary_key=True)  # crawled tweet by
-
-
-class Claim(Base):
-    __tablename__ = "claims"
-
-    claim_id = Column(Unicode, primary_key=True, index=True)
-    title = Column(Unicode, default=None)
-    description = Column(Unicode, default=None)
-    url = Column(Unicode, default=None)
-    verdict_date = Column(dt, default=None)
-    keywords = Column(Unicode, default=None)
-    domain = Column(Unicode, default=None)
-    verdict = Column(Unicode, default=None)
-
-    def __repr__(self):
-        return "<Claim(claim_id='%s', title='%s', description='%s', url='%s', vardict_date='%s', keywords='%s', domain='%s', verdicy='%s')>" % (
-            self.claim_id, self.title, self.description, self.url, self.verdict_date, self.keywords, self.domain, self.verdict)
 
 
 class DB():
@@ -835,7 +804,7 @@ class DB():
 
         if window_start is None or window_end is None:
             query = text("SELECT EXISTS(SELECT * FROM posts WHERE (url= :url)  limit 1)")
-            result = self.session.execute(query, params=dict(url=str(url)))
+            result = self.session.execute(query, params=dict(url=unicode(url)))
             return [r for (r,) in result][0]
         else:
             query = text(
@@ -890,7 +859,7 @@ class DB():
     def isPostNotDetailed(self, url, guid):
         q = text("SELECT EXISTS(SELECT * FROM posts WHERE (url= :url or guid= :guid) and \
             is_detailed=0 limit 1)")
-        res = self.session.execute(q, params=dict(url=str(url), guid=str(guid)))
+        res = self.session.execute(q, params=dict(url=unicode(url), guid=unicode(guid)))
         return [r for (r,) in res][0]
 
     def addReference(self, reference):
@@ -1096,6 +1065,11 @@ class DB():
 
     def update_author(self, author):
         self.session.merge(author)
+
+    def update_authors(self, authors_list):
+        for au in authors_list:
+            self.update_author(au)
+        self.session.commit()
 
     def get_author_name_by_post_content(self, post_content):
         query = text("select posts.author from posts where posts.content like :post_content")
@@ -1305,9 +1279,6 @@ class DB():
             conditions.append(binary_exp)
         return conditions
 
-    def get_claims(self):
-        return self.session.query(Claim).all()
-
     def get_table_dictionary(self, table_name):
         table = self.get_table_by_name(table_name)
         posts = self.session.query(table).all()
@@ -1333,6 +1304,16 @@ class DB():
             vector = tuple[1:]
             word_vector_dict[word] = vector
         return word_vector_dict
+
+    def add_posts_connections(self, posts_connections):
+        i = 1
+        for post_connection in posts_connections:
+            if (i % 1000 == 0):
+                msg = "\r Insert post_connection to DB: [{}".format(i) + "/" + str(len(posts_connections)) + ']'
+                print(msg, end="")
+            i += 1
+            self.session.merge(post_connection)
+        self.commit()
 
     def add_claim_connections(self, claim_connections):
         i = 1
@@ -1549,7 +1530,7 @@ class DB():
 
     def get_author_by_author_guid(self, author_guid):
         result = self.session.query(Author).filter(Author.author_guid == author_guid).all()
-        return result[0]
+        return result
 
     def get_author_by_author_guid_and_domain(self, author_guid, domain):
         result = self.session.query(Author).filter(and_(Author.author_guid == author_guid,
@@ -1587,7 +1568,7 @@ class DB():
         """
         query = "SELECT authors.name " \
                 "FROM authors " \
-                "WHERE authors.author_osn_id is NULL " \
+                "WHERE authors.missing_data_complementor_insertion_date is NULL " \
             # "AND (authors.is_suspended_or_not_exists is NULL " \
         # "OR authors.is_suspended_or_not_exists = 0) " \
         # "AND authors.domain = 'Microblog' " \
@@ -1669,7 +1650,7 @@ class DB():
                                                                         WHERE connection_type = :connection_type)
                 AND authors.protected = 0
                 AND authors.domain = :domain
-                AND {0} > 10
+                AND {0} < 4000
                 LIMIT :limit
         """
         if (connection_type == Author_Connection_Type.FOLLOWER):
@@ -1810,6 +1791,7 @@ class DB():
     def convert_twitter_user_to_author(self, osn_user, targeted_social_network, author_type, inseration_type):
         author_screen_name = unicode(osn_user.screen_name)
         author_guid = compute_author_guid_by_author_name(author_screen_name)
+        author_guid = cleanForAuthor(author_guid)
         domain = Domains.MICROBLOG
         result = self.get_author_by_author_guid_and_domain(author_guid, domain)
         if len(result) == 0:
@@ -1875,18 +1857,18 @@ class DB():
             author.mark_missing_bad_actor_retweeters_insertion_date = now
 
     def create_author_connections(self, source_id, destination_author_ids, weight, author_connection_type,
-                                  insertion_date):
+                                  insertion_date, claim_id=-1):
         print("---create_author_connections---\n")
         author_connections = []
         for destination_author_id in destination_author_ids:
             author_connection = self.create_author_connection(source_id, destination_author_id, weight,
-                                                              author_connection_type, insertion_date)
+                                                              author_connection_type, insertion_date, claim_id)
             author_connections.append(author_connection)
 
         return author_connections
 
     def create_author_connection(self, source_author_guid, destination_author_guid, weight, connection_type,
-                                 insertion_date):
+                                 insertion_date, claim_id=-1):
         # print("---create_author_connection---")
         author_connection = AuthorConnection()
 
@@ -1898,6 +1880,7 @@ class DB():
         author_connection.connection_type = unicode(connection_type)
         author_connection.weight = unicode(weight)
         author_connection.insertion_date = insertion_date
+        author_connection.claim_id = claim_id
 
         return author_connection
 
@@ -1909,9 +1892,9 @@ class DB():
         save_author_connections_time = save_author_connections_end_time - save_author_connections_start_time
         print("Saving author connections in DB took in seconds: " + str(save_author_connections_time))
 
-    def create_and_save_author_connections(self, source_author_id, follower_ids, weight, connection_type):
+    def create_and_save_author_connections(self, source_author_id, follower_ids, weight, connection_type, claim_id=-1):
         author_connections = self.create_author_connections(source_author_id, follower_ids, weight, connection_type,
-                                                            self._window_start)
+                                                            self._window_start, claim_id)
         self.save_author_connections(author_connections)
 
     def get_author_connections_by_type(self, connection_type):
@@ -2740,7 +2723,23 @@ class DB():
         rows = list(cursor.fetchall())
         return rows
 
-    def insert_or_update_authors_from_posts(self, domain, author_classify_dict, author_probability_dict):
+    def add_claim(self, claim_obj):
+        self.session.merge(claim_obj)
+
+    def add_claims(self, claims_obj_list):
+        for claim_obj in claims_obj_list:
+            self.add_claim(claim_obj)
+        self.session.commit()
+
+    def insert_or_update_claims(self, claims):
+        claims_list = []
+        for claim in claims:
+            claim_obj = Claim()
+            claim_obj.claim_id = claim
+            claims_list.append(claim_obj)
+        self.add_claims(claims_list)
+
+    def insert_or_update_authors_from_posts(self, domain, author_classify_dict, author_prop_dict):
         authors_to_update = []
         posts = self.session.query(Post).filter(Post.domain == domain).all()
         logging.info("Insert or update_authors from app importer")
@@ -2765,14 +2764,14 @@ class DB():
                     author.author_type = author_classify_dict[author_name]
 
                 post_type = post.post_type
-                # if post_type is not None:
-                #     targeted_classes = post_type.split('/')
-                #     author_sub_type = targeted_classes[0]
-                #     if author_sub_type is not None:
-                #         author.author_sub_type = author_sub_type
+                if post_type is not None:
+                    targeted_classes = post_type.split('/')
+                    author_sub_type = targeted_classes[0]
+                    if author_sub_type is not None:
+                        author.author_sub_type = author_sub_type
 
-                if author_guid in author_probability_dict:
-                    for key, value in author_probability_dict[author_guid].iteritems():
+                if author_guid in author_prop_dict:
+                    for key, value in author_prop_dict[author_guid].iteritems():
                         setattr(author, key, value)
 
                 authors_to_update.append(author)
@@ -2887,11 +2886,11 @@ class DB():
 
     def create_temp_author_connections(self, source_author_id, destination_author_ids, author_connection_type,
                                        insertion_date):
-        print("---create_temp_author_connections---")
+        # print("---create_temp_author_connections---")
         author_connections = []
         for i, destination_author_id in enumerate(destination_author_ids):
-            if i % 100 == 0:
-                print('author connection generated {0}/{1}'.format(i, len(destination_author_ids)))
+            # if i % 2000 == 0:
+            #     print('author connection generated {0}/{1}'.format(i, len(destination_author_ids)))
             author_connection = self.create_temp_author_connection(source_author_id, destination_author_id,
                                                                    author_connection_type, insertion_date)
             author_connections.append(author_connection)
@@ -2900,8 +2899,8 @@ class DB():
 
     def create_temp_author_connection(self, source_author_id, destination_author_id, connection_type, insertion_date):
         temp_author_connection = TempAuthorConnection()
-        print("Temp author connection: source -> " + str(source_author_id) + ", dest -> " + str(
-            destination_author_id) + ", connection type = " + connection_type)
+        # print("Temp author connection: source -> " + str(source_author_id) + ", dest -> " + str(
+        #     destination_author_id) + ", connection type = " + connection_type)
         temp_author_connection.source_author_osn_id = source_author_id
         temp_author_connection.destination_author_osn_id = destination_author_id
         temp_author_connection.connection_type = unicode(connection_type)
@@ -3001,6 +3000,48 @@ class DB():
             author_osn_id_author_guid_dict[author_osn_id] = author_guid
         return author_osn_id_author_guid_dict
 
+    def get_posts_in_claim(self,claim_id):
+        query = """
+        
+        SELECT posts.post_osn_id, connections.source_post_osn_id, posts.author, authors.author_osn_id, authors.author_guid, authors.followers_count from posts 
+            INNER JOIN post_connections as connections on connections.target_post_osn_id=posts.post_osn_id
+            INNER JOIN claim_tweet_connection on posts.post_id = claim_tweet_connection.post_id
+            INNER JOIN authors on posts.author_guid=authors.author_guid
+        WHERE claim_tweet_connection.claim_id = {0} 
+        
+        """.format(claim_id)
+        query = text(query)
+        result = self.session.execute(query)
+        cursor = result.cursor
+        generator = self.result_iter(cursor)
+        return list(generator)
+
+
+    def get_claims(self):
+        query = """
+        SELECT claim_id from claims
+        """
+
+        query = text(query)
+        result = self.session.execute(query)
+        generator = self.result_iter(result)
+        return list(generator)
+
+    def get_uncrawled_claims(self):
+        query = """
+        SELECT claim_id 
+        FROM claims 
+        WHERE claims.claim_id not in 
+            (SELECT DISTINCT(claim_id) 
+             FROM author_connections);
+        """
+
+        query = text(query)
+        result = self.session.execute(query)
+        generator = self.result_iter(result)
+        return list(generator)
+
+
     def get_topic_with_maximal_posts(self):
         query = """
                 SELECT res.topic_id, MAX(res.post_count)
@@ -3039,7 +3080,7 @@ class DB():
     def create_post_from_tweet_data(self, tweet_data, domain):
         author_name = tweet_data.user.screen_name
         tweet_author_guid = compute_author_guid_by_author_name(author_name)
-        tweet_author_guid = tweet_author_guid
+        tweet_author_guid = cleanForAuthor(tweet_author_guid)
         tweet_post_twitter_id = str(tweet_data.id)
         tweet_url = generate_tweet_url(tweet_post_twitter_id, author_name)
         tweet_creation_time = tweet_data.created_at
@@ -3578,27 +3619,3 @@ class DB():
         # ans[u'max'] = self.get_author_guid_word_embedding_vector_dict(table_name, target_field_name, u'max')[author_guid]
         # ans[u'np.mean'] = self.get_author_guid_word_embedding_vector_dict(table_name, target_field_name, u'np.mean')[author_guid]
         return ans
-    
-    def get_claim_id_posts_dict(self):
-        claim_id_posts_dict = defaultdict(list)
-        post_dict = self.get_post_dictionary()
-        for claim_id, post_id in self.get_claim_tweet_connections():
-            claim_id_posts_dict[claim_id].append(post_dict[post_id])
-        return claim_id_posts_dict
-    
-    def update_campain_table(self, campaign_id, key, value):        
-        # added by YY
-        update_query = "UPDATE campaigns SET " + key + "=" + str(
-            value) + " WHERE campaign_id=" + str(campaign_id)
-        self.update_query(update_query)        
-   
-    def get_from_table(self, table_name, campaign_id):
-        query = """SELECT * FROM  {} where campaign_id={}""".format(table_name, campaign_id)
-        query = self.session.execute(query)
-        cursor = query.cursor
-        results = cursor.fetchall()
-        return results
-    
-    
-    
-    

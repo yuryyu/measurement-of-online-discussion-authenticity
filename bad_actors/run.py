@@ -10,8 +10,6 @@ import os
 import time
 
 from DB.schema_definition import DB
-from old_tweets_crawler.old_tweets_crawler import OldTweetsCrawler
-from preprocessing_tools.fake_news_snopes_importer.fake_news_snopes_importer import FakeNewsSnopesImporter
 from bad_actors_collector.bad_actors_collector import BadActorsCollector
 from configuration.config_class import getConfig
 from data_exporter.data_exporter import DataExporter
@@ -30,6 +28,7 @@ from dataset_builder.graph_builders.topic_graph_builders.topic_graph_builder_ran
 from dataset_builder.graph_builders.word_embedding_graph_builder import GraphBuilder_Word_Embedding
 from dataset_builder.image_downloader.image_downloader import Image_Downloader
 from dataset_builder.image_recognition.image_tags_extractor import Image_Tags_Extractor
+from dataset_builder.retweet_cascade_graph_builder import GraphBuilder_RetweetCascade
 from dataset_builder.lda_topic_model import LDATopicModel
 from dataset_builder.bag_of_words_graph_builder import GraphBuilder_Bag_Of_Words
 from dataset_builder.citation_graph_builder import GraphBuilder_Citation
@@ -58,10 +57,11 @@ from preprocessing_tools.json_importer.json_importer import JSON_Importer
 from preprocessing_tools.post_citation_creator import PostCitationCreator
 from preprocessing_tools.rank_app_importer import RankAppImporter
 from preprocessing_tools.xml_importer import XMLImporter
-from topic_distribution_visualization.claim_to_topic_converter import ClaimToTopicConverter
 from topic_distribution_visualization.topic_distribution_visualization_generator import \
     TopicDistrobutionVisualizationGenerator
 from twitter_crawler.twitter_crawler import Twitter_Crawler
+from preprocessing_tools.leadspotting_posts_importer import LeadspottingPostsImporter
+from missing_data_complementor.missing_data_complementor import MissingDataComplementor
 
 ###############################################################
 # MODULES
@@ -74,16 +74,14 @@ modules_dict["CreateAuthorTables"] = CreateAuthorTables
 modules_dict["RankAppImporter"] = RankAppImporter
 modules_dict["JSON_Importer"] = JSON_Importer
 modules_dict["CsvImporter"] = CsvImporter
-modules_dict["FakeNewsSnopesImporter"] = FakeNewsSnopesImporter
+modules_dict["LeadspottingPostsImporter"] = LeadspottingPostsImporter
 modules_dict["GDLET_News_Importer"] = GDLET_News_Importer
 modules_dict["Twitter_Crawler"] = Twitter_Crawler
-modules_dict["OldTweetsCrawler"] = OldTweetsCrawler
 modules_dict["MissingDataComplementor"] = MissingDataComplementor
 modules_dict["Load_Datasets"] = Load_Datasets
 modules_dict["Image_Tags_Extractor"] = Image_Tags_Extractor
 modules_dict["Image_Downloader"] = Image_Downloader
 modules_dict["Preprocessor"] = Preprocessor
-modules_dict["ClaimToTopicConverter"] = ClaimToTopicConverter
 modules_dict["LDATopicModel"] = LDATopicModel
 modules_dict["GloveWordEmbeddingModelCreator"] = GloveWordEmbeddingModelCreator
 modules_dict["GensimWordEmbeddingsModelTrainer"] = GensimWordEmbeddingsModelTrainer
@@ -91,6 +89,8 @@ modules_dict["OCR_Extractor"] = OCR_Extractor
 modules_dict["TopicDistributionBuilder"] = TopicDistributionBuilder
 modules_dict["PostCitationCreator"] = PostCitationCreator
 
+
+modules_dict["GraphBuilder_RetweetCascade"] = GraphBuilder_RetweetCascade
 modules_dict["GraphBuilder_Citation"] = GraphBuilder_Citation
 modules_dict["GraphBuilder_CoCitation"] = GraphBuilder_CoCitation
 modules_dict["Randomizer"] = Randomizer
@@ -112,9 +112,11 @@ modules_dict["DataExporter"] = DataExporter
 modules_dict["LinkPredictionEvaluator"] = LinkPredictionEvaluator
 modules_dict["ExperimentalEnvironment"] = ExperimentalEnvironment
 modules_dict["Predictor"] = Predictor
+
 modules_dict["KNNWithLinkPrediction"] = KNNWithLinkPrediction
 modules_dict["Kernel_Performance_Evaluator"] = Kernel_Performance_Evaluator
 modules_dict["TopicDistrobutionVisualizationGenerator"] = TopicDistrobutionVisualizationGenerator
+modules_dict["MissingDataComplementor"] = MissingDataComplementor
 
 ###############################################################
 ## SETUP
