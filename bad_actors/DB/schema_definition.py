@@ -3578,8 +3578,8 @@ class DB():
         # ans[u'max'] = self.get_author_guid_word_embedding_vector_dict(table_name, target_field_name, u'max')[author_guid]
         # ans[u'np.mean'] = self.get_author_guid_word_embedding_vector_dict(table_name, target_field_name, u'np.mean')[author_guid]
         return ans
-		
-     def get_claim_id_posts_dict(self):
+    
+    def get_claim_id_posts_dict(self):
         claim_id_posts_dict = defaultdict(list)
         post_dict = self.get_post_dictionary()
         for claim_id, post_id in self.get_claim_tweet_connections():
@@ -3592,7 +3592,12 @@ class DB():
             value) + " WHERE campaign_id=" + str(campaign_id)
         self.update_query(update_query)        
    
-    
+    def get_from_table(self, table_name, campaign_id):
+        query = """SELECT * FROM  {} where campaign_id={}""".format(table_name, campaign_id)
+        query = self.session.execute(query)
+        cursor = query.cursor
+        results = cursor.fetchall()
+        return results
     
     
     
