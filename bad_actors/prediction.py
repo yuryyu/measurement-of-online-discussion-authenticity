@@ -185,10 +185,12 @@ for table_name in tables:
 campaign = db.get_from_table('campaigns_data', campaign_id)           
 logging.info("Record "+str(campaign_id)+" successfully read:")
 for ff in range(0,len(campaign)):                        
-    logging.info(campaign[ff])
+    #logging.info(campaign[ff])
     try:              
         db.insert_to_camp_data_table(tables[1],campaign[ff])
     except:
+        logging.warning('Failed in executing insert operation for:')
+        logging.warning( campaign[ff])
         pass
 
     
@@ -210,7 +212,7 @@ try:
     mname='none'
     for module in pipeline:
         T = time.time()
-        mname=module.__class__.__name_
+        mname=module.__class__.__name__
         logging.info("execute module: {0}".format(module))
         logging.info('*********Started executing ' + module.__class__.__name__)
         module.execute(window_start)
@@ -218,7 +220,7 @@ try:
         T = time.time() - T
         bmrk[module.__class__.__name__] = T
 except:
-    logging.info('*********Failed in executing ' + mname)
+    logging.warning('*********Failed in executing ' + mname)
      
 num_of_authors = db.get_number_of_targeted_osn_authors(domain)
 bmrk["authors"] = num_of_authors

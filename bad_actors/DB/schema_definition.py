@@ -3716,8 +3716,7 @@ class DB():
         '"+str(dict_line[3])+"', \
         '"+str(dict_line[6])+"', \
         '"+str(dict_line[7])+"', \
-        '"+str(dict_line[8])+"')"       
-        print (query)       
+        '"+str(dict_line[8])+"')"              
         self.session.execute(query)
         self.session.commit()
     
