@@ -3708,7 +3708,7 @@ class DB():
         results = cursor.fetchall()
         return results
     
-    def insert_to_camp_data_table(self, table_name, dict_line):        
+    def insert_camp_data_to_posts(self, table_name, dict_line):        
         query ="INSERT INTO "+table_name+" (post_id, author, title, url, date, retweet_count, favorite_count) VALUES ( \
         '"+str(dict_line[1])+"', \
         '"+str(dict_line[4])+"', \
@@ -3720,5 +3720,16 @@ class DB():
         self.session.execute(query)
         self.session.commit()
     
-    
+    def insert_camp_to_claims(self, table_name, dict_line):        
+        query ="INSERT INTO "+table_name+" (claim_id, title, description, url, verdict_date, keywords, domain, verdict) VALUES ( \
+        '"+str(dict_line[0])+"', \
+        '"+str(dict_line[1])+"', \
+        '"+str(dict_line[2])+"', \
+        'NA', \
+        '"+str(dict_line[5])+"', \
+        'TBD', \
+        '"+str(dict_line[3])+"', \
+        '"+str(dict_line[7])+"')"              
+        self.session.execute(query)
+        self.session.commit()
     

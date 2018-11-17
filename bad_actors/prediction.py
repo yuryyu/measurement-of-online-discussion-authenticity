@@ -180,17 +180,25 @@ for table_name in tables:
         logging.warning("can not be deleted table: {0}".format(table_name))        
     
 # copy data from campaign to claims tables - used in train data pipeline
+campaign = db.get_from_table('campaigns', campaign_id)
+try:
+    print(campaign[0])              
+    db.insert_camp_to_claims(tables[0],campaign[0])
+except:
+    logging.warning('Failed in executing insert operation for:')
+    logging.warning( campaign[0])
+    pass
+
 
 # campaign_data to posts tables
-campaign = db.get_from_table('campaigns_data', campaign_id)           
-logging.info("Record "+str(campaign_id)+" successfully read:")
-for ff in range(0,len(campaign)):                        
+campaign_data = db.get_from_table('campaigns_data', campaign_id)
+for ff in range(0,len(campaign_data)):                        
     #logging.info(campaign[ff])
     try:              
-        db.insert_to_camp_data_table(tables[1],campaign[ff])
+        db.insert_camp_data_to_posts(tables[1],campaign_data[ff])
     except:
         logging.warning('Failed in executing insert operation for:')
-        logging.warning( campaign[ff])
+        logging.warning( campaign_data[ff])
         pass
 
     
