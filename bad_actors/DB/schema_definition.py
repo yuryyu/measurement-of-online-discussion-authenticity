@@ -19,6 +19,7 @@ from commons.consts import DB_Insertion_Type, Author_Type, Author_Connection_Typ
 from commons.consts import Domains
 from configuration.config_class import getConfig
 import os
+# from bad_actors.commons.commons import date
 
 Base = declarative_base()
 
@@ -1485,6 +1486,11 @@ class DB():
         q = text("delete from author_features")
         self.session.execute(q)
         self.commit()
+        
+    def delete_table(self,table_name):
+        q = text("delete from "+ table_name)
+        self.session.execute(q)
+        self.commit()    
 
     def delete_from_authors_features_trained_authors(self, author_guids_to_remove):
         self.session.query(AuthorFeatures).filter(AuthorFeatures.author_guid.in_(author_guids_to_remove)).delete(
@@ -3702,6 +3708,18 @@ class DB():
         results = cursor.fetchall()
         return results
     
+    def insert_to_camp_data_table(self, table_name, dict_line):        
+        query ="INSERT INTO "+table_name+" (post_id, author, title, url, date, retweet_count, favorite_count) VALUES ( \
+        '"+str(dict_line[1])+"', \
+        '"+str(dict_line[4])+"', \
+        '"+str(dict_line[5])+"', \
+        '"+str(dict_line[3])+"', \
+        '"+str(dict_line[6])+"', \
+        '"+str(dict_line[7])+"', \
+        '"+str(dict_line[8])+"')"       
+        print (query)       
+        self.session.execute(query)
+        self.session.commit()
     
     
     

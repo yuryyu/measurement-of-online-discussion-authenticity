@@ -169,6 +169,29 @@ bmrk_file.flush()
 clean_authors_features = getConfig().eval("DatasetBuilderConfig", "clean_authors_features_table")
 if clean_authors_features:
     db.delete_authors_features()
+    
+# clean tables for new campaign prediction run
+tables = ['claims','posts','authors','author_features','unlabeled_predictions','topics'] 
+for table_name in tables:
+    try:  
+        db.delete_table(table_name)
+        logging.info("deleted table: {0}".format(table_name))
+    except:
+        logging.warning("can not be deleted table: {0}".format(table_name))        
+    
+# copy data from campaign to claims tables - used in train data pipeline
+
+# campaign_data to posts tables
+campaign = db.get_from_table('campaigns_data', campaign_id)           
+logging.info("Record "+str(campaign_id)+" successfully read:")
+for ff in range(0,len(campaign)):                        
+    logging.info(campaign[ff])
+    try:              
+        db.insert_to_camp_data_table(tables[1],campaign[ff])
+    except:
+        pass
+
+    
 
 #check defenition
 logging.info("checking module definition")

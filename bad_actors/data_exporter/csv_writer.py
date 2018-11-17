@@ -31,7 +31,7 @@ class Csv_writer():
             data_file.writerow(header)
             sscore=[]
             for ff in range(0,len(campaign)):                        
-                score=random.random()                
+                score=(random.random())*0.5 + 0.27                
                 data_file.writerow([campaign[ff][4],campaign[ff][3].split('/')[1],'negative',"{0:.2f}".format(score)])
                 sscore.append(score)
         logging.info("Finished writing CSV file")
