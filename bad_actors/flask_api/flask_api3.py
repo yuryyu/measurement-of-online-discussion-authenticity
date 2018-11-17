@@ -35,7 +35,7 @@ if os.path.exists(db_path_file) and back_up :
 if from_scrach :
     if os.path.exists(db_path_file):
         os.remove(db_path_file)
-    run_command_ex='{}\\leadspotting_init_DB.bat'.format(project_folder) 
+    run_command_ex='{}\\run.py configuration\config_leadspotting_init_DB.ini'.format(project_folder) 
     os.system(run_command_ex)    
     conn = sqlite3.connect(db_path_file)
     logging.info("Database created successfully")  
@@ -283,4 +283,4 @@ def thread_error(error):
     return make_response(jsonify({'error': 'Previos analyzer run is not ended'}), 501)
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=False, host='0.0.0.0')

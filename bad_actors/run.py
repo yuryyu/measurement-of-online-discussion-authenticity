@@ -1,13 +1,12 @@
 '''
-Created on 26  JUN  2016
-
-@author: Jorge Bendahan (jorgeaug@post.bgu.ac.il)
+Updated  on 17.11.2018
 
 '''
 import csv
 import logging.config
 import os
 import time
+import sys
 
 from DB.schema_definition import DB
 from old_tweets_crawler.old_tweets_crawler import OldTweetsCrawler
@@ -15,6 +14,7 @@ from preprocessing_tools.fake_news_snopes_importer.fake_news_snopes_importer imp
 from bad_actors_collector.bad_actors_collector import BadActorsCollector
 from configuration.config_class import getConfig
 from data_exporter.data_exporter import DataExporter
+from data_exporter.csv_writer import Csv_writer
 from dataset_builder.graph_builders.bag_of_words_graph_builders.bag_of_words_graph_builder_all_combinations import \
     Bag_Of_Words_Graph_Builder_All_Combinations
 from dataset_builder.graph_builders.bag_of_words_graph_builders.bag_of_words_graph_builder_k_best import \
@@ -123,10 +123,12 @@ modules_dict["Kernel_Performance_Evaluator"] = Kernel_Performance_Evaluator
 modules_dict["TopicDistrobutionVisualizationGenerator"] = TopicDistrobutionVisualizationGenerator
 modules_dict["MissingDataComplementor"] = MissingDataComplementor
 
-###############################################################
+
 ## SETUP
 logging.config.fileConfig(getConfig().get("DEFAULT", "Logger_conf_file"))
 config = getConfig()
+# global campaign_id
+# campaign_id = sys.argv[2]
 domain = unicode(config.get("DEFAULT", "domain"))
 logging.info("Start Execution ... ")
 logging.info("SETUP global variables")
@@ -175,20 +177,26 @@ for module in pipeline:
         raise Exception("module: "+ module.__class__.__name__ +" config not well defined")
     logging.info("module "+str(module) + " is well defined")
 
-###############################################################
 ## EXECUTE
 bmrk = {"config": getConfig().getfilename(), "window_start": "execute"}
-for module in pipeline:
-    logging.info("execute module: {0}".format(module))
-    T = time.time()
-    logging.info('*********Started executing ' + module.__class__.__name__)
-
-    module.execute(window_start)
-
-    logging.info('*********Finished executing ' + module.__class__.__name__)
-    T = time.time() - T
-    bmrk[module.__class__.__name__] = T
-
+# Update  status for campaign
+# status='"Analyzing"'
+# db.update_campain_table(campaign_id, 'status', status)
+# logging.info('*********Started executing update_campain_status for campaign:' + str(campaign_id))
+try:
+    mname='none'
+    for module in pipeline:
+        T = time.time()
+        mname=module.__class__.__name_
+        logging.info("execute module: {0}".format(module))
+        logging.info('*********Started executing ' + module.__class__.__name__)
+        module.execute(window_start)
+        logging.info('*********Finished executing ' + module.__class__.__name__)
+        T = time.time() - T
+        bmrk[module.__class__.__name__] = T
+except:
+    logging.info('*********Failed in executing ' + mname)
+     
 num_of_authors = db.get_number_of_targeted_osn_authors(domain)
 bmrk["authors"] = num_of_authors
 
@@ -197,6 +205,19 @@ bmrk["posts"] = num_of_posts
 
 bmrk_results.writerow(bmrk)
 bmrk_file.flush()
+# 
+# # create C:\output\authors_labeling.csv
+# table ="campaigns_data"
+# csv_ob= Csv_writer(db, table)
+# output_filename = 'C:\\output\\authors_labeling_'+str(campaign_id)+'.csv'
+# fake_news_score=csv_ob.write_to_csv(output_filename, campaign_id)
+# # Update  status for campaign
+# status='"Analyzed"'
+# db.update_campain_table(campaign_id, 'status', status)
+# db.update_campain_table(campaign_id, 'fake_news_score', fake_news_score)
+# logging.info('*********Finished executing update_campain_status for campaign:' + str(campaign_id))
+
+
 
 if __name__ == '__main__':
     pass

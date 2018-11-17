@@ -1,5 +1,5 @@
 '''
-Created on 30.10.2018
+Updated  on 17.11.2018
 
 '''
 import csv
@@ -9,6 +9,8 @@ import time
 import sys
 
 from DB.schema_definition import DB
+from old_tweets_crawler.old_tweets_crawler import OldTweetsCrawler
+from preprocessing_tools.fake_news_snopes_importer.fake_news_snopes_importer import FakeNewsSnopesImporter
 from bad_actors_collector.bad_actors_collector import BadActorsCollector
 from configuration.config_class import getConfig
 from data_exporter.data_exporter import DataExporter
@@ -28,6 +30,7 @@ from dataset_builder.graph_builders.topic_graph_builders.topic_graph_builder_ran
 from dataset_builder.graph_builders.word_embedding_graph_builder import GraphBuilder_Word_Embedding
 from dataset_builder.image_downloader.image_downloader import Image_Downloader
 from dataset_builder.image_recognition.image_tags_extractor import Image_Tags_Extractor
+from dataset_builder.retweet_cascade_graph_builder import GraphBuilder_RetweetCascade
 from dataset_builder.lda_topic_model import LDATopicModel
 from dataset_builder.bag_of_words_graph_builder import GraphBuilder_Bag_Of_Words
 from dataset_builder.citation_graph_builder import GraphBuilder_Citation
@@ -56,12 +59,17 @@ from preprocessing_tools.json_importer.json_importer import JSON_Importer
 from preprocessing_tools.post_citation_creator import PostCitationCreator
 from preprocessing_tools.rank_app_importer import RankAppImporter
 from preprocessing_tools.xml_importer import XMLImporter
+from topic_distribution_visualization.claim_to_topic_converter import ClaimToTopicConverter
 from topic_distribution_visualization.topic_distribution_visualization_generator import \
     TopicDistrobutionVisualizationGenerator
 from twitter_crawler.twitter_crawler import Twitter_Crawler
+from preprocessing_tools.leadspotting_posts_importer import LeadspottingPostsImporter
+from missing_data_complementor.missing_data_complementor import MissingDataComplementor
 
-
+###############################################################
 # MODULES
+###############################################################
+
 modules_dict = {}
 modules_dict["DB"] = DB  ## DB is special, it cannot be created using db.
 modules_dict["XMLImporter"] = XMLImporter
@@ -69,19 +77,26 @@ modules_dict["CreateAuthorTables"] = CreateAuthorTables
 modules_dict["RankAppImporter"] = RankAppImporter
 modules_dict["JSON_Importer"] = JSON_Importer
 modules_dict["CsvImporter"] = CsvImporter
+modules_dict["FakeNewsSnopesImporter"] = FakeNewsSnopesImporter
+modules_dict["LeadspottingPostsImporter"] = LeadspottingPostsImporter
 modules_dict["GDLET_News_Importer"] = GDLET_News_Importer
 modules_dict["Twitter_Crawler"] = Twitter_Crawler
+modules_dict["OldTweetsCrawler"] = OldTweetsCrawler
 modules_dict["MissingDataComplementor"] = MissingDataComplementor
 modules_dict["Load_Datasets"] = Load_Datasets
 modules_dict["Image_Tags_Extractor"] = Image_Tags_Extractor
 modules_dict["Image_Downloader"] = Image_Downloader
 modules_dict["Preprocessor"] = Preprocessor
+modules_dict["ClaimToTopicConverter"] = ClaimToTopicConverter
 modules_dict["LDATopicModel"] = LDATopicModel
 modules_dict["GloveWordEmbeddingModelCreator"] = GloveWordEmbeddingModelCreator
 modules_dict["GensimWordEmbeddingsModelTrainer"] = GensimWordEmbeddingsModelTrainer
 modules_dict["OCR_Extractor"] = OCR_Extractor
 modules_dict["TopicDistributionBuilder"] = TopicDistributionBuilder
 modules_dict["PostCitationCreator"] = PostCitationCreator
+
+
+modules_dict["GraphBuilder_RetweetCascade"] = GraphBuilder_RetweetCascade
 modules_dict["GraphBuilder_Citation"] = GraphBuilder_Citation
 modules_dict["GraphBuilder_CoCitation"] = GraphBuilder_CoCitation
 modules_dict["Randomizer"] = Randomizer
@@ -106,6 +121,7 @@ modules_dict["Predictor"] = Predictor
 modules_dict["KNNWithLinkPrediction"] = KNNWithLinkPrediction
 modules_dict["Kernel_Performance_Evaluator"] = Kernel_Performance_Evaluator
 modules_dict["TopicDistrobutionVisualizationGenerator"] = TopicDistrobutionVisualizationGenerator
+modules_dict["MissingDataComplementor"] = MissingDataComplementor
 
 
 ## SETUP
@@ -118,6 +134,15 @@ logging.info("Start Execution ... ")
 logging.info("SETUP global variables")
 
 window_start = getConfig().eval("DEFAULT", "start_date")
+newbmrk = os.path.isfile("benchmark.csv")
+bmrk_file = file("benchmark.csv", "a")
+bmrk_results = csv.DictWriter(bmrk_file,
+                              ["time", "jobnumber", "config", "window_size", "window_start", "dones", "posts",
+                               "authors"] + modules_dict.keys(),
+                              dialect="excel", lineterminator="\n")
+
+if not newbmrk:
+    bmrk_results.writeheader()
 
 logging.info("CREATE pipeline")
 db = DB()
@@ -129,9 +154,17 @@ for module in getConfig().sections():
         pipeline.append(modules_dict.get(module)(db))
 
 logging.info("SETUP pipeline")
+bmrk = {"config": getConfig().getfilename(), "window_start": "setup"}
+
 for module in pipeline:
     logging.info("setup module: {0}".format(module))
+    T = time.time()
     module.setUp()
+    T = time.time() - T
+    bmrk[module.__class__.__name__] = T
+
+bmrk_results.writerow(bmrk)
+bmrk_file.flush()
 
 clean_authors_features = getConfig().eval("DatasetBuilderConfig", "clean_authors_features_table")
 if clean_authors_features:
@@ -145,6 +178,7 @@ for module in pipeline:
     logging.info("module "+str(module) + " is well defined")
 
 ## EXECUTE
+bmrk = {"config": getConfig().getfilename(), "window_start": "execute"}
 # Update  status for campaign
 status='"Analyzing"'
 db.update_campain_table(campaign_id, 'status', status)
@@ -152,16 +186,25 @@ logging.info('*********Started executing update_campain_status for campaign:' + 
 try:
     mname='none'
     for module in pipeline:
+        T = time.time()
         mname=module.__class__.__name_
         logging.info("execute module: {0}".format(module))
         logging.info('*********Started executing ' + module.__class__.__name__)
         module.execute(window_start)
         logging.info('*********Finished executing ' + module.__class__.__name__)
+        T = time.time() - T
+        bmrk[module.__class__.__name__] = T
 except:
     logging.info('*********Failed in executing ' + mname)
      
 num_of_authors = db.get_number_of_targeted_osn_authors(domain)
+bmrk["authors"] = num_of_authors
+
 num_of_posts = db.get_number_of_targeted_osn_posts(domain)
+bmrk["posts"] = num_of_posts
+
+bmrk_results.writerow(bmrk)
+bmrk_file.flush()
 
 # create C:\output\authors_labeling.csv
 table ="campaigns_data"
@@ -175,6 +218,6 @@ db.update_campain_table(campaign_id, 'fake_news_score', fake_news_score)
 logging.info('*********Finished executing update_campain_status for campaign:' + str(campaign_id))
 
 
+
 if __name__ == '__main__':
-    
     pass
