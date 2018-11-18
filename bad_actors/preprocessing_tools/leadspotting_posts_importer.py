@@ -77,7 +77,6 @@ class LeadspottingPostsImporter(CsvImporter):
         return  pre_post, date
 
     def parse_csv(self, csv_file, f):
-        # try:
         reader = csv.DictReader(f, delimiter=',')
         for row in reader:
             try:
@@ -123,9 +122,6 @@ class LeadspottingPostsImporter(CsvImporter):
         post_dict["followers"] = int(row['followers']) if row['followers'] is not None else -1
         post_dict["campaign_id"] = row["campaign_id"]
         post_dict["parent_osn_id"] = row["parentTweet"].replace("\"","")
-
-        #TODO: Leah, please add the rest of the data from the csv (poster friends, likes etc) so we can add it later to the DB
-
         return post_dict
 
     def create_author_dict_from_row(self, row, post_dict):

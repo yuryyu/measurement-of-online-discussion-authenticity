@@ -4,7 +4,7 @@ import sys
 
 from decorator import contextmanager
 
-#sys.argv.append('configuration/config_test.ini')
+sys.argv.append('configuration/config_test.ini')
 from preprocessing_tools.leadspotting_posts_importer import LeadspottingPostsImporter
 from DB.schema_definition import DB, Post
 from configuration.config_class import getConfig
@@ -12,16 +12,6 @@ import csv
 
 
 #used to check print outputs
-@contextmanager
-def captured_output(self):
-    new_out, new_err = StringIO(), StringIO()
-    old_out, old_err = sys.stdout, sys.stderr
-    try:
-        sys.stdout, sys.stderr = new_out, new_err
-        yield sys.stdout, sys.stderr
-    finally:
-        sys.stdout, sys.stderr = old_out, old_err
-
 
 class TestLeadspottingPostsImporter(TestCase):
     def setUp(self):
@@ -36,6 +26,11 @@ class TestLeadspottingPostsImporter(TestCase):
         self.importer._data_folder = 'data/input/datasets/unittests/folder1/'
         self.importer.execute()
         self.assertEqual(len(self._db.get_all_posts()), 3)
+        valid_post_id = '783dcc3b-1ec0-38a5-a760-912e6be134b7'
+        invalid_post_id = '2236cca9-bcc7-39d5-b702-6d5463d42fae'
+        self.assertTrue(self._db.get_post_by_id(valid_post_id))
+        self.assertFalse(self._db.get_post_by_id(invalid_post_id))
+
 
     def test_incorrect_fieds(self):
         #tests that importer doesn't insert to db posts from csv missing essential fields
@@ -43,28 +38,9 @@ class TestLeadspottingPostsImporter(TestCase):
         self.importer.setUp()
         self.importer._data_folder = 'data/input/datasets/unittests/incorrect_fields/'
         csv_file = 'data/input/datasets/unittests/incorrect_fields/incorrect_fields.csv'
-        with captured_output(self) as (out, err):
-            with open(csv_file, 'r') as f:
-                self.importer.parse_csv(csv_file, f)
-        output = out.getvalue().strip()
-        expected_output = '[-] Failed to parse row\n[-] Failed to parse row\n[-] Failed to parse row'
-        self.assertEqual(output, expected_output)
-        all_posts_in_db = self._db.get_all_posts()
         self.importer.execute()
+        all_posts_in_db = self._db.get_all_posts()
         self.assertEqual(len(all_posts_in_db), 0)
-
-
-    def test_skips_lines(self):
-        print '\ntest skips lines   '
-        self.importer.setUp()
-        csv_file = 'data/input/datasets/unittests/folder1/leadspotting_posts_incorrect_lines.csv'
-        with captured_output(self) as (out, err):
-            with open(csv_file, 'r') as f:
-                self.importer.parse_csv(csv_file, f)
-        output = out.getvalue().strip()
-        expected_output = '[-] Failed to parse row'
-        print 'output: {}'.format(output)
-        self.assertEqual(output, expected_output)
 
 
     def tearDown(self):
