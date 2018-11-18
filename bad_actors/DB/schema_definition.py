@@ -109,7 +109,7 @@ class AuthorConnection(Base):
     destination_author_guid = Column(Unicode, primary_key=True)
     connection_type = Column(Unicode, primary_key=True)
     weight = Column(FLOAT, default=0.0)
-    claim_id = Column(Integer, ForeignKey('claims.claim_id')) # not exist in Aviad
+    topic_id = Column(Integer, ForeignKey('claims.claim_id')) # not exist in Aviad
     insertion_date = Column(Unicode, default=None)
 
     def __repr__(self):
@@ -153,6 +153,7 @@ class PostConnection(Base):
     target_post_osn_id = Column(Integer, ForeignKey('posts.post_osn_id'), primary_key=True)
     connection_type = Column(Unicode, primary_key=True)
     insertion_date = Column(Unicode, default=None)
+    topic_id = Column(Integer, default=None)
 
     def __repr__(self):
         return "<Post_Connections(source_post_osn_id='%s', target_post_osn_id='%s', connection_type='%s', insertion_date='%s')>" % (
@@ -259,6 +260,9 @@ class Claim(Base):
     __tablename__ = "claims"
 
     claim_id = Column(Unicode, primary_key=True, index=True)
+    claim_topic = Column(Unicode, default=None)
+    claim_post_id = Column(Unicode, ForeignKey('posts.post_id'))
+    claim_ext_id = Column(Unicode, default=None) # ls id
     title = Column(Unicode, default=None)
     description = Column(Unicode, default=None)
     url = Column(Unicode, default=None)
@@ -470,12 +474,21 @@ class Term(Base):
     description = Column(Unicode, default=None)
 
 
-class Topic(Base):
-    __tablename__ = "topics"
+class TopicTermMapping(Base):
+    __tablename__ = "topic_term_mapping"
 
     topic_id = Column(Integer, primary_key=True)
     term_id = Column(Integer, ForeignKey("terms.term_id"), primary_key=True)
     probability = Column(FLOAT, default=None)
+
+
+class Topic(Base):
+    __tablename__ = "topics"
+
+    topic_id = Column(Integer, primary_key=True)
+    topic_type = Column(Unicode, primary_key=False)  # Manual / LDA /  other topic extraction method
+
+
 
 class Text_From_Image(Base):
     __tablename__ = 'image_hidden_texts'

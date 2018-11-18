@@ -95,7 +95,7 @@ class GraphBuilder_RetweetCascade(GraphBuilder):
             return dt[:n_samples]
 
     def setUp(self):
-        self.api = TwitterApiRequester(sleep_on_rate_limit=False)
+        self.api = TwitterApiRequester()
         self._lookup = FriendsLookup(self.api)
         self._sample_top_followers_users = int(self._config_parser.get(self.__class__.__name__,
                                                                     "sample_top_followers_users"))
@@ -118,7 +118,7 @@ class GraphBuilder_RetweetCascade(GraphBuilder):
                     for v in discovered_followers:
                         self.handle_discoverd_node(discovered_nodes, discovery_map, q, u, undiscovered_nodes, v)
                 except:
-                    print "[X] Finished followers quota, switching to friendship lookup"
+                    logging.exception("[X] Error querying twitter API, possibly too many requests")
                     self.expand_using_friendship_lookup(discovered_nodes, discovery_map, q, u, undiscovered_nodes)
             else:
                 self.expand_using_friendship_lookup(discovered_nodes, discovery_map, q, u, undiscovered_nodes)
@@ -144,10 +144,12 @@ class GraphBuilder_RetweetCascade(GraphBuilder):
 
     def generate_graph_for_retweet_cascade(self, cascade_df, df):
         cascade_df = self.sample_by_top_followers(cascade_df,self._sample_top_followers_users) # use only top X users
-        orig_post =  cascade_df.iloc[0]['parent_id']
-        orig_author = self.get_orig_poster_id(df, orig_post) # add post author
+        orig_poster =  cascade_df.iloc[0]['parent_id']
+        orig_author = self.get_orig_poster_id(df, orig_poster) # add post author
         retweeters_list = list(cascade_df.author_id)
-        G, discovery_map = self.create_cascade_graph(map(lambda x: long(x), [orig_author] + retweeters_list), df)
+        G, discovery_map = self.create_cascade_graph(map(lambda x: long(x), filter(lambda x:
+                                                                                   x is not None,
+                                                                                   [orig_author] + retweeters_list), df))
         return discovery_map
 
     # add_author_connections
@@ -178,7 +180,7 @@ class GraphBuilder_RetweetCascade(GraphBuilder):
                 for key, value in discovery_map.items():
                     aggregated_dict[key] = aggregated_dict.get(key, set()).union([value])
             except Exception as e:
-                print "Failed to generate graph for group :{0}. Reason: {1}".format(grp, e)
+                logging.exception("Failed to generate graph for group :{0}".format(grp))
         self.save_cascade_graph_for_claim(aggregated_dict, claim_df, claim_id)
 
 

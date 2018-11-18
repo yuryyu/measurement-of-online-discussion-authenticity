@@ -15,18 +15,19 @@ class TwitterApiRequester:
         self._access_token_secret = self._config_parser.eval("TwitterApiRequester", 'access_token_secret')
         self._user_id_1 = self._config_parser.get("TwitterApiRequester", 'access_token_secret')
         self._screen_name_1 = self._config_parser.eval("TwitterApiRequester", 'screen_name')
+        self._sleep_on_rate_limit = self._config_parser.eval("TwitterApiRequester", 'sleep_on_rate_limit')
 
-        self.create_twitter_api(self._consumer_key, self._consumer_secret, self._access_token_key, self._access_token_secret)
+        self.create_twitter_api(self._consumer_key, self._consumer_secret, self._access_token_key, self._access_token_secret, self._sleep_on_rate_limit)
 
 
 
-    def create_twitter_api(self, consumer_key, consumer_secret, access_token_key, access_token_secret):
+    def create_twitter_api(self, consumer_key, consumer_secret, access_token_key, access_token_secret, sleep_on_rate_limit=False):
         try:
             self.api = twitter.Api(consumer_key=consumer_key,
                                    consumer_secret=consumer_secret,
                                    access_token_key=access_token_key,
                                    access_token_secret=access_token_secret,
-                                   sleep_on_rate_limit=True)
+                                   sleep_on_rate_limit=sleep_on_rate_limit)
 
             print("The twitter.Api object created")
 
@@ -66,6 +67,10 @@ class TwitterApiRequester:
         list_for_print = "[" + "".join([str(item) + "," for item in items])
         list_for_print = list_for_print[:-1] # remove the last unnecessary last ","
         print list_for_print + "]"
+
+    def show_friendship(self, source_id, target_id):
+        friendship = self.api.ShowFriendship(source_user_id=source_id, target_user_id=target_id)
+        return friendship
 
     def get_friends(self):
         friends = self.api.GetFriends()

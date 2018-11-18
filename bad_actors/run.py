@@ -187,15 +187,16 @@ try:
     mname='none'
     for module in pipeline:
         T = time.time()
-        mname=module.__class__.__name_
+        mname=module.__class__.__name__
         logging.info("execute module: {0}".format(module))
         logging.info('*********Started executing ' + module.__class__.__name__)
         module.execute(window_start)
         logging.info('*********Finished executing ' + module.__class__.__name__)
         T = time.time() - T
         bmrk[module.__class__.__name__] = T
-except:
-    logging.info('*********Failed in executing ' + mname)
+except Exception as e:
+    logging.exception('*********Failed in executing : {0}'.format(mname))
+
      
 num_of_authors = db.get_number_of_targeted_osn_authors(domain)
 bmrk["authors"] = num_of_authors
