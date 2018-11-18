@@ -24,6 +24,7 @@ class CampaignDetailsImporter(FakeNewsSnopesImporter):
         claim.domain = self._domain
         keywords = unicode(row['category'])
         claim.keywords = keywords
-        verdict = unicode(row['class'])
+        verdict = unicode(row['campaign_class'])
         claim.verdict = verdict
+        #claim.claim_topic = unicode(row['category'])
         return claim

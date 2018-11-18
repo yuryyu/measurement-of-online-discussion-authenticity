@@ -103,7 +103,7 @@ class LeadspottingPostsImporter(CsvImporter):
             post_dict["date"] = unicode(row["DATE"])
         except:
             post_dict["date"] = unicode(row["date"])
-        post_dict["date"] = post_dict["date"].replace("\"","")
+        post_dict["date"] = post_dict["date"].replace("/", "")
 
        # post_dict["guid"] = unicode(row["tweetId"])
         parsed_author_name = row["userUrl"][row["userUrl"].rfind('/')+1:]

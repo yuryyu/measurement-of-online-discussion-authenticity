@@ -5,8 +5,8 @@ import unittest
 
 import sys
 
-
-sys.argv = ['', 'configuration/config_test.ini']
+#sys.argv.append('configuration/config_test.ini')
+#sys.argv = ['', 'configuration/config_test.ini']
 
 import logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s', datefmt="%Y-%m-%d %H:%M:%S")
@@ -26,6 +26,7 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(mes
 # from preprocessing_tools.unit_tests.test_app_Importer import TestAppImporter
 # from preprocessing_tools.unit_tests.test_rank_app_importer import TestRankAppImporter
 # from preprocessing_tools.tsv_importer import TestCSVDataImport
+from preprocessing_tools.unit_tests.test_leadspotting_posts_importer import TestLeadspottingPostsImporter
 # from dataset_builder.unit_tests.word_embedding_differential_unittests import Word_Embeddings_Differential_Feature_Generator_Unittests
 # from dataset_builder.unit_tests.word_embeddings_comparison_feature_generator_unittests import Word_Embeddings_Comparison_Feature_Generator_Unittests
 # from dataset_builder.unit_tests.glove_word_embedding_model_creator_unittest import GloveWordEmbeddingModelCreatorUnittest
@@ -34,5 +35,6 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(mes
 # from old_tweets_crawler.test_old_tweets_crawler import TestOldTweetsCrawler
 # from dataset_builder.unit_tests.test_image_downloader import TestImageDownloader
 # from topic_distribution_visualization.test_claim_to_topic_converter import TestClaimToTopicConverter
+
 if __name__ == "__main__":
-    unittest.main()
+    unittest.main(argv=[sys.argv[0]])
