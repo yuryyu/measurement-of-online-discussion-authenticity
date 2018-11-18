@@ -4,7 +4,7 @@ import sys
 
 from decorator import contextmanager
 
-sys.argv.append('configuration/config_test.ini')
+#sys.argv.append('configuration/config_test.ini')
 from preprocessing_tools.leadspotting_posts_importer import LeadspottingPostsImporter
 from DB.schema_definition import DB, Post
 from configuration.config_class import getConfig
