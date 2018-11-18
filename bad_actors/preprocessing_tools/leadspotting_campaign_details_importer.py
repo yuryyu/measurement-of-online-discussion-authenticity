@@ -11,7 +11,7 @@ class CampaignDetailsImporter(FakeNewsSnopesImporter):
 
     def _convert_row_to_claim(self, row):
         claim = Claim()
-        claim_id = unicode(row['id'])
+        claim_id = unicode(row['campaign_id'])
         title = unicode(row['title'], errors='replace')
         claim.title = title
         try:
