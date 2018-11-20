@@ -247,10 +247,10 @@ try:
     output_filename = 'C:\\output\\authors_labeling_'+str(campaign_id)+'.csv'
     fake_news_score=csv_ob.write_to_csv(output_filename, campaign_id)
     # Update  status for campaign
-    status='"Analyzed"'
+    status='"Analyzed"'    
 except:
     logging.error('Error on analyzing campaign:' + str(campaign_id))
-    fake_news_score=0.5
+    fake_news_score='0.5'
     status='"Fail"'
     
 db.update_campain_table(campaign_id, 'status', status)

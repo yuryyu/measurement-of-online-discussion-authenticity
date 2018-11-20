@@ -3710,8 +3710,7 @@ class DB():
     
     def update_campain_table(self, campaign_id, key, value):        
         # added by YY
-        update_query = "UPDATE campaigns SET " + key + "=" + str(
-            value) + " WHERE campaign_id=" + str(campaign_id)
+        update_query = "UPDATE campaigns SET " + key + "=" + value + " WHERE campaign_id=" + str(campaign_id)
         self.update_query(update_query)        
    
     def get_from_table(self, table_name, campaign_id):
