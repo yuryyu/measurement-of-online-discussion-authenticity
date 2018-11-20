@@ -249,7 +249,10 @@ try:
     # Update  status for campaign
     status='"Analyzed"'
 except:
+    logging.error('Error on analyzing campaign:' + str(campaign_id))
+    fake_news_score=0.5
     status='"Fail"'
+    
 db.update_campain_table(campaign_id, 'status', status)
 db.update_campain_table(campaign_id, 'fake_news_score', fake_news_score)
 logging.info('*********Finished executing update_campain_status for campaign:' + str(campaign_id))
