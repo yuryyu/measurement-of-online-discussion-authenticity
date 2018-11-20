@@ -145,7 +145,7 @@ if not newbmrk:
     bmrk_results.writeheader()
 
 logging.info("CREATE pipeline")
-db = DB()
+db = DB()    
 modules_dict["DB"] = lambda x: x
 pipeline = []
 for module in getConfig().sections():
@@ -166,86 +166,90 @@ for module in pipeline:
 bmrk_results.writerow(bmrk)
 bmrk_file.flush()
 
-clean_authors_features = getConfig().eval("DatasetBuilderConfig", "clean_authors_features_table")
-if clean_authors_features:
-    db.delete_authors_features()
-    
-# clean tables for new campaign prediction run
-tables = ['claims','posts','authors','author_features','unlabeled_predictions','topics'] 
-for table_name in tables:
-    try:  
-        db.delete_table(table_name)
-        logging.info("deleted table: {0}".format(table_name))
-    except:
-        logging.warning("can not be deleted table: {0}".format(table_name))        
-    
-# copy data from campaign to claims tables - used in train data pipeline
-campaign = db.get_from_table('campaigns', campaign_id)
-try:
-    print(campaign[0])              
-    db.insert_camp_to_claims(tables[0],campaign[0])
-except:
-    logging.warning('Failed in executing insert operation for:')
-    logging.warning( campaign[0])
-    pass
-
-
-# campaign_data to posts tables
-campaign_data = db.get_from_table('campaigns_data', campaign_id)
-for ff in range(0,len(campaign_data)):                        
-    #logging.info(campaign[ff])
-    try:              
-        db.insert_camp_data_to_posts(tables[1],campaign_data[ff])
-    except:
-        logging.warning('Failed in executing insert operation for:')
-        logging.warning( campaign_data[ff])
-        pass
-
-    
-
-#check defenition
-logging.info("checking module definition")
-for module in pipeline:
-    if not module.is_well_defined():
-        raise Exception("module: "+ module.__class__.__name__ +" config not well defined")
-    logging.info("module "+str(module) + " is well defined")
-
-## EXECUTE
-bmrk = {"config": getConfig().getfilename(), "window_start": "execute"}
 # Update  status for campaign
 status='"Analyzing"'
 db.update_campain_table(campaign_id, 'status', status)
 logging.info('*********Started executing update_campain_status for campaign:' + str(campaign_id))
-try:
-    mname='none'
+try:     
+    clean_authors_features = getConfig().eval("DatasetBuilderConfig", "clean_authors_features_table")
+    if clean_authors_features:
+        db.delete_authors_features()
+        
+    # clean tables for new campaign prediction run
+    tables = ['claims','posts','authors','author_features','unlabeled_predictions','topics'] 
+    for table_name in tables:
+        try:  
+            db.delete_table(table_name)
+            logging.info("deleted table: {0}".format(table_name))
+        except:
+            logging.warning("can not be deleted table: {0}".format(table_name))        
+        
+    # copy data from campaign to claims tables - used in train data pipeline
+    campaign = db.get_from_table('campaigns', campaign_id)
+    try:
+        print(campaign[0])              
+        db.insert_camp_to_claims(tables[0],campaign[0])
+    except:
+        logging.warning('Failed in executing insert operation for:')
+        logging.warning( campaign[0])
+        pass
+    
+    
+    # campaign_data to posts tables
+    campaign_data = db.get_from_table('campaigns_data', campaign_id)
+    for ff in range(0,len(campaign_data)):                        
+        #logging.info(campaign[ff])
+        try:              
+            db.insert_camp_data_to_posts(tables[1],campaign_data[ff])
+        except:
+            logging.warning('Failed in executing insert operation for:')
+            logging.warning( campaign_data[ff])
+            pass
+    
+        
+    
+    #check defenition
+    logging.info("checking module definition")
     for module in pipeline:
-        T = time.time()
-        mname=module.__class__.__name__
-        logging.info("execute module: {0}".format(module))
-        logging.info('*********Started executing ' + module.__class__.__name__)
-        module.execute(window_start)
-        logging.info('*********Finished executing ' + module.__class__.__name__)
-        T = time.time() - T
-        bmrk[module.__class__.__name__] = T
+        if not module.is_well_defined():
+            raise Exception("module: "+ module.__class__.__name__ +" config not well defined")
+        logging.info("module "+str(module) + " is well defined")
+    
+    ## EXECUTE
+    bmrk = {"config": getConfig().getfilename(), "window_start": "execute"}
+    
+    try:
+        mname='none'
+        for module in pipeline:
+            T = time.time()
+            mname=module.__class__.__name__
+            logging.info("execute module: {0}".format(module))
+            logging.info('*********Started executing ' + module.__class__.__name__)
+            module.execute(window_start)
+            logging.info('*********Finished executing ' + module.__class__.__name__)
+            T = time.time() - T
+            bmrk[module.__class__.__name__] = T
+    except:
+        logging.warning('*********Failed in executing ' + mname)
+         
+    num_of_authors = db.get_number_of_targeted_osn_authors(domain)
+    bmrk["authors"] = num_of_authors
+    
+    num_of_posts = db.get_number_of_targeted_osn_posts(domain)
+    bmrk["posts"] = num_of_posts
+    
+    bmrk_results.writerow(bmrk)
+    bmrk_file.flush()
+    
+    # create C:\output\authors_labeling.csv
+    table ="campaigns_data"
+    csv_ob= Csv_writer(db, table)
+    output_filename = 'C:\\output\\authors_labeling_'+str(campaign_id)+'.csv'
+    fake_news_score=csv_ob.write_to_csv(output_filename, campaign_id)
+    # Update  status for campaign
+    status='"Analyzed"'
 except:
-    logging.warning('*********Failed in executing ' + mname)
-     
-num_of_authors = db.get_number_of_targeted_osn_authors(domain)
-bmrk["authors"] = num_of_authors
-
-num_of_posts = db.get_number_of_targeted_osn_posts(domain)
-bmrk["posts"] = num_of_posts
-
-bmrk_results.writerow(bmrk)
-bmrk_file.flush()
-
-# create C:\output\authors_labeling.csv
-table ="campaigns_data"
-csv_ob= Csv_writer(db, table)
-output_filename = 'C:\\output\\authors_labeling_'+str(campaign_id)+'.csv'
-fake_news_score=csv_ob.write_to_csv(output_filename, campaign_id)
-# Update  status for campaign
-status='"Analyzed"'
+    status='"Fail"'
 db.update_campain_table(campaign_id, 'status', status)
 db.update_campain_table(campaign_id, 'fake_news_score', fake_news_score)
 logging.info('*********Finished executing update_campain_status for campaign:' + str(campaign_id))

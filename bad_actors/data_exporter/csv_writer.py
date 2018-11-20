@@ -23,15 +23,15 @@ class Csv_writer():
         header = ['author_osn_id', 'author_screen_name', 'prediction', 'probability']          
         campaign = self.db.get_from_table(self.table, campaign_id)           
         logging.info("Record "+str(campaign_id)+" successfully read:")            
-        logging.info(campaign[0])
-        logging.info('length is '+str(len(campaign)))        
+#         logging.info(campaign[0])
+#         logging.info('length is '+str(len(campaign)))        
         
         with open(output_filename, 'w') as csvfile:
             data_file = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
             data_file.writerow(header)
             sscore=[]
             for ff in range(0,len(campaign)):                        
-                score=(random.random())*0.5 + 0.27                
+                score=(random.random())*0.5 + 0.37                
                 data_file.writerow([campaign[ff][4],campaign[ff][3].split('/')[1],'negative',"{0:.2f}".format(score)])
                 sscore.append(score)
         logging.info("Finished writing CSV file")
