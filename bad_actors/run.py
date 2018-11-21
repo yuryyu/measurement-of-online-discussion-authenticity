@@ -59,7 +59,7 @@ from preprocessing_tools.json_importer.json_importer import JSON_Importer
 from preprocessing_tools.post_citation_creator import PostCitationCreator
 from preprocessing_tools.rank_app_importer import RankAppImporter
 from preprocessing_tools.xml_importer import XMLImporter
-from preprocessing_tools.leadspotting_campaign_details_importer import CampaignDetailsImporter
+from preprocessing_tools.leadspotting_claim_details_importer import ClaimDetailsImporter
 from topic_distribution_visualization.claim_to_topic_converter import ClaimToTopicConverter
 from topic_distribution_visualization.topic_distribution_visualization_generator import \
     TopicDistrobutionVisualizationGenerator
@@ -80,7 +80,7 @@ modules_dict["JSON_Importer"] = JSON_Importer
 modules_dict["CsvImporter"] = CsvImporter
 modules_dict["FakeNewsSnopesImporter"] = FakeNewsSnopesImporter
 modules_dict["LeadspottingPostsImporter"] = LeadspottingPostsImporter
-modules_dict["CampaignDetailsImporter"] = CampaignDetailsImporter
+modules_dict["ClaimDetailsImporter"] = ClaimDetailsImporter
 modules_dict["GDLET_News_Importer"] = GDLET_News_Importer
 modules_dict["Twitter_Crawler"] = Twitter_Crawler
 modules_dict["OldTweetsCrawler"] = OldTweetsCrawler

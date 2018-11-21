@@ -15,14 +15,14 @@ class LeadspottingPostsImporter(CsvImporter):
         self.end_date = config_parser.eval("DEFAULT", "end_date")
 
     def updateClaims(self):
-        claims_list = [unicode(x['campaign_id']) for x in self._listdic]
+        claims_list = [unicode(x['claim_id']) for x in self._listdic]
         self._db.insert_or_update_claims(list(set(claims_list)))
 
     def updatePostClaimsConnections(self):
         list_to_add = []
         for dic in self._listdic:
             claim_tweet = Claim_Tweet_Connection()
-            claim_tweet.claim_id=unicode(dic['campaign_id'])
+            claim_tweet.claim_id=unicode(dic['claim_id'])
             claim_tweet.post_id=unicode(dic['post_id'])
             list_to_add.append(claim_tweet)
         self._db.add_claim_connections(list_to_add)
@@ -64,7 +64,7 @@ class LeadspottingPostsImporter(CsvImporter):
         self.readFromFolders()
         self._db.insert_or_update_authors_from_posts(self._domain, self._author_classify_dict, self._author_prop_dict)
         self.updateClaims()
-        self.updatePostClaimsConnections() # TODO: Yuri, this might have to change to topics based on mapping that will be from claims (campaigns) to topic
+        self.updatePostClaimsConnections() # TODO: Yuri, this might have to change to topics based on mapping that will be from claims (claims) to topic
         self.updateOriginalPostsConnections()
         self.updateAuthorsData()
 
@@ -120,7 +120,7 @@ class LeadspottingPostsImporter(CsvImporter):
         post_dict["guid"] = compute_post_guid(post_dict["url"], post_dict["author"], post_dict["date"])
         post_dict["post_id"] = post_dict["guid"]
         post_dict["followers"] = int(row['followers']) if row['followers'] is not None else -1
-        post_dict["campaign_id"] = row["campaign_id"]
+        post_dict["claim_id"] = row["campaign_id"]
         post_dict["parent_osn_id"] = row["parentTweet"].replace("\"","")
         return post_dict
 

@@ -6,6 +6,7 @@ from DB.schema_definition import Post, date, Claim
 from commons.commons import compute_post_guid, compute_author_guid_by_author_name
 from preprocessing_tools.post_importer import PostImporter
 import pandas as pd
+import logging
 
 __author__ = "Aviad Elyashar"
 
@@ -30,8 +31,11 @@ class FakeNewsSnopesImporter(PostImporter):
         for index, row in snopes_csv_df.iterrows():
             i += 1
             print("\r Convert row to claim {0}:{1}".format(i, num_of_records), end="")
-            claim = self._convert_row_to_claim(row)
-            claims.append(claim)
+            try:
+                claim = self._convert_row_to_claim(row)
+                claims.append(claim)
+            except (KeyError, ValueError, TypeError) as e:
+                logging.warn("[-] Failed to parse row : {0}".format(e))
 
         self._db.addPosts(claims)
 

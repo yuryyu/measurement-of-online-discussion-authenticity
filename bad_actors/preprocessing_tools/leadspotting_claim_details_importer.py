@@ -1,11 +1,11 @@
 from preprocessing_tools.fake_news_snopes_importer.fake_news_snopes_importer import FakeNewsSnopesImporter
-from DB.schema_definition import Post, date, Claim
+from DB.schema_definition import date, Claim
 from configuration.config_class import getConfig
 from commons.commons import compute_post_guid, compute_author_guid_by_author_name
 import datetime
 
 
-class CampaignDetailsImporter(FakeNewsSnopesImporter):
+class ClaimDetailsImporter(FakeNewsSnopesImporter):
     def __init__(self, db):
         FakeNewsSnopesImporter.__init__(self, db)
 

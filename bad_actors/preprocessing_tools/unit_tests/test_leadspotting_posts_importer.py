@@ -36,8 +36,9 @@ class TestLeadspottingPostsImporter(TestCase):
         #tests that importer doesn't insert to db posts from csv missing essential fields
         print 'test incorrect fields'
         self.importer.setUp()
+        all_posts_in_db = self._db.get_all_posts()
+        self.assertEqual(len(all_posts_in_db), 0)
         self.importer._data_folder = 'data/input/datasets/unittests/incorrect_fields/'
-        csv_file = 'data/input/datasets/unittests/incorrect_fields/incorrect_fields.csv'
         self.importer.execute()
         all_posts_in_db = self._db.get_all_posts()
         self.assertEqual(len(all_posts_in_db), 0)
