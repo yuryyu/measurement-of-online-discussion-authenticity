@@ -62,7 +62,7 @@ class BehaviorFeatureGenerator(BaseFeatureGenerator):
             if author.author_guid in self._retweet_count.keys():
                 return self._retweet_count[author.author_guid]
             else:
-               0
+                return 0.0
 
     def average_retweets(self, **kwargs):
         if 'author' in kwargs.keys():
