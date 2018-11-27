@@ -364,6 +364,27 @@ class AuthorFeatures(Base):
         self.attribute_name = _attribute_name
         self.attribute_value = _attribute_value
 
+class ClaimFeatures(Base):
+    __tablename__ = 'claim_features'
+    claim_id = Column(Unicode, primary_key=True)
+    window_start = Column(dt, primary_key=True)
+    window_end = Column(dt, primary_key=True)
+    attribute_name = Column(Unicode, primary_key=True)
+    attribute_value = Column(Unicode)
+
+    def __repr__(self):
+        return "<ClaimFeatures(claim_id='%s', window_start='%s', window_end='%s', attribute_name='%s', attribute_value='%s')> " % (
+            self.claim_id, self.window_start, self.window_end, self.attribute_name, self.attribute_value)
+
+    def __init__(self, _claim_id=None, _window_start=None, _window_end=None, _attribute_name=None,
+                 _attribute_value=None):
+        self.claim_id = _claim_id
+        self.window_start = _window_start
+        self.window_end = _window_end
+        self.attribute_name = _attribute_name
+        self.attribute_value = _attribute_value
+
+
 class Post_to_pointers_scores(Base):
     __tablename__ = 'posts_to_pointers_scores'
     post_id_to = Column(Integer, ForeignKey("post_citations.post_id_to"), primary_key=True)
@@ -564,6 +585,7 @@ class DB():
         self.posts = "posts"
         self.authors = "authors"
         self.author_features = "author_features"
+        self.claim_features = "claim_features"
 
         @event.listens_for(self.engine, "connect")
         def connect(dbapi_connection, connection_rec):
@@ -1031,16 +1053,25 @@ class DB():
         authors_dict = dict((aut.author_guid, aut) for aut in authors)
         return authors_dict
 
-#     def get_authors(self):
-#         result = self.session.query(Author).all()
-#         return result
-
-    def get_authors(self, domain):
-        result = self.session.query(Author).filter(and_(Author.domain == unicode(domain),
-                                                        Author.author_osn_id.isnot(None))
-                                                   ).all()
-
+    def get_authors(self):
+        result = self.session.query(Author).all()
         return result
+
+#     def get_authors(self, domain):
+#         result = self.session.query(Author).filter(and_(Author.domain == unicode(domain),
+#                                                         Author.author_osn_id.isnot(None))
+#                                                    ).all()
+#        return result
+    def get_claim_authors(self, claim_id):
+        query = text("""SELECT * FROM authors 
+                    WHERE author_guid in 
+                    ( SELECT author_guid FROM posts WHERE post_id in
+                    (SELECT post_id FROM claim_tweet_connection 
+                    WHERE claim_id = :claim_id))""")
+        res = self.session.execute(query, params=dict(claim_id=claim_id))
+        all_rows = res.cursor.fetchall()        
+        return all_rows
+
 
     def get_number_of_targeted_osn_authors(self, domain):
         query = text("""SELECT COUNT(authors.author_guid)
@@ -1352,8 +1383,8 @@ class DB():
             conditions.append(binary_exp)
         return conditions
 
-#     def get_claims(self):
-#         return self.session.query(Claim).all()
+    def get_claims(self):
+        return self.session.query(Claim).all()
 
     def get_table_dictionary(self, table_name):
         table = self.get_table_by_name(table_name)
@@ -1454,6 +1485,9 @@ class DB():
 
     def update_author_features(self, author_features):
         self.session.merge(author_features)
+        
+    def update_claim_features(self, claim_features):
+        self.session.merge(claim_features)
 
     def update_target_articles(self, target_article):
         self.session.merge(target_article)
@@ -1471,6 +1505,17 @@ class DB():
             i += 1
             self.update_author_features(author_feature)
         self.commit()
+        
+    def add_claim_features(self, claim_features):
+        logging.info("total Claim Features inserted to DB: " + str(len(claim_features)))
+        i = 1
+        for claim_feature in claim_features:
+            if (i % 100 == 0):
+                msg = "\r Insert author featurs to DB: [{}".format(i) + "/" + str(len(claim_features)) + ']'
+                print(msg, end="")
+            i += 1
+            self.update_claim_features(claim_feature)
+        self.commit()    
 
     def add_target_articles(self, target_articles):
         logging.info("target_articles inserted to DB: " + str(len(target_articles)))
@@ -2939,13 +2984,11 @@ class DB():
 
     def create_author_feature(self, author_guid, attribute_name, attribute_value):
         author_feature = AuthorFeatures()
-
         author_feature.author_guid = author_guid
         author_feature.attribute_name = attribute_name
         author_feature.attribute_value = unicode(attribute_value)
         author_feature.window_start = self._window_start
         author_feature.window_end = self._window_end
-
         msg = '\r adding ' + 'author_guid:' + author_guid + ' attribute_name: ' + attribute_name + ' attribute_value: ' + str(
             attribute_value)
         print(msg, end="")
@@ -3098,15 +3141,17 @@ class DB():
         return list(generator)
 
 
-    def get_claims(self):
-        query = """
-        SELECT claim_id from claims
-        """
+#     def get_claims(self):
+#         query = """
+#         SELECT claim_id from claims
+#         """
+# 
+#         query = text(query)
+#         result = self.session.execute(query)
+#         generator = self.result_iter(result)
+#         return list(generator)
+    
 
-        query = text(query)
-        result = self.session.execute(query)
-        generator = self.result_iter(result)
-        return list(generator)
 
     def get_uncrawled_claims(self):
         query = """
@@ -3344,7 +3389,7 @@ class DB():
         self.session.execute(query)
 
     def get_terms(self):
-        return self.session.query(Term).all()
+        return self.session.query(Term)
 
     def get_author_topic_mapping(self):
         query = """
@@ -3355,7 +3400,7 @@ class DB():
         return result.cursor.fetchall()
 
     def get_post_topic_mapping(self):
-        return self.session.query(PostTopicMapping).all()
+        return self.session.query(PostTopicMapping)
 
     def get_number_of_topics(self):
         return self.session.execute("select count(distinct( topic_id)) from topics").scalar()

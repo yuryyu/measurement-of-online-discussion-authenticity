@@ -7,7 +7,7 @@ import time
 
 import pandas as pd
 
-from DB.schema_definition import AuthorFeatures, Author
+from DB.schema_definition import AuthorFeatures, Author, ClaimFeatures
 from configuration.config_class import getConfig
 from dataset_builder.feature_extractor.feature_argument_parser import ArgumentParser
 
@@ -191,6 +191,16 @@ class BaseFeatureGenerator(ArgumentParser):
     def create_author_feature(feature_name, author_guid, attribute_value, window_start, window_end):
         feature = AuthorFeatures()
         feature.author_guid = author_guid
+        feature.attribute_name = feature_name
+        feature.attribute_value = attribute_value
+        feature.window_start = window_start
+        feature.window_end = window_end
+        return feature
+    
+    @staticmethod
+    def create_claim_feature(feature_name, claim_id, attribute_value, window_start, window_end):
+        feature = ClaimFeatures()
+        feature.claim_id = claim_id
         feature.attribute_name = feature_name
         feature.attribute_value = attribute_value
         feature.window_start = window_start
