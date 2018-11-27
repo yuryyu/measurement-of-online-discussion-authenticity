@@ -1,30 +1,13 @@
 campaign_id,title,category,campaign_class,campaign_date,insertion_date,fake_news_score
 1,"President Trump may have greeted the 'Bikers for Trump' at one of his golf courses, but he didn't tweet a photograph of one of them bearing an 'SS' tattoo.",Fauxtography,Fact,11/8/2018,,
 2,Did Astronaut Mark Kelly Say the ‘Space Force’ Was a ‘Dumb Idea?’,Politics,Fact,10/8/2018,,
-3,"""John McCain was pardoned for treason""
-","politics
-","FALSE
-",25-08-18,,
-4,"Did Fired FBI Agent Peter Strzok Tweet That President Trump is a ‘Dictator,’ a ‘Russian Asset,’ and an ‘Unhinged Madman?’
-","Junk News
-","FALSE
-",17-08-18,,
-5,"Did ‘VeggieTales’ Introduce a New Cannabis Character?
-","Junk News
-","FALSE
-",9/8/2018,,
-6,"Were ‘Winnie-the-Pooh’ Characters Created to Represent Different Mental Disorders?
-","Entertainment
-","FALSE
-",18-08-18,,
-7,"""Trump: ‘I am sending troops to South Africa and they will not leave until the killing stop and the land issue resolved.’ 
-","politics
-","FALSE
-",23-08-18,,
-8,"Is Colin Kaepernick on the Cover of Time Magazine as the 2018 ‘Person of the Year?’
-",Fauxtography,FALSE,21-08-18,,
-9,Did Education Secretary Betsy DeVos Register Her Yacht in the Cayman Islands?,Fauxtography,"Mostly False
-",,,
+3,"John McCain was pardoned for treason","politics","FALSE",25-08-18,,
+4,"Did Fired FBI Agent Peter Strzok Tweet That President Trump is a ‘Dictator,’ a ‘Russian Asset,’ and an ‘Unhinged Madman?’","Junk News","FALSE",17-08-18,,
+5,"Did ‘VeggieTales’ Introduce a New Cannabis Character?","Junk News","FALSE",9/8/2018,,
+6,"Were ‘Winnie-the-Pooh’ Characters Created to Represent Different Mental Disorders?","Entertainment","FALSE",18-08-18,,
+7,"""Trump: ‘I am sending troops to South Africa and they will not leave until the killing stop and the land issue resolved.’","politics","FALSE",23-08-18,,
+8,"Is Colin Kaepernick on the Cover of Time Magazine as the 2018 ‘Person of the Year?’",Fauxtography,FALSE,21-08-18,,
+9,Did Education Secretary Betsy DeVos Register Her Yacht in the Cayman Islands?,Fauxtography,"Mostly False",,,
 10,Is Sheriff Joe Arpaio Taking Over John McCain’s Seat in the Senate?,"	politics/junk news",FALSE,29-08-18,,
 11,Did a Scientific Study Prove That “Conspiracists” Are “The Most Sane of All?”,"	science",FALSE,4/10/2018,,
 12,"""John McCain was pardoned for treason""","	politics",FALSE,4/10/2018,,
