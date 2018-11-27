@@ -26,8 +26,8 @@ class TestLeadspottingPostsImporter(TestCase):
         self.importer._data_folder = 'data/input/datasets/unittests/folder1/'
         self.importer.execute()
         self.assertEqual(len(self._db.get_all_posts()), 3)
-        valid_post_id = '783dcc3b-1ec0-38a5-a760-912e6be134b7'
-        invalid_post_id = '2236cca9-bcc7-39d5-b702-6d5463d42fae'
+        valid_post_id = '1a0dccaf-7fe1-38b1-a233-a3fc0dd550a1'
+        invalid_post_id = '758e5131-7eec-32c9-b9f3-44484a5cb234'
         self.assertTrue(self._db.get_post_by_id(valid_post_id))
         self.assertFalse(self._db.get_post_by_id(invalid_post_id))
 
