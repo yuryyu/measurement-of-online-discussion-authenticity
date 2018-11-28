@@ -193,9 +193,10 @@ class CampaignsData(Base):
     retweets            = Column(Integer, default=0)
     post_favorites      = Column(Integer, default=0)
     author_followers    = Column(Integer, default=0)
+    author_friends       = Column(Integer, default=0)
     
     def __repr__(self):
-        return "<Campaigns_Data(campaign_id='%s', tweet_id='%s', parent_tweet_id='%s', url='%s', author_id='%s', text='%s', date='%s', retweets='%s', post_favorites='%s', author_followers='%s')>" % (
+        return "<Campaigns_Data(campaign_id='%s', tweet_id='%s', parent_tweet_id='%s', url='%s', author_id='%s', text='%s', date='%s', retweets='%s', post_favorites='%s', author_followers='%s', author_friends='%s')>" % (
             self.campaign_id, 
             self.tweet_id, 
             self.parent_tweet_id, 
@@ -205,7 +206,8 @@ class CampaignsData(Base):
             self.date, 
             self.retweets, 
             self.post_favorites, 
-            self.author_followers)
+            self.author_followers,
+            self.author_friends)
 
 
 
@@ -271,12 +273,30 @@ class Claim(Base):
     domain = Column(Unicode, default=None)
     verdict = Column(Unicode, default=None)
 
-
-
     def __repr__(self):
         return "<Claim(claim_id='%s', title='%s', description='%s', url='%s', vardict_date='%s', keywords='%s', domain='%s', verdicy='%s')>" % (
             self.claim_id, self.title, self.description, self.url, self.verdict_date, self.keywords, self.domain, self.verdict)
 
+
+class Author_friends(Base):
+    __tablename__ = 'author_friends'
+
+    author_id = Column(Unicode, primary_key=True)    
+    friend_id = Column(Unicode, default=None)  
+
+    def __repr__(self):
+        return "<Author_friends(author_id='%s', friend_id='%s')>" % (
+            self.author_id, self.friend_id)
+
+class Author_followers(Base):
+    __tablename__ = 'author_followers'
+
+    author_id = Column(Unicode, primary_key=True)    
+    follower_id = Column(Unicode, default=None)  
+
+    def __repr__(self):
+        return "<Author_followers(author_id='%s', follower_id='%s')>" % (
+            self.author_id, self.follower_id)
 
 
 class Post_citation(Base):
