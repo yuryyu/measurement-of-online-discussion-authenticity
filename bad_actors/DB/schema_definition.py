@@ -278,25 +278,27 @@ class Claim(Base):
             self.claim_id, self.title, self.description, self.url, self.verdict_date, self.keywords, self.domain, self.verdict)
 
 
-class Author_friends(Base):
-    __tablename__ = 'author_friends'
+class Author_friend(Base):
+    __tablename__ = 'author_friend'
+
+    author_id     = Column(Unicode, primary_key=True )    
+    friend_id     = Column(Unicode, primary_key=True)  
+    claim_id   = Column(Unicode, primary_key=True)
+    
+    def __repr__(self):
+        return "<Author_friend(author_id='%s', friend_id='%s', claim_id='%s')>" % (
+            self.author_id, self.friend_id, self.claim_id)
+
+class Author_follower(Base):
+    __tablename__ = 'author_follower'
 
     author_id = Column(Unicode, primary_key=True)    
-    friend_id = Column(Unicode, default=None)  
-
+    follower_id = Column(Unicode, primary_key=True)  
+    claim_id   = Column(Unicode, primary_key=True)
+    
     def __repr__(self):
-        return "<Author_friends(author_id='%s', friend_id='%s')>" % (
-            self.author_id, self.friend_id)
-
-class Author_followers(Base):
-    __tablename__ = 'author_followers'
-
-    author_id = Column(Unicode, primary_key=True)    
-    follower_id = Column(Unicode, default=None)  
-
-    def __repr__(self):
-        return "<Author_followers(author_id='%s', follower_id='%s')>" % (
-            self.author_id, self.follower_id)
+        return "<Author_follower(author_id='%s', follower_id='%s', claim_id='%s')>" % (
+            self.author_id, self.follower_id, self.claim_id)
 
 
 class Post_citation(Base):
@@ -1414,7 +1416,10 @@ class DB():
             post_id = post.post_id
             post_id_post_dict[post_id] = post
         return post_id_post_dict
-
+    
+    
+    
+    
     def get_word_vector_dictionary(self, table_name):
         query = """
                 SELECT *
@@ -3756,6 +3761,12 @@ class DB():
         query = self.session.execute(query)
         results = pd.read_sql_table('author_word_embeddings', self.engine)
         return results
+
+    def df_from_table(self, table_name):
+        #sql_str= """SELECT * FROM author_friends"""
+        #df2=pd.read_sql(sql_str,conn)
+        df = pd.read_sql_table(table_name, self.engine)
+        return df        
 
     def get_author_word_embedding(self, author_guid, table_name, target_field_name):
         ans = {}
