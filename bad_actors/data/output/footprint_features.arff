@@ -1,6 +1,6 @@
 @RELATION bad_actors 
  @ATTRIBUTE author_guid string 
- @ATTRIBUTE ClaimFeatureGenerator_claim_type numeric 
+ @ATTRIBUTE ClaimFeatureGenerator_claim_type {False,True} 
  @ATTRIBUTE FootprintFeatureGenerator_avg_friends_followers_ratio numeric 
  @ATTRIBUTE FootprintFeatureGenerator_avg_num_of_favorites numeric 
  @ATTRIBUTE FootprintFeatureGenerator_avg_num_of_followers numeric 

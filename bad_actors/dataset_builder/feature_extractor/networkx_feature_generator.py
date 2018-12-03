@@ -30,7 +30,8 @@ class NetworkxFeatureGenerator(AbstractController):
                 grps = df.groupby("claim_id")               
                 for grp in grps:
                     G = nx.from_pandas_dataframe(grp[1], source="author_id", target=table_name.split('_')[1]+"_id")
-                    claim_id = grp[0]                   
+                    claim_ext_id = grp[0]
+                    claim_id = self._db.claim_ext_id_to_claim_id(claim_ext_id)[0]                   
                     for feature_name in self._features_list:
                         attributes_dict = getattr(self, function_name)(G=G,ff=feature_name)
                         if len(attributes_dict)==1 and attributes_dict[feature_name] is not None:

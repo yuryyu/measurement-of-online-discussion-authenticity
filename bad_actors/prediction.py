@@ -174,40 +174,46 @@ try:
     clean_authors_features = getConfig().eval("DatasetBuilderConfig", "clean_authors_features_table")
     if clean_authors_features:
         db.delete_authors_features()
-        
+    
+    clean_tables = False
+    if clean_tables:    
 #     # clean tables for new campaign prediction run
 #     tables = ['claims','posts','authors','author_features','unlabeled_predictions','topics']
-    tables = ['author_features']
-    for table_name in tables:
-        try:  
-            db.delete_table(table_name)
-            logging.info("deleted table: {0}".format(table_name))
+        tables = ['author_features']
+        for table_name in tables:
+            try:  
+                db.delete_table(table_name)
+                logging.info("deleted table: {0}".format(table_name))
+            except:
+                logging.warning("can not be deleted table: {0}".format(table_name))        
+         
+    # copy data from campaign to claims tables - used in train data pipeline
+    copy_claims = False
+    if copy_claims:
+        campaign = db.get_from_table('campaigns', campaign_id)
+        try:
+            print(campaign[0])              
+            db.insert_camp_to_claims(tables[0],campaign[0])
         except:
-            logging.warning("can not be deleted table: {0}".format(table_name))        
-#         
-#     # copy data from campaign to claims tables - used in train data pipeline
-#     campaign = db.get_from_table('campaigns', campaign_id)
-#     try:
-#         print(campaign[0])              
-#         db.insert_camp_to_claims(tables[0],campaign[0])
-#     except:
-#         logging.warning('Failed in executing insert operation for:')
-#         logging.warning( campaign[0])
-#         pass
-#     
-#     
-#     # campaign_data to posts tables
-#     campaign_data = db.get_from_table('campaigns_data', campaign_id)
-#     for ff in range(0,len(campaign_data)):                        
-#         #logging.info(campaign[ff])
-#         try:              
-#             db.insert_camp_data_to_posts(tables[1],campaign_data[ff])
-#         except:
-#             logging.warning('Failed in executing insert operation for:')
-#             logging.warning( campaign_data[ff])
-#             pass
-#     
-#         
+            logging.warning('Failed in executing insert operation for:')
+            logging.warning( campaign[0])
+            pass
+     
+     
+    # campaign_data to posts tables
+    copy_data = False
+    if copy_data:
+        campaign_data = db.get_from_table('campaigns_data', campaign_id)
+        for ff in range(0,len(campaign_data)):                        
+            #logging.info(campaign[ff])
+            try:              
+                db.insert_camp_data_to_posts(tables[1],campaign_data[ff])
+            except:
+                logging.warning('Failed in executing insert operation for:')
+                logging.warning( campaign_data[ff])
+                pass
+         
+         
     
     #check defenition
     logging.info("checking module definition")

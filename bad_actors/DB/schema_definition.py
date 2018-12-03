@@ -3768,6 +3768,14 @@ class DB():
         df = pd.read_sql_table(table_name, self.engine)
         return df        
 
+    def claim_ext_id_to_claim_id(self, claim_ext_id):
+        
+        query = "SELECT * from claims WHERE claim_ext_id = "+str(claim_ext_id)
+        result = self.session.execute(query).fetchall()
+        claim_id = [col[0] for col in result]
+        
+        return claim_id
+
     def get_author_word_embedding(self, author_guid, table_name, target_field_name):
         ans = {}
         columns = self._get_word_embeddings_types()
