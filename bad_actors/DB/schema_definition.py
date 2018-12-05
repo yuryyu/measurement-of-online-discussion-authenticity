@@ -283,7 +283,7 @@ class Author_friend(Base):
 
     author_id     = Column(Unicode, primary_key=True )    
     friend_id     = Column(Unicode, primary_key=True)  
-    claim_id   = Column(Unicode, primary_key=True)
+    claim_id   = Column(Unicode, default=None)
     
     def __repr__(self):
         return "<Author_friend(author_id='%s', friend_id='%s', claim_id='%s')>" % (
@@ -294,7 +294,7 @@ class Author_follower(Base):
 
     author_id = Column(Unicode, primary_key=True)    
     follower_id = Column(Unicode, primary_key=True)  
-    claim_id   = Column(Unicode, primary_key=True)
+    claim_id   = Column(Unicode, default=None)
     
     def __repr__(self):
         return "<Author_follower(author_id='%s', follower_id='%s', claim_id='%s')>" % (

@@ -25,8 +25,8 @@ back_up = False
 db_path_file = '{}\\data\\input\\Leadspotting_twitter_database.db'.format(project_folder)
 db_table1_campaigns      = "campaigns"
 db_table2_campaigns_data = "campaigns_data"
-db_table3                = "author_friends"  
-db_table4                = "author_followers"
+db_table3                = "author_friend"  
+db_table4                = "author_follower"
 db_path_file_BU = db_path_file.replace(".db", "BACKUP{}.db".format(datetime.datetime.now()).replace(':',"-").replace(" ","-"))
 
 if os.path.exists(db_path_file) and back_up :
@@ -47,6 +47,22 @@ else:
     logging.info("Database opened successfully")
     conn.close()
     logging.info("DB check is done!")
+
+def delete_table(table_name):    
+    try:          
+        with sqlite3.connect(db_path_file) as con:
+            con.row_factory = sqlite3.Row            
+            cur = con.cursor()
+            cur.execute("delete from "+ table_name)    
+            con.close()                
+            logging.info("Deleted table succesfully")
+            return True
+    except:
+        logging.error("Error in table deleting operation")                    
+        con.close()
+        return False
+    return True
+
 
 def check_campaignID(campaign_id):    
     try:          
@@ -72,7 +88,8 @@ def dwnload_csv_db(db_path_file, db_table, scv_url):
         with sqlite3.connect(db_path_file) as con:            
             if scv_url != '':
                 logging.info("Adding csv file")           
-                df = pandas.read_csv(scv_url, encoding="windows-1252", quotechar='"', delimiter=',')                
+#                 df = pandas.read_csv(scv_url, encoding="windows-1252", quotechar='"', delimiter=',')
+                df = pandas.read_csv(scv_url, encoding='utf-8', quotechar='"', delimiter=',')      
                 logging.info("Reading csv file") 
                 df.to_sql(db_table, con, if_exists='append', index=False)
                 logging.info("Added data from csv file")
@@ -98,7 +115,51 @@ def ifexist(request,field):
         return True
     except:
         pass
-        return False       
+        return False 
+    
+def update_claim_id(db_table,claim_id):    
+    
+    try:          
+        with sqlite3.connect(db_path_file) as con:
+            logging.info("Start Update table ")
+            con.row_factory = sqlite3.Row            
+            cur = con.cursor()
+            cur.execute("UPDATE "+db_table+" SET claim_id="+str(claim_id))                           
+            logging.info("Update table is succesfully")
+            
+    except:
+        logging.error("Error in table update operation")                    
+        
+    
+def dld_csv_with_check(request):
+    
+    rez=dwnload_csv_db(db_path_file, db_table2_campaigns_data, request.json['csv_url'])
+    logging.info("Rez 1 for "+str(rez))
+    if rez>0:
+        return rez          
+    
+    if ifexist(request,'csv_url_friends'):
+        rez=dwnload_csv_db(db_path_file, db_table3, request.json['csv_url_friends'])
+        logging.info("Rez 2 for "+str(rez))
+        if rez>0:            
+            delete_table(db_table2_campaigns_data)
+            return rez
+        else:
+            update_claim_id(db_table3,request.json['campaign_id'])            
+             
+    if ifexist(request,'csv_url_followers'):
+        rez=dwnload_csv_db(db_path_file, db_table4, request.json['csv_url_followers'])
+        logging.info("Rez 3 for "+str(rez))
+        if rez>0:            
+            delete_table(db_table2_campaigns_data)
+            delete_table(db_table3)
+            return rez
+        else:
+            update_claim_id(db_table4,request.json['campaign_id'])
+            
+    return 0
+    
+          
         
 # add campaign from csv to campaings_list table and in database 
 @app.route('/api/v1/campaigns/add_campaign/', methods=['POST'])
@@ -109,32 +170,20 @@ def add_campaign():
         if not check_campaignID(request.json['campaign_id']):
             logging.info("Campaign does not exist")
             # add data to campaign_data table
-            rez=dwnload_csv_db(db_path_file, db_table2_campaigns_data, request.json['csv_url'])
-            logging.info("Rez 1 for "+str(rez))
-            if rez>0:abort(rez)          
-            
-            if ifexist( request,'csv_url_friends'):
-                rez=dwnload_csv_db(db_path_file, db_table3, request.json['csv_url_friends'])
-                logging.info("Rez 2 for "+str(rez))
-                if rez>0:abort(rez)
-                 
-            if ifexist( request,'csv_url_followers'):
-                rez=dwnload_csv_db(db_path_file, db_table4, request.json['csv_url_followers'])
-                logging.info("Rez 3 for "+str(rez))
-                if rez>0:abort(rez) 
-            
-            # add data campaigns table
-            try:          
-                with sqlite3.connect(db_path_file) as con:
-                    cur = con.cursor()              
-                    cur.execute("INSERT INTO "+db_table1_campaigns+" (campaign_id, title, category, campaign_class, campaign_date, insertion_date, status, fake_news_score) VALUES (?,?,?,?,?,?,?,?)",
-                                (int(request.json['campaign_id']),'Unknown','Unknown','Unknown','Unknown',"{}".format(datetime.datetime.now()),'Init',0.5))                              
-                    con.commit()                    
-                    logging.info("Campaign successfully added!")                
-            except:                
-                logging.info("Error in add new campaign")       
-            finally:           
-                con.close()               
+            rez=dld_csv_with_check(request)
+            if rez>0: abort(rez)
+        # add data to campaigns table
+        try:          
+            with sqlite3.connect(db_path_file) as con:
+                cur = con.cursor()              
+                cur.execute("INSERT INTO "+db_table1_campaigns+" (campaign_id, title, category, campaign_class, campaign_date, insertion_date, status, fake_news_score) VALUES (?,?,?,?,?,?,?,?)",
+                            (int(request.json['campaign_id']),'Unknown','Unknown','Unknown','Unknown',"{}".format(datetime.datetime.now()),'Init',0.5))                              
+                con.commit()                    
+                logging.info("Campaign successfully added!")                
+        except:                
+            logging.info("Error in add new campaign")       
+        finally:           
+            con.close()               
     return jsonify({'Added data for campaign_id': request.json['campaign_id']})
 
 # add campaign to campaings_list table in database 
@@ -143,19 +192,8 @@ def add2list():
     if not request.json:
         abort(400)          
     if request.method == 'POST':       
-        rez=dwnload_csv_db(db_path_file, db_table2_campaigns_data, request.json['csv_url'])
-        logging.info("Rez 1 for "+str(rez))
-        if rez>0:abort(rez)          
-        
-        if ifexist( request,'csv_url_friends'):
-            rez=dwnload_csv_db(db_path_file, db_table3, request.json['csv_url_friends'])
-            logging.info("Rez 2 for "+str(rez))
-            if rez>0:abort(rez)
-             
-        if ifexist( request,'csv_url_followers'):
-            rez=dwnload_csv_db(db_path_file, db_table4, request.json['csv_url_followers'])
-            logging.info("Rez 3 for "+str(rez))
-            if rez>0:abort(rez)         
+        rez=dld_csv_with_check(request)
+        if rez>0: abort(rez)      
         try:          
             with sqlite3.connect(db_path_file) as con:
                 cur = con.cursor()              
@@ -320,4 +358,4 @@ def csv_warning(error):
     return make_response(jsonify({'warning': 'Invalid scv url or empty'}), 406)
 
 if __name__ == '__main__':
-    app.run(debug=False, host='0.0.0.0')
+    app.run(debug=True, host='0.0.0.0')
