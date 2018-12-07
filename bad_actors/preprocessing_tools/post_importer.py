@@ -4,6 +4,8 @@
 from __future__ import print_function
 import datetime
 from abstract_executor import AbstractExecutor
+from sqlite3 import IntegrityError
+from sqlalchemy import exc
 from commons.commons import *
 import time
 
@@ -45,7 +47,10 @@ class PostImporter(AbstractExecutor):  # define child class
             else:
                 self._create_new_post(dictItem, post, postsRefsDictList, updatepostList, xml_importer_insertion_date)
         print("")
-        self._db.addPosts(postList)
+        try:
+            self._db.addPosts(postList)
+        except:
+            pass
         # self._db.updatePosts(updatepostList)
 
         stopInsertToDB = timeit.default_timer()

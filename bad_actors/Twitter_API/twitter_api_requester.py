@@ -16,9 +16,7 @@ class TwitterApiRequester:
         self._user_id_1 = self._config_parser.get("TwitterApiRequester", 'access_token_secret')
         self._screen_name_1 = self._config_parser.eval("TwitterApiRequester", 'screen_name')
         self._sleep_on_rate_limit = self._config_parser.eval("TwitterApiRequester", 'sleep_on_rate_limit')
-
         self.create_twitter_api(self._consumer_key, self._consumer_secret, self._access_token_key, self._access_token_secret, self._sleep_on_rate_limit)
-
 
 
     def create_twitter_api(self, consumer_key, consumer_secret, access_token_key, access_token_secret, sleep_on_rate_limit=False):

@@ -116,7 +116,7 @@ class LeadspottingPostsImporter(CsvImporter):
         post_dict["followers"] = int(row['followers']) if row['followers'] is not None else -1
         post_dict["claim_id"] = int(row["campaign_id"])
         post_dict["parent_osn_id"] = row["parentTweet"].replace("\"", "")
-        print post_dict["claim_id"]
+        #print post_dict["claim_id"]
         return post_dict
 
     def create_author_dict_from_row(self, row, post_dict):
