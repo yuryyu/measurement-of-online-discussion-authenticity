@@ -65,7 +65,8 @@ from topic_distribution_visualization.topic_distribution_visualization_generator
     TopicDistrobutionVisualizationGenerator
 from twitter_crawler.twitter_crawler import Twitter_Crawler
 from preprocessing_tools.leadspotting_posts_importer import LeadspottingPostsImporter
-from missing_data_complementor.missing_data_complementor import MissingDataComplementor
+from dataset_builder.feature_extractor.footprint_feature_generator import FootprintFeatureGenerator
+from dataset_builder.feature_extractor.networkx_feature_generator import NetworkxFeatureGenerator
 
 ###############################################################
 # MODULES
@@ -96,8 +97,6 @@ modules_dict["GensimWordEmbeddingsModelTrainer"] = GensimWordEmbeddingsModelTrai
 modules_dict["OCR_Extractor"] = OCR_Extractor
 modules_dict["TopicDistributionBuilder"] = TopicDistributionBuilder
 modules_dict["PostCitationCreator"] = PostCitationCreator
-
-
 modules_dict["GraphBuilder_RetweetCascade"] = GraphBuilder_RetweetCascade
 modules_dict["GraphBuilder_Citation"] = GraphBuilder_Citation
 modules_dict["GraphBuilder_CoCitation"] = GraphBuilder_CoCitation
@@ -123,14 +122,13 @@ modules_dict["Predictor"] = Predictor
 modules_dict["KNNWithLinkPrediction"] = KNNWithLinkPrediction
 modules_dict["Kernel_Performance_Evaluator"] = Kernel_Performance_Evaluator
 modules_dict["TopicDistrobutionVisualizationGenerator"] = TopicDistrobutionVisualizationGenerator
-modules_dict["MissingDataComplementor"] = MissingDataComplementor
+modules_dict["FootprintFeatureGenerator"] = FootprintFeatureGenerator
+modules_dict["NetworkxFeatureGenerator"] = NetworkxFeatureGenerator
 
 
 ## SETUP
 logging.config.fileConfig(getConfig().get("DEFAULT", "Logger_conf_file"))
 config = getConfig()
-# global campaign_id
-# campaign_id = sys.argv[2]
 domain = unicode(config.get("DEFAULT", "domain"))
 logging.info("Start Execution ... ")
 logging.info("SETUP global variables")
@@ -181,10 +179,6 @@ for module in pipeline:
 
 ## EXECUTE
 bmrk = {"config": getConfig().getfilename(), "window_start": "execute"}
-# Update  status for campaign
-# status='"Analyzing"'
-# db.update_campain_table(campaign_id, 'status', status)
-# logging.info('*********Started executing update_campain_status for campaign:' + str(campaign_id))
 try:
     mname='none'
     for module in pipeline:
@@ -208,17 +202,6 @@ bmrk["posts"] = num_of_posts
 
 bmrk_results.writerow(bmrk)
 bmrk_file.flush()
-# 
-# # create C:\output\authors_labeling.csv
-# table ="campaigns_data"
-# csv_ob= Csv_writer(db, table)
-# output_filename = 'C:\\output\\authors_labeling_'+str(campaign_id)+'.csv'
-# fake_news_score=csv_ob.write_to_csv(output_filename, campaign_id)
-# # Update  status for campaign
-# status='"Analyzed"'
-# db.update_campain_table(campaign_id, 'status', status)
-# db.update_campain_table(campaign_id, 'fake_news_score', fake_news_score)
-# logging.info('*********Finished executing update_campain_status for campaign:' + str(campaign_id))
 
 
 

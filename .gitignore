@@ -6,3 +6,4 @@
 *.idea*
 *.html
 *.xml
+bad_actors/dataset_builder/graph_feature_analyser.py

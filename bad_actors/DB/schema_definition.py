@@ -193,9 +193,10 @@ class CampaignsData(Base):
     retweets            = Column(Integer, default=0)
     post_favorites      = Column(Integer, default=0)
     author_followers    = Column(Integer, default=0)
+    author_friends       = Column(Integer, default=0)
     
     def __repr__(self):
-        return "<Campaigns_Data(campaign_id='%s', tweet_id='%s', parent_tweet_id='%s', url='%s', author_id='%s', text='%s', date='%s', retweets='%s', post_favorites='%s', author_followers='%s')>" % (
+        return "<Campaigns_Data(campaign_id='%s', tweet_id='%s', parent_tweet_id='%s', url='%s', author_id='%s', text='%s', date='%s', retweets='%s', post_favorites='%s', author_followers='%s', author_friends='%s')>" % (
             self.campaign_id, 
             self.tweet_id, 
             self.parent_tweet_id, 
@@ -205,7 +206,8 @@ class CampaignsData(Base):
             self.date, 
             self.retweets, 
             self.post_favorites, 
-            self.author_followers)
+            self.author_followers,
+            self.author_friends)
 
 
 
@@ -271,12 +273,32 @@ class Claim(Base):
     domain = Column(Unicode, default=None)
     verdict = Column(Unicode, default=None)
 
-
-
     def __repr__(self):
         return "<Claim(claim_id='%s', title='%s', description='%s', url='%s', vardict_date='%s', keywords='%s', domain='%s', verdicy='%s')>" % (
             self.claim_id, self.title, self.description, self.url, self.verdict_date, self.keywords, self.domain, self.verdict)
 
+
+class Author_friend(Base):
+    __tablename__ = 'author_friend'
+
+    author_id     = Column(Unicode, primary_key=True )    
+    friend_id     = Column(Unicode, primary_key=True)  
+    claim_id   = Column(Unicode, default=None)
+    
+    def __repr__(self):
+        return "<Author_friend(author_id='%s', friend_id='%s', claim_id='%s')>" % (
+            self.author_id, self.friend_id, self.claim_id)
+
+class Author_follower(Base):
+    __tablename__ = 'author_follower'
+
+    author_id = Column(Unicode, primary_key=True)    
+    follower_id = Column(Unicode, primary_key=True)  
+    claim_id   = Column(Unicode, default=None)
+    
+    def __repr__(self):
+        return "<Author_follower(author_id='%s', follower_id='%s', claim_id='%s')>" % (
+            self.author_id, self.follower_id, self.claim_id)
 
 
 class Post_citation(Base):
@@ -1394,7 +1416,10 @@ class DB():
             post_id = post.post_id
             post_id_post_dict[post_id] = post
         return post_id_post_dict
-
+    
+    
+    
+    
     def get_word_vector_dictionary(self, table_name):
         query = """
                 SELECT *
@@ -3743,6 +3768,20 @@ class DB():
         query = self.session.execute(query)
         results = pd.read_sql_table('author_word_embeddings', self.engine)
         return results
+
+    def df_from_table(self, table_name):
+        #sql_str= """SELECT * FROM author_friends"""
+        #df2=pd.read_sql(sql_str,conn)
+        df = pd.read_sql_table(table_name, self.engine)
+        return df        
+
+    def claim_ext_id_to_claim_id(self, claim_ext_id):
+        
+        query = "SELECT * from claims WHERE claim_ext_id = "+str(claim_ext_id)
+        result = self.session.execute(query).fetchall()
+        claim_id = [col[0] for col in result]
+        
+        return claim_id
 
     def get_author_word_embedding(self, author_guid, table_name, target_field_name):
         ans = {}

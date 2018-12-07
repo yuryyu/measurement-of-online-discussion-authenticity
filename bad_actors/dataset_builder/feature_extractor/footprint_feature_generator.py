@@ -13,11 +13,7 @@ Each author-feature pair will be written in the AuthorFeature table
 '''
 
 class FootprintFeatureGenerator(AbstractController):
-#     def __init__(self, db, **kwargs):
-#         BaseFeatureGenerator.__init__(self, db, **kwargs)
-#         self._retweet_count = db.get_retweet_count()
-#         self._retweets = pd.DataFrame(db.get_retweets().items(), columns=['post_id','content'])
-#  
+
     def __init__(self, db, **kwargs):
         AbstractController.__init__(self, db)
         self._features_list = self._config_parser.eval(self.__class__.__name__, "features_list")        
@@ -26,8 +22,7 @@ class FootprintFeatureGenerator(AbstractController):
     def execute(self, window_start=None):
 
         claims = self._db.get_claims()
-        #authorss = self._db.get_authors()
-        #posts = self._db.get_posts()
+        
         try:
             claim_features = []
             for feature_name in self._features_list:
@@ -44,8 +39,11 @@ class FootprintFeatureGenerator(AbstractController):
                         claim_features.append(claim_feature)
         except:
             print('Fail')
-        self._db.add_author_features(claim_features)   
-    
+        # used author_feature table - due to next use
+        self._db.add_author_features(claim_features)
+        # regular use:   
+        #self._db.add_claim_features(claim_features)
+        
     def cleanUp(self):
         pass    
 
