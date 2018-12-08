@@ -1929,13 +1929,20 @@ class DB():
         authors = []
         logging.info("Convert twitter users to authors: " + str(len(users)))
         i = 1
+        j = 0
         for user in users:
-            author = self.convert_twitter_user_to_author(user, targeted_social_network, author_type, inseration_type)
-            authors.append(author)
-            msg = "\r Author record was converted: {0} [{1}/{2}]".format(author.author_screen_name, i, str(len(users)))
-            print(msg, end="")
-            # print("Author record was converted: " + author.author_screen_name)
+            try:
+                author = self.convert_twitter_user_to_author(user, targeted_social_network, author_type, inseration_type)
+                authors.append(author)
+                msg = "\r Author record was converted: {0} [{1}/{2}]".format(author.author_screen_name, i, str(len(users)))
+                print(msg, end="")
+                # print("Author record was converted: " + author.author_screen_name)
+            except:
+                pass
+                #print(user)
+                j += 1
             i += 1
+        print('number of errors: {}'.format(j))
             # logging.info("Author record was converted: " + author.author_screen_name)
         return authors
 

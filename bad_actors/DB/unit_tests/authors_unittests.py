@@ -156,7 +156,7 @@ class TestAuthor(TestBase):
 
         self.db.delete_author(self.name, self._domain, self.author_guid)
 
-        records = self.db.get_authors(self)
+        records = self.db.get_authors()
         length = len(records)
         self.assertEqual(0, length)
         self.clean()

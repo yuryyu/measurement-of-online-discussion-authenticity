@@ -16,6 +16,7 @@ class TestImageDownloader(TestCase):
 
     def tearDown(self):
         self._db.session.close()
+        self._db.deleteDB()
         for f_name in os.listdir(self.image_downloader._path_for_downloaded_images):
             os.remove(self.image_downloader._path_for_downloaded_images + '/' + f_name)
 

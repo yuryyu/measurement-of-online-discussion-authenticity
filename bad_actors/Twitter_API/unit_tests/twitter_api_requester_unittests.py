@@ -6,7 +6,6 @@ class TestTwitterApiRequester(unittest.TestCase):
 
     def testCredentialsAreValid(self):
         twitter_api_requester = TwitterApiRequester()
-
         authenticated_user = twitter_api_requester.verify_credentials()
         self.assertIsNotNone(authenticated_user)
         self.assertIsNotNone(authenticated_user.followers_count)
