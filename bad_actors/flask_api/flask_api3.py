@@ -145,10 +145,9 @@ def dld_csv_with_check(request):
         if rez>0:            
             delete_table(db_table2_campaigns_data)
             return rez
-#         else:
-#             # work around for using table
-#             #update_claim_id(db_table3,request.json['campaign_id'])
-#                         
+        else:
+            update_claim_id(db_table3,request.json['campaign_id'])
+                         
              
     if ifexist(request,'csv_url_followers'):
         rez=dwnload_csv_db(db_path_file, db_table4, request.json['csv_url_followers'])
@@ -157,10 +156,9 @@ def dld_csv_with_check(request):
             delete_table(db_table2_campaigns_data)
             delete_table(db_table3)
             return rez
-#         else:
-#             # work around for using table
-#             #update_claim_id(db_table4,request.json['campaign_id'])
-#             
+        else:
+            update_claim_id(db_table4,request.json['campaign_id'])
+             
     return 0
     
           
