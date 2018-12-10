@@ -8,7 +8,6 @@ from sqlalchemy import event
 from sqlalchemy.ext.declarative import declarative_base
 
 
-
 class SecondaryDB(DB):
     def __init__(self):
         pass

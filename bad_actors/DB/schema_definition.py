@@ -278,7 +278,6 @@ class Claim(Base):
         return "<Claim(claim_id='%s', title='%s', description='%s', url='%s', vardict_date='%s', keywords='%s', domain='%s', verdicy='%s')>" % (
             self.claim_id, self.title, self.description, self.url, self.verdict_date, self.keywords, self.domain, self.verdict)
 
-            self.author_id, self.follower_id, self.claim_id)
 
 
 class Post_citation(Base):
