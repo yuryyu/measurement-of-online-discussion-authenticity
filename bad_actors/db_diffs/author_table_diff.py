@@ -29,16 +29,16 @@ class AuthorTableDiff(object):
     def get_diff(self, old, second):
         print('Getting diff between tables...')
         new = []
-        total = sum(1 for row in old)
-        second_names = [i.name for i in second]
+        total = sum(1 for row in second)
+        old_names = [i.name for i in old]
         i = 1
         j = 0
-        for author in old:
+        for author in second:
             msg = '\r author [{}/{}]'.format(i, total)
             print(msg, end="")
             i += 1
-            if author.name in second_names:
-                second_names.remove(author.name)
+            if author.name in old_names:
+                old_names.remove(author.name)
                 j += 1
             else:
                 new.append(author)
