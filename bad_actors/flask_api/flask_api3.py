@@ -139,13 +139,15 @@ def dld_csv_with_check(request):
         return rez          
     
     if ifexist(request,'csv_url_friends'):
+        
         rez=dwnload_csv_db(db_path_file, db_table3, request.json['csv_url_friends'])
         logging.info("Rez 2 for "+str(rez))
         if rez>0:            
             delete_table(db_table2_campaigns_data)
             return rez
         else:
-            update_claim_id(db_table3,request.json['campaign_id'])            
+            update_claim_id(db_table3,request.json['campaign_id'])
+                         
              
     if ifexist(request,'csv_url_followers'):
         rez=dwnload_csv_db(db_path_file, db_table4, request.json['csv_url_followers'])
@@ -156,7 +158,7 @@ def dld_csv_with_check(request):
             return rez
         else:
             update_claim_id(db_table4,request.json['campaign_id'])
-            
+             
     return 0
     
           
