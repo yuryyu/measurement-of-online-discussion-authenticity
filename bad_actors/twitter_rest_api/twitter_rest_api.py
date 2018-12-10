@@ -8,7 +8,7 @@ from DB.schema_definition import DB, AuthorConnection, PostRetweeterConnection, 
 from commons.consts import *
 from commons.commons import *
 from twitter import TwitterError
-
+import logging
 
 class Twitter_Rest_Api(AbstractController):
     def __init__(self, db):
@@ -127,23 +127,27 @@ class Twitter_Rest_Api(AbstractController):
         print("--- crawl_users ---")
         total_user_ids = []
         for author_id in author_ids:
-            print("--- crawl_user_ids for author id : " + str(author_id))
+            try:
+                print("--- crawl_user_ids for author id : " + str(author_id))
 
-            get_sleep_function_name = "get_sleep_time_for_get_" + author_type + "_ids_request"
-            seconds_to_wait = getattr(self._twitter_api_requester, get_sleep_function_name)()
-            if seconds_to_wait != 0:
-                self.save_connections_and_wait(seconds_to_wait)
-                init_num_of_get_user_ids_requests_func_name = "init_num_of_get_" + author_type + "_ids_requests"
-                getattr(self._twitter_api_requester, init_num_of_get_user_ids_requests_func_name)()
+                get_sleep_function_name = "get_sleep_time_for_get_" + author_type + "_ids_request"
+                seconds_to_wait = getattr(self._twitter_api_requester, get_sleep_function_name)()
+                if seconds_to_wait != 0:
+                    self.save_connections_and_wait(seconds_to_wait)
+                    init_num_of_get_user_ids_requests_func_name = "init_num_of_get_" + author_type + "_ids_requests"
+                    getattr(self._twitter_api_requester, init_num_of_get_user_ids_requests_func_name)()
 
-            get_user_ids_by_given_user_id_function_name = "get_" + author_type + "_ids_by_user_id"
-            user_ids = getattr(self._twitter_api_requester, get_user_ids_by_given_user_id_function_name)(author_id)
+                get_user_ids_by_given_user_id_function_name = "get_" + author_type + "_ids_by_user_id"
+                user_ids = getattr(self._twitter_api_requester, get_user_ids_by_given_user_id_function_name)(author_id)
 
-            temp_author_connections = self._db.create_temp_author_connections(author_id, user_ids, author_type,
-                                                                              self._window_start)
-            self._total_author_connections = self._total_author_connections + temp_author_connections
+                temp_author_connections = self._db.create_temp_author_connections(author_id, user_ids, author_type,
+                                                                                  self._window_start)
+                self._total_author_connections = self._total_author_connections + temp_author_connections
 
-            total_user_ids = list(set(total_user_ids + user_ids))
+                total_user_ids = list(set(total_user_ids + user_ids))
+            except Exception as e:
+                logging.exception("Failed getting followers or friends for user : {0}".format(author_id))
+
 
         return total_user_ids
 
