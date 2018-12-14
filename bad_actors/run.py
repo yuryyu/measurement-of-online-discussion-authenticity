@@ -69,6 +69,8 @@ from preprocessing_tools.leadspotting_posts_importer import LeadspottingPostsImp
 from dataset_builder.feature_extractor.footprint_feature_generator import FootprintFeatureGenerator
 from dataset_builder.feature_extractor.networkx_feature_generator import NetworkxFeatureGenerator
 
+from missing_data_complementor.followerfriend_data_complementor import FollowerFriendDataComplementor
+
 ###############################################################
 # MODULES
 ###############################################################
@@ -127,6 +129,7 @@ modules_dict["TopicDistrobutionVisualizationGenerator"] = TopicDistrobutionVisua
 modules_dict["FootprintFeatureGenerator"] = FootprintFeatureGenerator
 modules_dict["NetworkxFeatureGenerator"] = NetworkxFeatureGenerator
 
+modules_dict["FollowerFriendDataComplementor"] = FollowerFriendDataComplementor
 
 ## SETUP
 logging.config.fileConfig(getConfig().get("DEFAULT", "Logger_conf_file"))

@@ -2017,7 +2017,7 @@ class DB():
         author_connection.connection_type = unicode(connection_type)
         author_connection.weight = unicode(weight)
         author_connection.insertion_date = insertion_date
-        author_connection.claim_id = claim_id # not exist in Aviad
+        #author_connection.claim_id = claim_id # not exist in Aviad
 
         return author_connection
 

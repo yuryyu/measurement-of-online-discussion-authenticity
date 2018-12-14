@@ -87,16 +87,20 @@ class TwitterApiRequester:
         return followers
         #print "".join([str(follower) for follower in followers])
 
-    def get_follower_ids_by_user_id(self, user_id):
+    def get_follower_ids_by_user_id(self, user_id, count=10000,
+                       total_count=10000):
         print('--- get_follower_ids_by_user_id: ' + str(user_id))
 
-        follower_ids = self.api.GetFollowerIDs(user_id=user_id)
+        follower_ids = self.api.GetFollowerIDs(user_id=user_id,count=count,
+                       total_count=total_count)
 
         print("Number of retrieved followers ids is: " + str(len(follower_ids)))
         return follower_ids
 
-    def get_friend_ids_by_user_id(self, user_id):
-        friend_ids = self.api.GetFriendIDs(user_id=user_id)
+    def get_friend_ids_by_user_id(self, user_id,count=10000,
+                       total_count=10000):
+        friend_ids = self.api.GetFriendIDs(user_id=user_id,count=count,
+                       total_count=total_count)
         print(friend_ids)
         print("Number of retrieved friends ids is: " + str(len(friend_ids)))
         return friend_ids

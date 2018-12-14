@@ -123,6 +123,16 @@ class Twitter_Rest_Api(AbstractController):
         users = self.handle_get_users_request(total_user_ids_to_crawl, are_user_ids, author_type, insertion_type)
         self.convert_twitter_users_to_authors_and_save(users, author_type, insertion_type)
 
+    def crawl_author_connections_by_author_ids(self, author_ids, connection_type, author_type, are_user_ids, insertion_type):
+        self._total_author_connections = []
+
+        total_user_ids = self.crawl_users_restricted(author_ids, connection_type, restriction=0)
+
+        self._db.save_author_connections(self._total_author_connections)
+
+        #self.remove_already_crawled_authors(total_user_ids)
+
+
     def crawl_users(self, author_ids, author_type):
         print("--- crawl_users ---")
         total_user_ids = []
@@ -150,6 +160,35 @@ class Twitter_Rest_Api(AbstractController):
 
 
         return total_user_ids
+
+    def crawl_users_restricted(self, author_ids, author_type, restriction):
+        print("--- crawl_users restricted---")
+        total_user_ids = []
+        for author_id in author_ids:
+            try:
+                print("--- crawl_user_ids for author id : " + str(author_id))
+
+                get_sleep_function_name = "get_sleep_time_for_get_" + author_type + "_ids_request"
+                seconds_to_wait = getattr(self._twitter_api_requester, get_sleep_function_name)()
+                if seconds_to_wait != 0:
+                    self.save_connections_and_wait(seconds_to_wait)
+                    init_num_of_get_user_ids_requests_func_name = "init_num_of_get_" + author_type + "_ids_requests"
+                    getattr(self._twitter_api_requester, init_num_of_get_user_ids_requests_func_name)()
+
+                get_user_ids_by_given_user_id_function_name = "get_" + author_type + "_ids_by_user_id"
+                user_ids = getattr(self._twitter_api_requester, get_user_ids_by_given_user_id_function_name)(author_id)
+
+                temp_author_connections = self._db.create_temp_author_connections(author_id, user_ids, author_type,
+                                                                                  self._window_start)
+                self._total_author_connections = self._total_author_connections + temp_author_connections
+
+                total_user_ids = list(set(total_user_ids + user_ids))
+            except Exception as e:
+                logging.exception("Failed getting followers or friends for user : {0}".format(author_id))
+
+
+        return total_user_ids
+
 
     def check_already_crawled_author_guids(self, author_guids):
         print("--- check_already_crawled_author_ids ----")
