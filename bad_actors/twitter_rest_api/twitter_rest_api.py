@@ -128,10 +128,8 @@ class Twitter_Rest_Api(AbstractController):
 
         total_user_ids = self.crawl_users_restricted(author_ids, connection_type, restriction=0)
 
+        #self.remove_already_crawled_authors(total_user_ids) - TBD
         self._db.save_author_connections(self._total_author_connections)
-
-        #self.remove_already_crawled_authors(total_user_ids)
-
 
     def crawl_users(self, author_ids, author_type):
         print("--- crawl_users ---")

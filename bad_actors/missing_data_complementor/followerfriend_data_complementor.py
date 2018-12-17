@@ -29,7 +29,11 @@ class FollowerFriendDataComplementor(Method_Executor):
 
         self._minimal_num_of_posts = self._config_parser.eval(self.__class__.__name__, "minimal_num_of_posts")
         self._limit_friend_follower_number = self._config_parser.eval(self.__class__.__name__,
-                                                                      "limit_friend_follower_number")
+                                                                      "limit_friend_follower_number")        
+        self._start_chunk_number = int(self._config_parser.eval(self.__class__.__name__,
+                                                                      "start_chunk_number"))
+        self._stop_chunk_number = int(self._config_parser.eval(self.__class__.__name__,
+                                                                      "stop_chunk_number"))        
         self._maximal_tweets_count_in_timeline = self._config_parser.eval(self.__class__.__name__,
                                                                           "maximal_tweets_count_in_timeline")
 
@@ -71,13 +75,18 @@ class FollowerFriendDataComplementor(Method_Executor):
                                                              self._limit_friend_follower_number)
         followers_or_friends_candidats = self._db.result_iter(cursor)
         followers_or_friends_candidats = [author_id[0] for author_id in followers_or_friends_candidats]
+        
+        self._start_chunk_number
+        self._stop_chunk_number
         print("---crawl_followers_by_author_ids---")
+        print("---start_chunk_number--- "+str(self._start_chunk_number))
+        print("---stop_chunk_number--- "+str(self._stop_chunk_number))
         author_type = None
         are_user_ids = True
         insertion_type = DB_Insertion_Type.MISSING_DATA_COMPLEMENTOR
         crawl_users_by_author_ids_func_name = "crawl_author_connections_by_author_ids"
         
-        getattr(self._social_network_crawler, crawl_users_by_author_ids_func_name)(followers_or_friends_candidats,
+        getattr(self._social_network_crawler, crawl_users_by_author_ids_func_name)(followers_or_friends_candidats[self._start_chunk_number:self._stop_chunk_number],
                                                                                    connection_type, author_type,
                                                                                    are_user_ids, insertion_type)
         self._db.convert_temp_author_connections_to_author_connections(self._domain)
