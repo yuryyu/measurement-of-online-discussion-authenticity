@@ -75,12 +75,12 @@ class FollowerFriendDataComplementor(Method_Executor):
                                                              self._limit_friend_follower_number)
         followers_or_friends_candidats = self._db.result_iter(cursor)
         followers_or_friends_candidats = [author_id[0] for author_id in followers_or_friends_candidats]
-        
+        logging.info("Number of all candidates for crowling: "+str(len(followers_or_friends_candidats)))
         self._start_chunk_number
         self._stop_chunk_number
         print("---crawl_followers_by_author_ids---")
-        print("---start_chunk_number--- "+str(self._start_chunk_number))
-        print("---stop_chunk_number--- "+str(self._stop_chunk_number))
+        logging.info("---start_chunk_number: "+str(self._start_chunk_number))
+        logging.info("---stop_chunk_number: "+str(self._stop_chunk_number))
         author_type = None
         are_user_ids = True
         insertion_type = DB_Insertion_Type.MISSING_DATA_COMPLEMENTOR
