@@ -32,7 +32,9 @@ class FootprintFeatureGenerator(AbstractController):
                     claim_id = claim.claim_id
                     # define authors per claim
                     authors = self._db.get_claim_authors(claim_id)
-                    attribute_value = getattr(self, feature_name)(claim=claim,authors=authors) # entrance to method with "claim" param, return feature
+                    posts_dict=self._db.get_claim_id_posts_dict()
+                    posts=posts_dict[claim_id]
+                    attribute_value = getattr(self, feature_name)(claim=claim,authors=authors,posts=posts) # entrance to method with "claim" param, return feature
                     if attribute_value is not None:
                         attribute_name = "{0}_{1}".format(self._prefix, feature_name)
                         # next line add envelope for feature
@@ -48,7 +50,6 @@ class FootprintFeatureGenerator(AbstractController):
         
     def cleanUp(self):
         pass    
-
     
     """ Author account properties """
     def avg_account_age(self, **kwargs):
@@ -120,6 +121,224 @@ class FootprintFeatureGenerator(AbstractController):
                 rez= max(avg_num)            
         except: pass            
         return rez 
+    
+    
+    def avg_author_screen_name_length(self, **kwargs):
+        rez=100
+        try:
+            if 'authors' in kwargs.keys():
+                authors = kwargs['authors']
+                avg_num=0                
+                for author in authors:
+                    avg_num+=len(author.author_screen_name)
+                rez=avg_num/len(authors)    
+        except: pass            
+        return rez
+    
+    def std_dev_author_screen_name_length(self, **kwargs):
+        rez=101
+        try:           
+            if 'authors' in kwargs.keys():
+                authors = kwargs['authors']
+                avg_num=[]                
+                for author in authors:
+                    avg_num.append(len(author.author_screen_name))           
+                rez= np.std(avg_num)            
+        except: pass            
+        return rez 
+    
+    def min_author_screen_name_length(self, **kwargs):
+        rez=102
+        try:           
+            if 'authors' in kwargs.keys():
+                authors = kwargs['authors']
+                avg_num=[]                
+                for author in authors:
+                    avg_num.append(len(author.author_screen_name))           
+                rez= min(avg_num)            
+        except: pass            
+        return rez 
+    
+    def max_author_screen_name_length(self, **kwargs):
+        rez=103
+        try:           
+            if 'authors' in kwargs.keys():
+                authors = kwargs['authors']
+                avg_num=[]                
+                for author in authors:
+                    avg_num.append(len(author.author_screen_name))           
+                rez= max(avg_num)            
+        except: pass            
+        return rez 
+    
+    
+    """ Posts properties """
+    def avg_posts_age(self, **kwargs):
+        rez=10
+        try:
+            if 'posts' in kwargs.keys():
+                posts = kwargs['posts']
+                avg_num=0
+                post_cnt=0                
+                for post in posts:
+                    created_at = post.created_at
+                    if created_at is not None:
+                        post_cnt+=1
+                        post_creation_date = parser.parse(created_at).date()
+                        today_date = datetime.date.today()
+                        delta = today_date - post_creation_date
+                        avg_num+= delta.days                   
+                rez=avg_num/post_cnt    
+        except: pass            
+        return rez
+
+    def std_dev_posts_age(self, **kwargs):
+        rez=11
+        try:           
+            if 'posts' in kwargs.keys():
+                posts = kwargs['posts']
+                avg_num=[]                              
+                for post in posts:
+                    created_at = post.created_at
+                    if created_at is not None:                        
+                        post_creation_date = parser.parse(created_at).date()
+                        today_date = datetime.date.today()
+                        delta = today_date - post_creation_date
+                        avg_num.append(delta.days)                             
+                rez= np.std(avg_num)            
+        except: pass            
+        return rez
+
+    def min_posts_age(self, **kwargs):
+        rez=12
+        try:           
+            if 'posts' in kwargs.keys():
+                posts = kwargs['posts']
+                avg_num=[]                               
+                for post in posts:
+                    created_at = post.created_at
+                    if created_at is not None:                        
+                        post_creation_date = parser.parse(created_at).date()
+                        today_date = datetime.date.today()
+                        delta = today_date - post_creation_date
+                        avg_num.append(delta.days)              
+                rez= min(avg_num)            
+        except: pass            
+        return rez 
+    
+    def max_posts_age(self, **kwargs):
+        rez=13
+        try:           
+            if 'posts' in kwargs.keys():
+                posts = kwargs['posts']
+                avg_num=[]                               
+                for post in posts:
+                    created_at = post.created_at
+                    if created_at is not None:                        
+                        post_creation_date = parser.parse(created_at).date()
+                        today_date = datetime.date.today()
+                        delta = today_date - post_creation_date
+                        avg_num.append(delta.days)
+                rez= max(avg_num)            
+        except: pass            
+        return rez 
+
+    def avg_num_of_retweets(self, **kwargs):
+        rez=10
+        try:
+            if 'posts' in kwargs.keys():
+                posts = kwargs['posts']
+                avg_num=0                                
+                for post in posts:                                        
+                    avg_num+= post.retweet_count                   
+                rez=avg_num/len(posts)    
+        except: pass            
+        return rez
+
+    def std_dev_num_of_retweets(self, **kwargs):
+        rez=11
+        try:           
+            if 'posts' in kwargs.keys():
+                posts = kwargs['posts']
+                avg_num=[]                              
+                for post in posts:
+                    avg_num.append(post.retweet_count)                             
+                rez= np.std(avg_num)            
+        except: pass            
+        return rez
+
+    def min_num_of_retweets(self, **kwargs):
+        rez=12
+        try:           
+            if 'posts' in kwargs.keys():
+                posts = kwargs['posts']
+                avg_num=[]                               
+                for post in posts:
+                    avg_num.append(post.retweet_count)            
+                rez= min(avg_num)            
+        except: pass            
+        return rez 
+    
+    def max_num_of_retweets(self, **kwargs):
+        rez=13
+        try:           
+            if 'posts' in kwargs.keys():
+                posts = kwargs['posts']
+                avg_num=[]                               
+                for post in posts:
+                    avg_num.append(post.retweet_count)
+                rez= max(avg_num)            
+        except: pass            
+        return rez 
+
+    def avg_posts_num_of_favorites(self, **kwargs):
+        rez=10
+        try:
+            if 'posts' in kwargs.keys():
+                posts = kwargs['posts']
+                avg_num=0                                
+                for post in posts:                                        
+                    avg_num+= post.favorite_count                   
+                rez=avg_num/len(posts)   
+        except: pass            
+        return rez
+
+    def std_dev_posts_num_of_favorites(self, **kwargs):
+        rez=11
+        try:           
+            if 'posts' in kwargs.keys():
+                posts = kwargs['posts']
+                avg_num=[]                              
+                for post in posts:
+                    avg_num.append(post.favorite_count)                             
+                rez= np.std(avg_num)            
+        except: pass            
+        return rez
+
+    def min_posts_num_of_favorites(self, **kwargs):
+        rez=12
+        try:           
+            if 'posts' in kwargs.keys():
+                posts = kwargs['posts']
+                avg_num=[]                               
+                for post in posts:
+                    avg_num.append(post.favorite_count)              
+                rez= min(avg_num)            
+        except: pass            
+        return rez 
+    
+    def max_posts_num_of_favorites(self, **kwargs):
+        rez=13
+        try:           
+            if 'posts' in kwargs.keys():
+                posts = kwargs['posts']
+                avg_num=[]                               
+                for post in posts:
+                    avg_num.append(post.favorite_count)
+                rez= max(avg_num)            
+        except: pass            
+        return rez 
+  
 
     """ Followers """
     def avg_num_of_followers(self, **kwargs):
