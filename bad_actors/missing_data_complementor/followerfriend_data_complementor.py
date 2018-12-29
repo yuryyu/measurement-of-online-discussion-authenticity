@@ -1,5 +1,5 @@
 #
-# Created by Aviad on 03-Jun-16 11:41 AM.
+# Created by YY
 #
 from __future__ import print_function
 
@@ -91,6 +91,11 @@ class FollowerFriendDataComplementor(Method_Executor):
                                                                                    are_user_ids, insertion_type)
         self._db.convert_temp_author_connections_to_author_connections(self._domain)
 
+    def convert_temp_author_connections_to_author_connections(self):
+        logging.info("---starting convert temp_author_connections to author_connections----")
+        self._db.convert_temp_author_connections_to_author_connections(self._domain)
+        logging.info("---end of convert temp_author_connections to author_connections----")
+        
     def crawl_followers_by_author_ids(self, author_ids):
         print("---crawl_followers_by_author_ids---")
         author_type = None

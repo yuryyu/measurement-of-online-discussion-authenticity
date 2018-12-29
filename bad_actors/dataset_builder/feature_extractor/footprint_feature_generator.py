@@ -1,11 +1,13 @@
+#  Created by YY at 27/11/2018
 from __future__ import print_function
 
 from dataset_builder.feature_extractor.base_feature_generator import BaseFeatureGenerator
 from preprocessing_tools.abstract_controller import AbstractController
 from commons.commons import *
-import pandas as pd
+# import pandas as pd
 import numpy as np
-
+import datetime
+from dateutil import parser
 
 '''
 This class is responsible for generating features based on authors properties
@@ -47,6 +49,77 @@ class FootprintFeatureGenerator(AbstractController):
     def cleanUp(self):
         pass    
 
+    
+    """ Author account properties """
+    def avg_account_age(self, **kwargs):
+        rez=10
+        try:
+            if 'authors' in kwargs.keys():
+                authors = kwargs['authors']
+                avg_num=0
+                auth_cnt=0                
+                for author in authors:
+                    created_at = author.created_at
+                    if created_at is not None:
+                        auth_cnt+=1
+                        account_creation_date = parser.parse(created_at).date()
+                        today_date = datetime.date.today()
+                        delta = today_date - account_creation_date
+                        avg_num+= delta.days                   
+                rez=avg_num/auth_cnt    
+        except: pass            
+        return rez
+
+    def std_dev_account_age(self, **kwargs):
+        rez=11
+        try:           
+            if 'authors' in kwargs.keys():
+                authors = kwargs['authors']
+                avg_num=[]                
+                for author in authors:
+                    created_at = author.created_at
+                    if created_at is not None:                        
+                        account_creation_date = parser.parse(created_at).date()
+                        today_date = datetime.date.today()
+                        delta = today_date - account_creation_date
+                        avg_num.append(delta.days)                             
+                rez= np.std(avg_num)            
+        except: pass            
+        return rez
+
+    def min_account_age(self, **kwargs):
+        rez=12
+        try:           
+            if 'authors' in kwargs.keys():
+                authors = kwargs['authors']
+                avg_num=[]                
+                for author in authors:
+                    created_at = author.created_at
+                    if created_at is not None:                        
+                        account_creation_date = parser.parse(created_at).date()
+                        today_date = datetime.date.today()
+                        delta = today_date - account_creation_date
+                        avg_num.append(delta.days)             
+                rez= min(avg_num)            
+        except: pass            
+        return rez 
+    
+    def max_account_age(self, **kwargs):
+        rez=13
+        try:           
+            if 'authors' in kwargs.keys():
+                authors = kwargs['authors']
+                avg_num=[]                
+                for author in authors:
+                    created_at = author.created_at
+                    if created_at is not None:                        
+                        account_creation_date = parser.parse(created_at).date()
+                        today_date = datetime.date.today()
+                        delta = today_date - account_creation_date
+                        avg_num.append(delta.days)          
+                rez= max(avg_num)            
+        except: pass            
+        return rez 
 
     """ Followers """
     def avg_num_of_followers(self, **kwargs):
