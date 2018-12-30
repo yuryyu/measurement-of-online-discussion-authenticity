@@ -128,7 +128,7 @@ class TwitterApiRequester:
 
     def get_status(self, id):
         status = self.api.GetStatus(id)
-        print(status)
+        #print(status)
         return status
 
     def get_timeline(self, author_name, maximal_tweets_count_in_timeline):

@@ -985,6 +985,22 @@ class DB():
         res = [r for r in res]
         return len(res) > 0
 
+    def get_author_id_topic_tuples(self):
+        query = """
+            SELECT claim_tweet_connection.claim_id, claim_tweet_connection.post_id, posts.date, posts.author_guid, authors.author_screen_name
+            FROM claim_tweet_connection
+            INNER JOIN posts ON (claim_tweet_connection.post_id = posts.post_id)
+            INNER JOIN authors ON (authors.author_guid = posts.author_guid)
+            """
+        res = self.session.execute(query)
+        all_rows = res.cursor.fetchall()
+        return all_rows
+
+    def update_post_title(self, post):
+        post.author = u'PolitiFactTexas'
+        self.session.merge(post)
+        self.session.commit()
+
     ###########################################################
     # authors
     ###########################################################

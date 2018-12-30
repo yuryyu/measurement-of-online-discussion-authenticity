@@ -293,6 +293,7 @@ class MissingDataComplementor(Method_Executor):
             return None
 
     def extract_tweet_id(self, post_url):
+        post_url = str(post_url)
         pattern = re.compile("http(.*)://twitter.com/(.*)/statuses/(.*)")
         extracted_info = pattern.findall(post_url)
         if extracted_info == []:
@@ -374,3 +375,6 @@ class MissingDataComplementor(Method_Executor):
             author_screen_names_number_of_posts_dict[author_screen_name] = num_of_posts
         logging.info("Number of users to retrieve timelines: " + str(len(author_screen_names_number_of_posts_dict)))
         return author_screen_names_number_of_posts_dict
+
+    def add_topic_id_to_author_connections(self):
+        print(self._db.get_author_id_topic_tuples()[0][0])
