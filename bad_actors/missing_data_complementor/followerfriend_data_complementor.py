@@ -7,7 +7,7 @@ import re
 from collections import namedtuple
 
 from twitter import TwitterError
-
+import csv
 from DB.schema_definition import Post, Author, Post_citation
 from commons.commons import *
 from commons.commons import get_current_time_as_string, cleanForAuthor
@@ -29,7 +29,9 @@ class FollowerFriendDataComplementor(Method_Executor):
 
         self._minimal_num_of_posts = self._config_parser.eval(self.__class__.__name__, "minimal_num_of_posts")
         self._limit_friend_follower_number = self._config_parser.eval(self.__class__.__name__,
-                                                                      "limit_friend_follower_number")        
+                                                                      "limit_friend_follower_number")
+        self._source_file = self._config_parser.eval(self.__class__.__name__,
+                                                                      "source_file")        
         self._start_chunk_number = int(self._config_parser.eval(self.__class__.__name__,
                                                                       "start_chunk_number"))
         self._stop_chunk_number = int(self._config_parser.eval(self.__class__.__name__,
@@ -67,14 +69,17 @@ class FollowerFriendDataComplementor(Method_Executor):
         logging.info("---Finished crawl_friends_by_author_ids")
 
     def _fill_data_for_author_connection_type(self, connection_type):
-        # TEST
-        self._db.get_authors_by_domain("Microblog")
-        # TEST
-
-        cursor = self._db.get_followers_or_friends_candidats(connection_type, self._domain,
-                                                             self._limit_friend_follower_number)
-        followers_or_friends_candidats = self._db.result_iter(cursor)
-        followers_or_friends_candidats = [author_id[0] for author_id in followers_or_friends_candidats]
+        
+        if self._source_file==' ':            
+            cursor = self._db.get_followers_or_friends_candidats(connection_type, self._domain,
+                                                                 self._limit_friend_follower_number)
+            followers_or_friends_candidats = self._db.result_iter(cursor)
+            followers_or_friends_candidats = [author_id[0] for author_id in followers_or_friends_candidats]
+        else:
+            with open(self._source_file, 'r') as readFile:
+                reader = csv.reader(readFile)
+                followers_or_friends_candidats = list(reader)
+        
         logging.info("Number of all candidates for crowling: "+str(len(followers_or_friends_candidats)))
         self._start_chunk_number
         self._stop_chunk_number
