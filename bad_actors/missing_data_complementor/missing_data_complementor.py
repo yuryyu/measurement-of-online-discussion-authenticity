@@ -63,6 +63,10 @@ class MissingDataComplementor(Method_Executor):
         logging.info("---Finished crawl_friends_by_author_ids")
 
     def _fill_data_for_author_connection_type(self, connection_type):
+        # TEST
+        self._db.get_authors_by_domain("Microblog")
+        # TEST
+
         cursor = self._db.get_followers_or_friends_candidats(connection_type, self._domain,
                                                              self._limit_friend_follower_number)
         followers_or_friends_candidats = self._db.result_iter(cursor)

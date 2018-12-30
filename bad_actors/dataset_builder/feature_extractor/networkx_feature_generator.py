@@ -1,3 +1,4 @@
+#  Created by YY at 29.11.18
 from __future__ import print_function
 
 from dataset_builder.feature_extractor.base_feature_generator import BaseFeatureGenerator
@@ -18,7 +19,10 @@ class NetworkxFeatureGenerator(AbstractController):
     def __init__(self, db, **kwargs):
         AbstractController.__init__(self, db)
         self._features_list = self._config_parser.eval(self.__class__.__name__, "features_list")
-        self._table_names = self._config_parser.eval(self.__class__.__name__, "table_names")        
+        self._table_names = self._config_parser.eval(self.__class__.__name__, "table_names")
+        self._group_by = self._config_parser.eval(self.__class__.__name__, "group_by")
+        self._source = self._config_parser.eval(self.__class__.__name__, "source")
+        self._target = self._config_parser.eval(self.__class__.__name__, "target")                
         self._prefix = self.__class__.__name__
 
     def execute(self, window_start=None):                
@@ -27,9 +31,9 @@ class NetworkxFeatureGenerator(AbstractController):
             claim_features = []
             for table_name in self._table_names:
                 df=self._db.df_from_table(table_name)                
-                grps = df.groupby("claim_id")               
+                grps = df.groupby(self._group_by)               
                 for grp in grps:
-                    G = nx.from_pandas_dataframe(grp[1], source="author_id", target=table_name.split('_')[1]+"_id")
+                    G = nx.from_pandas_dataframe(grp[1], self._source, self._target)
                     claim_ext_id = grp[0]
                     claim_id = self._db.claim_ext_id_to_claim_id(claim_ext_id)[0]                   
                     for feature_name in self._features_list:
