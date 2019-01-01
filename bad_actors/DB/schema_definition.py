@@ -1914,7 +1914,12 @@ class DB():
     def get_author_connections_by_author_guid(self, source_author_guid):
         return self.session.query(AuthorConnection).filter(
             AuthorConnection.source_author_guid == source_author_guid).all();
-
+    
+    def get_author_osnid_by_author_guid(self, author_guid):        
+        rc=self.session.query(Author).filter(
+            Author.author_guid == author_guid[0]).all();        
+        return rc[0].author_osn_id
+    
     def add_post_retweeter_connections(self, post_retweeter_connections):
         for post_retweeter_connection in post_retweeter_connections:
             self.add_post_retweeter_connection(post_retweeter_connection)

@@ -75,12 +75,18 @@ class FollowerFriendDataComplementor(Method_Executor):
                                                                  self._limit_friend_follower_number)
             followers_or_friends_candidats = self._db.result_iter(cursor)
             followers_or_friends_candidats = [author_id[0] for author_id in followers_or_friends_candidats]
+            ff_candidats=followers_or_friends_candidats[self._start_chunk_number:self._stop_chunk_number]
         else:
             with open(self._source_file, 'r') as readFile:
-                reader = csv.reader(readFile)
-                followers_or_friends_candidats = list(reader)
+                reader = csv.reader(readFile)                
+                candidats_guid = list(reader)
+                candidats=candidats_guid[self._start_chunk_number:self._stop_chunk_number]
+                ff_candidats=[]
+                for author_guid in candidats:
+                    author_id=self._db.get_author_osnid_by_author_guid(author_guid)
+                    ff_candidats.append(author_id)                 
         
-        logging.info("Number of all candidates for crowling: "+str(len(followers_or_friends_candidats)))
+        logging.info("Number of all candidates for crowling: "+str(len(ff_candidats)))
         self._start_chunk_number
         self._stop_chunk_number
         print("---crawl_followers_by_author_ids---")
@@ -91,7 +97,7 @@ class FollowerFriendDataComplementor(Method_Executor):
         insertion_type = DB_Insertion_Type.MISSING_DATA_COMPLEMENTOR
         crawl_users_by_author_ids_func_name = "crawl_author_connections_by_author_ids"
         
-        getattr(self._social_network_crawler, crawl_users_by_author_ids_func_name)(followers_or_friends_candidats[self._start_chunk_number:self._stop_chunk_number],
+        getattr(self._social_network_crawler, crawl_users_by_author_ids_func_name)(ff_candidats,
                                                                                    connection_type, author_type,
                                                                                    are_user_ids, insertion_type)
         self._db.convert_temp_author_connections_to_author_connections(self._domain)
