@@ -4,7 +4,7 @@ from __future__ import print_function
 from dataset_builder.feature_extractor.base_feature_generator import BaseFeatureGenerator
 from preprocessing_tools.abstract_controller import AbstractController
 from commons.commons import *
-#import pandas as pd
+import pandas as pd
 import numpy as np
 import networkx as nx
 import sys
@@ -20,6 +20,7 @@ class NetworkxFeatureGenerator(AbstractController):
         AbstractController.__init__(self, db)
         self._features_list = self._config_parser.eval(self.__class__.__name__, "features_list")
         self._table_names = self._config_parser.eval(self.__class__.__name__, "table_names")
+        self._csv_file = self._config_parser.eval(self.__class__.__name__, "csv_file")
         self._group_by = self._config_parser.eval(self.__class__.__name__, "group_by")
         self._source = self._config_parser.eval(self.__class__.__name__, "source")
         self._target = self._config_parser.eval(self.__class__.__name__, "target")                
@@ -30,10 +31,13 @@ class NetworkxFeatureGenerator(AbstractController):
         try:
             claim_features = []
             for table_name in self._table_names:
-                df=self._db.df_from_table(table_name)                
-                grps = df.groupby(self._group_by)               
+                #df=self._db.df_from_table(table_name) # TODO: create in schema_definition.py for automatic use               
+                df = pd.read_csv(self._csv_file, names=['source_author_guid','destination_author_guid','connection_type','weight','insertion_date','claim_id'])                            
+                grps = df.groupby(self._group_by)              
+                if len(grps)==1:
+                    self._db.update_table_group_by(table_name,self._group_by) # create in scheme
                 for grp in grps:
-                    G = nx.from_pandas_dataframe(grp[1], self._source, self._target)
+                    G = nx.from_pandas_dataframe(grp[1], self._source[0], self._target[0])
                     claim_ext_id = grp[0]
                     claim_id = self._db.claim_ext_id_to_claim_id(claim_ext_id)[0]                   
                     for feature_name in self._features_list:
