@@ -1904,11 +1904,14 @@ class DB():
     def add_author_connections(self, author_connections):
         total = len(author_connections)
         current = 0
-        for author_connection in author_connections:
-            current += 1
-            msg = '\r adding ' + str(current) + ' of ' + str(total) + ' author_connections'
-            print(msg, end="")
-            self.add_author_connection(author_connection)
+        try:
+            for author_connection in author_connections:
+                current += 1
+                msg = '\r adding ' + str(current) + ' of ' + str(total) + ' author_connections'
+                print(msg, end="")
+                self.add_author_connection(author_connection)
+        except:
+            pass        
         self.session.commit()
 
     def get_author_connections_by_author_guid(self, source_author_guid):
