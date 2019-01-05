@@ -8,6 +8,8 @@ from commons.commons import *
 import numpy as np
 import datetime
 from dateutil import parser
+import logging
+import time
 
 '''
 This class is responsible for generating features based on authors properties
@@ -22,18 +24,29 @@ class FootprintFeatureGenerator(AbstractController):
         self._prefix = self.__class__.__name__
 
     def execute(self, window_start=None):
-
-        claims = self._db.get_claims()
-        
+        function_name = 'extract_footprint_features'
+        start_time = time.time()
+        info_msg = "execute started for " + function_name + " started at " + str(start_time)        
+        print (info_msg)
+        logging.info(info_msg)
+        claims = self._db.get_claims()        
         try:
-            claim_features = []
-            for feature_name in self._features_list:
-                for claim in claims:
-                    claim_id = claim.claim_id
-                    # define authors per claim
-                    authors = self._db.get_claim_authors(claim_id)
-                    posts_dict=self._db.get_claim_id_posts_dict()
-                    posts=posts_dict[claim_id]
+            claim_features = []            
+            cnt=1
+            for claim in claims:
+                logging.info('Started ' +str(cnt)+ ' claim from ' +str(len(claims)) +' claims')
+                print('Started ' +str(cnt)+ ' claim from ' +str(len(claims)) +' claims')
+                cnt+=1
+                claim_id = claim.claim_id
+                # define authors per claim
+                authors = self._db.get_claim_authors(claim_id)
+                posts_dict=self._db.get_claim_id_posts_dict()
+                posts=posts_dict[claim_id]
+                ftr=1
+                for feature_name in self._features_list:
+                    logging.info('Started ' +str(ftr)+ ' feature from ' +str(len(self._features_list)) +' features')
+                    print('Started ' +str(ftr)+ ' feature from ' +str(len(self._features_list)) +' features')
+                    ftr+=1
                     attribute_value = getattr(self, feature_name)(claim=claim,authors=authors,posts=posts) # entrance to method with "claim" param, return feature
                     if attribute_value is not None:
                         attribute_name = "{0}_{1}".format(self._prefix, feature_name)
@@ -43,6 +56,10 @@ class FootprintFeatureGenerator(AbstractController):
                         claim_features.append(claim_feature)
         except:
             print('Fail')
+        stop_time = time.time()
+        info_msg = "execute ended at " + str(stop_time)        
+        print (info_msg)
+        logging.info(info_msg)     
         # used author_feature table - due to next use
         self._db.add_author_features(claim_features)
         # regular use:   
