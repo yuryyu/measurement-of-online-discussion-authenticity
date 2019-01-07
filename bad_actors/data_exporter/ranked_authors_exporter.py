@@ -15,29 +15,43 @@ class RankedAuthorsExporter(object):
 
     def execute(self, window_start):
         ranked_authors = self.get_ranked_authors()
-        self._db.delete_sorted_authors_table()
+
         self.write_to_csv(ranked_authors)
 
     def get_ranked_authors(self):
-        self._db.make_sorted_authors_table()
-        all_authors = self._db.get_all_sorted_authors()
+        all_authors = self._db.get_sorted_authors()
+        claims_authors_dict = self.make_threshold_dic(all_authors)
         total_authors = len(all_authors)
         authors_above_threshold = []
         authors_below_threshold = []
-        i = 0
-        for author in all_authors:
-            msg = '\rRanking author [{}/{}]'.format(i, total_authors)
-            print(msg, end='')
-            i += 1
-            #print(author)
-            if self._db.is_within_threshold(author[0], author[2], self.threshold):
-                authors_above_threshold.append(author + (1,))
-            else:
-                authors_below_threshold.append(author + (0,))
+        i = 1
+        for claim in claims_authors_dict:
+            for author in claims_authors_dict[claim][:self.threshold]:
+                msg = '\rRanking author [{}/{}]'.format(i, total_authors)
+                print(msg, end='')
+                i += 1
+                #print(author)
+                authors_above_threshold.append(author + [1])
+            for author in claims_authors_dict[claim][self.threshold:]:
+                msg = '\rRanking author [{}/{}]'.format(i, total_authors)
+                print(msg, end='')
+                i += 1
+                authors_below_threshold.append(author + [0])
         print('\r')
-        #print(authors_above_threshold)
-        #print(authors_below_threshold)
+        authors_above_threshold.sort(key=lambda x: x[4], reverse=True)
+        authors_below_threshold.sort(key=lambda  x: x[4], reverse=True)
         return authors_above_threshold + authors_below_threshold
+
+    def make_threshold_dic(self, sorted_authors):
+        authors_for_claims_dict = {}
+        for author in sorted_authors:
+            #print(author)
+            try:
+                authors_for_claims_dict[author[2]].append(author)
+            except KeyError:
+                authors_for_claims_dict[author[2]] = [author]
+        #print(authors_for_claims_dict)
+        return authors_for_claims_dict
 
     def write_to_csv(self, ranked_authors):
         with open(self.output_file_path, 'wb') as f:
