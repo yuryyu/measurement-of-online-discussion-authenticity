@@ -15,10 +15,10 @@ class RankedAuthorsExporter(object):
 
     def execute(self, window_start):
         ranked_authors = self.get_ranked_authors()
-
         self.write_to_csv(ranked_authors)
 
     def get_ranked_authors(self):
+        print('Getting authors from databse sorted by post speed...')
         all_authors = self._db.get_sorted_authors()
         claims_authors_dict = self.make_threshold_dic(all_authors)
         total_authors = len(all_authors)
@@ -43,6 +43,7 @@ class RankedAuthorsExporter(object):
         return authors_above_threshold + authors_below_threshold
 
     def make_threshold_dic(self, sorted_authors):
+        print('Making dictionary of authors in claims...')
         authors_for_claims_dict = {}
         for author in sorted_authors:
             #print(author)
