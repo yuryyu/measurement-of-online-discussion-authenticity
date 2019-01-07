@@ -1200,6 +1200,58 @@ class DB():
         res = self.session.execute(query, params=dict(post_content=post_content + "%"))
         return [author_name[0] for author_name in res]
 
+
+    def make_sorted_authors_table(self):
+        query = """
+            create table sorted_authors as 
+            SELECT posts.author_guid as author_guid, authors.author_screen_name as author_screen_name, claim_tweet_connection.claim_id as claim_id,
+                posts.post_id as post_id,
+            MIN(julianday(first_tweet_for_claims.first_tweet) - julianday(posts.date)) as post_speed
+            FROM (
+                select claim_tweet_connection.claim_id, min(posts.date) as first_tweet
+                from claim_tweet_connection
+                inner join posts on (posts.post_id = claim_tweet_connection.post_id)
+                group by claim_tweet_connection.claim_id
+                ) as first_tweet_for_claims
+            inner join claim_tweet_connection on (claim_tweet_connection.claim_id = first_tweet_for_claims.claim_id)
+            INNER JOIN posts ON (claim_tweet_connection.post_id = posts.post_id)
+            INNER JOIN authors ON (authors.author_guid = posts.author_guid)
+            --WHERE posts.content NOT LIKE "%RT%"
+            group by posts.author_guid
+            order by post_speed desc
+            """
+        self.session.execute(text(query))
+        self.session.commit()
+
+    def delete_sorted_authors_table(self):
+        query = text('drop table sorted_authors')
+        self.session.execute(query)
+        self.session.commit()
+
+    def get_all_sorted_authors(self):
+        return self.session.execute('select * from sorted_authors').cursor.fetchall()
+
+    def is_within_threshold(self, author_guid, claim_id, threshold):
+        query = text('select author_guid from sorted_authors where claim_id = {} limit {}'.format(claim_id, threshold))
+        res = self.session.execute(query)
+        result = [r[0] for r in res]
+        if unicode(author_guid) in result:
+            return True
+        else:
+            return False
+
+
+    def order_by_threshold(self, threshold):
+        query = """
+        select *,
+        case when post_id in (select post_id from sorted_authors where claim_id = A.claim_id limit {0}) then 1 else 0 end first_{0}
+        from sorted_authors A
+        order by first_{0} desc, cast(post_speed as float) desc
+        """
+        query = text(query.format(threshold))
+        results = self.session.execute(query)
+        return results.cursor.fetchall()
+
     ###########################################################
     # author_citations
     ###########################################################
