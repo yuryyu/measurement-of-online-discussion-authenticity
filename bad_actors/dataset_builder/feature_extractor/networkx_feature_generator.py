@@ -4,10 +4,12 @@ from __future__ import print_function
 from dataset_builder.feature_extractor.base_feature_generator import BaseFeatureGenerator
 from preprocessing_tools.abstract_controller import AbstractController
 from commons.commons import *
-#import pandas as pd
+import pandas as pd
 import numpy as np
 import networkx as nx
 import sys
+import logging
+import time
 
 '''
 This class is responsible for generating features based on authors properties
@@ -20,6 +22,7 @@ class NetworkxFeatureGenerator(AbstractController):
         AbstractController.__init__(self, db)
         self._features_list = self._config_parser.eval(self.__class__.__name__, "features_list")
         self._table_names = self._config_parser.eval(self.__class__.__name__, "table_names")
+        self._csv_file = self._config_parser.eval(self.__class__.__name__, "csv_file")
         self._group_by = self._config_parser.eval(self.__class__.__name__, "group_by")
         self._source = self._config_parser.eval(self.__class__.__name__, "source")
         self._target = self._config_parser.eval(self.__class__.__name__, "target")                
@@ -27,16 +30,33 @@ class NetworkxFeatureGenerator(AbstractController):
 
     def execute(self, window_start=None):                
         function_name = 'extract_features_from_graph'
+        start_time = time.time()
+        info_msg = "execute started for " + function_name + " started at " + str(start_time)        
+        print (info_msg)
+        logging.info(info_msg)
+        
         try:
             claim_features = []
             for table_name in self._table_names:
-                df=self._db.df_from_table(table_name)                
-                grps = df.groupby(self._group_by)               
+                #df=self._db.df_from_table(table_name)               
+                df = pd.read_csv(self._csv_file, names=['source_author_guid','destination_author_guid','connection_type','weight','insertion_date','claim_id'])                            
+                grps = df.groupby(self._group_by)              
+                if len(grps)==1:
+                    self._db.update_table_group_by(table_name,self._group_by) # create in scheme
+                cnt=1
                 for grp in grps:
-                    G = nx.from_pandas_dataframe(grp[1], self._source, self._target)
+                    logging.info('Started ' +str(cnt)+ ' group from ' +str(len(grps)) +' groups')
+                    print('Started ' +str(cnt)+ ' group from ' +str(len(grps)) +' groups')
+                    cnt+=1
+                    G = nx.from_pandas_dataframe(grp[1], self._source[0], self._target[0])
                     claim_ext_id = grp[0]
-                    claim_id = self._db.claim_ext_id_to_claim_id(claim_ext_id)[0]                   
+                    #claim_id = self._db.claim_ext_id_to_claim_id(claim_ext_id)[0]
+                    claim_id =claim_ext_id
+                    ftr=1                    
                     for feature_name in self._features_list:
+                        logging.info('Started ' +str(ftr)+ ' feature from ' +str(len(self._features_list)) +' features')
+                        print('Started ' +str(ftr)+ ' feature from ' +str(len(self._features_list)) +' features')
+                        ftr+=1
                         attributes_dict = getattr(self, function_name)(G=G,ff=feature_name)
                         if len(attributes_dict)==1 and attributes_dict[feature_name] is not None:
                             attribute_name = "{0}_{1}".format(self._prefix, feature_name)
@@ -57,6 +77,10 @@ class NetworkxFeatureGenerator(AbstractController):
         except:
             print('Fail')
             print(sys.exc_info())
+        stop_time = time.time()
+        info_msg = "execute ended at " + str(stop_time)        
+        print (info_msg)
+        logging.info(info_msg)    
         # used author_feature table - due to next use
         self._db.add_author_features(claim_features)
         # regular use:   
