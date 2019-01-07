@@ -15,6 +15,7 @@ from bad_actors_collector.bad_actors_collector import BadActorsCollector
 from configuration.config_class import getConfig
 from data_exporter.data_exporter import DataExporter
 from data_exporter.csv_writer import Csv_writer
+from data_exporter.ranked_authors_exporter import RankedAuthorsExporter
 from dataset_builder.graph_builders.bag_of_words_graph_builders.bag_of_words_graph_builder_all_combinations import \
     Bag_Of_Words_Graph_Builder_All_Combinations
 from dataset_builder.graph_builders.bag_of_words_graph_builders.bag_of_words_graph_builder_k_best import \
@@ -122,6 +123,7 @@ modules_dict["GraphBuilder_Bag_Of_Words"] = GraphBuilder_Bag_Of_Words
 modules_dict["FeatureExtractor"] = FeatureExtractor
 modules_dict["BadActorsCollector"] = BadActorsCollector
 modules_dict["DataExporter"] = DataExporter
+modules_dict["RankedAuthorsExporter"] = RankedAuthorsExporter
 modules_dict["LinkPredictionEvaluator"] = LinkPredictionEvaluator
 modules_dict["ExperimentalEnvironment"] = ExperimentalEnvironment
 modules_dict["Predictor"] = Predictor
