@@ -8,6 +8,7 @@ from collections import namedtuple
 
 from twitter import TwitterError
 import csv
+import time
 from DB.schema_definition import Post, Author, Post_citation
 from commons.commons import *
 from commons.commons import get_current_time_as_string, cleanForAuthor
@@ -83,8 +84,13 @@ class FollowerFriendDataComplementor(Method_Executor):
                 candidats=candidats_guid[self._start_chunk_number:self._stop_chunk_number]
                 ff_candidats=[]
                 for author_guid in candidats:
-                    author_id=self._db.get_author_osnid_by_author_guid(author_guid)
-                    ff_candidats.append(author_id)                 
+                    try:
+                        author_id=self._db.get_author_osnid_by_author_guid(author_guid)
+                        time.sleep(0.1)
+                        if author_id!=1:
+                            ff_candidats.append(author_id)
+                    except:
+                        pass                     
         
         logging.info("Number of all candidates for crowling: "+str(len(ff_candidats)))
         self._start_chunk_number
