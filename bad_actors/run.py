@@ -52,6 +52,7 @@ from experimental_environment.linkprediction_evaluator import LinkPredictionEval
 from experimental_environment.load_datasets import Load_Datasets
 from experimental_environment.predictor import Predictor
 from missing_data_complementor.missing_data_complementor import MissingDataComplementor
+from missing_data_complementor.add_author_connection_claim_id import AddAuthorConnectionClaimId
 from preprocessing_tools.create_authors_table import CreateAuthorTables
 from preprocessing_tools.csv_importer import CsvImporter
 from preprocessing_tools.data_preprocessor import Preprocessor
@@ -91,6 +92,7 @@ modules_dict["AuthorTableDiff"] = AuthorTableDiff
 modules_dict["Twitter_Crawler"] = Twitter_Crawler
 modules_dict["OldTweetsCrawler"] = OldTweetsCrawler
 modules_dict["MissingDataComplementor"] = MissingDataComplementor
+modules_dict["AddAuthorConnectionClaimId"] = AddAuthorConnectionClaimId
 modules_dict["Load_Datasets"] = Load_Datasets
 modules_dict["Image_Tags_Extractor"] = Image_Tags_Extractor
 modules_dict["Image_Downloader"] = Image_Downloader
