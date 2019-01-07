@@ -110,7 +110,7 @@ class AuthorConnection(Base):
     destination_author_guid = Column(Unicode, primary_key=True)
     connection_type = Column(Unicode, primary_key=True)
     weight = Column(FLOAT, default=0.0)
-    topic_id = Column(Integer, ForeignKey('claims.claim_id')) # not exist in Aviad
+    claim_id = Column(Integer, ForeignKey('claims.claim_id'), primary_key=True) # not exist in Aviad
     insertion_date = Column(Unicode, default=None)
 
     def __repr__(self):
@@ -985,21 +985,64 @@ class DB():
         res = [r for r in res]
         return len(res) > 0
 
-    def get_author_id_topic_tuples(self):
-        query = """
-            SELECT claim_tweet_connection.claim_id, claim_tweet_connection.post_id, posts.date, posts.author_guid, authors.author_screen_name
-            FROM claim_tweet_connection
-            INNER JOIN posts ON (claim_tweet_connection.post_id = posts.post_id)
-            INNER JOIN authors ON (authors.author_guid = posts.author_guid)
+    def get_author_claim_dict(self):
+        print('Getting claims for authors')
+        authors_claim_query = r"""
+            select distinct claim_tweet_connection.claim_id, posts.author_guid 
+            from claim_tweet_connection
+            inner join posts on claim_tweet_connection.post_id=posts.post_id
             """
-        res = self.session.execute(query)
-        all_rows = res.cursor.fetchall()
-        return all_rows
+        data = self.session.execute(authors_claim_query).fetchall()
+        claims_per_author = {}
+        for claim, author_guid in data:
+            t = claims_per_author.get(author_guid, set())
+            t.add(claim)
+            claims_per_author[author_guid] = t
+        print('Searched {} authors for claims'.format(len(claims_per_author)))
+        return claims_per_author
 
-    def update_post_title(self, post):
-        post.author = u'PolitiFactTexas'
-        self.session.merge(post)
+    def add_claim_id_to_author_connections(self):
+        claims_per_author = self.get_author_claim_dict()
+        authors_connections_query = r"""
+            select source_author_guid, destination_author_guid, connection_type, claim_id, weight, insertion_date
+            from author_connections
+            where claim_id is null
+            """
+        data = self.session.execute(authors_connections_query).fetchall()
+        connections_to_save = []
+        i = 0
+        num_connections = len(data)
+        author_pairs_missing_post = []
+        for source_author, dest_author, c_type, claim, weight, date in data:
+            #if claim == None:
+            try:
+                if i % 100 == 0:
+                    msg = '\rMaking new author connections for old connection [{}/{}]'.format(i, num_connections)
+                    print(msg, end='')
+                i += 1
+                #self.delete_author_connection(source_author, dest_author, c_type)
+                joint_claims = claims_per_author[source_author].intersection(claims_per_author[dest_author])
+                for claim in joint_claims:
+                    author_connection = AuthorConnection()
+                    author_connection.source_author_guid = source_author
+                    author_connection.destination_author_guid = dest_author
+                    author_connection.connection_type = unicode(c_type)
+                    author_connection.weight = unicode(weight)
+                    author_connection.insertion_date = unicode(date)
+                    author_connection.claim_id = claim
+                    connections_to_save.append(author_connection)
+            except KeyError:
+               author_pairs_missing_post.append((source_author, dest_author))
+        print('\r')
+        for a, b in author_pairs_missing_post:
+            print('No posts found for one of the authors with id: {} and {}'.format(a, b))
+        print('Saving {} new author connections'.format(len(connections_to_save)))
+        #print(connections_to_save[0])
+        self.save_author_connections(connections_to_save)
+        #self.session.add_all(connections_to_save)
         self.session.commit()
+        print('Deleting author connections with no topic id')
+        self.delete_author_connections_missing_claim()
 
     ###########################################################
     # authors
@@ -1909,6 +1952,16 @@ class DB():
             msg = '\r adding ' + str(current) + ' of ' + str(total) + ' author_connections'
             print(msg, end="")
             self.add_author_connection(author_connection)
+        self.session.commit()
+
+    def delete_author_connections_missing_claim(self):
+        self.session.query(AuthorConnection).filter(AuthorConnection.claim_id.is_(None)).delete()
+        self.session.commit()
+
+    def delete_author_connection(self, src_author, dst_author, c_type):
+        self.session.query(AuthorConnection).filter((AuthorConnection.source_author_guid==src_author)
+                        & (AuthorConnection.destination_author_guid == dst_author)
+                        & (AuthorConnection.connection_type == c_type)).delete()
         self.session.commit()
 
     def get_author_connections_by_author_guid(self, source_author_guid):

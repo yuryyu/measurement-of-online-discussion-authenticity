@@ -380,5 +380,3 @@ class MissingDataComplementor(Method_Executor):
         logging.info("Number of users to retrieve timelines: " + str(len(author_screen_names_number_of_posts_dict)))
         return author_screen_names_number_of_posts_dict
 
-    def add_topic_id_to_author_connections(self):
-        print(self._db.get_author_id_topic_tuples()[0][0])
