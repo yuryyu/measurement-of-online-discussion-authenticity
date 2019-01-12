@@ -108,7 +108,8 @@ class FollowerFriendDataComplementor(Method_Executor):
         getattr(self._social_network_crawler, crawl_users_by_author_ids_func_name)(ff_candidats,
                                                                                    connection_type, author_type,
                                                                                    are_user_ids, insertion_type)
-        self._db.convert_temp_author_connections_to_author_connections(self._domain)
+        # must be resolved ASAP
+        #self._db.convert_temp_author_connections_to_author_connections(self._domain)
 
     def convert_temp_author_connections_to_author_connections(self):
         logging.info("---starting convert temp_author_connections to author_connections----")
