@@ -85,14 +85,16 @@ class FollowerFriendDataComplementor(Method_Executor):
                 ff_candidats=[]
                 for author_guid in candidats:
                     try:
-                        author_id=self._db.get_author_osnid_by_author_guid(author_guid)
-                        time.sleep(0.1)
+                        author_id=self._db.get_author_osnid_by_author_guid(author_guid)                        
                         if author_id!=1:
                             ff_candidats.append(author_id)
                     except:
                         pass                     
         
         logging.info("Number of all candidates for crowling: "+str(len(ff_candidats)))
+        if len(ff_candidats)==0:
+            logging.warning("Number of all candidates for crowling =0, process stoped! ")
+            return
         self._start_chunk_number
         self._stop_chunk_number
         print("---crawl_followers_by_author_ids---")
