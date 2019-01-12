@@ -1,15 +1,17 @@
-#  Created by YY at 2/1/2011
+#  Created by YY at 1/2/2019
+#  Modified by YY at 1/12/19
 from __future__ import print_function
 
 from dataset_builder.feature_extractor.base_feature_generator import BaseFeatureGenerator
 from preprocessing_tools.abstract_controller import AbstractController
 from commons.commons import *
-# import pandas as pd
 import numpy as np
 import datetime
 from dateutil import parser
 import logging
 import time
+from scipy.stats import skew, kurtosis
+from copy import deepcopy
 
 '''
 This class is responsible for generating features based on authors and posts temporal properties
@@ -17,208 +19,119 @@ Each author-feature and post-feature pair will be written in the AuthorFeature t
 '''
 
 class TemporalFeatureGenerator(AbstractController):
-
+    """
+    Example of enabling Temporal Feature Generator in config.ini file
+    
+    [TemporalFeatureGenerator]
+    # data source 
+    source_list=['posts', 'authors'] 
+    # temporal features list 
+    features_list = ['t_min', 't_max', 't_std_dev', 't_avg', 't_skewness', 't_kurtosis']
+    # sample time list in minutes - choose/create needed from example
+    delta_time = ['30','60','24*60','24*60*7','24*60*30','24*60*365']
+    
+    """
     def __init__(self, db, **kwargs):
         AbstractController.__init__(self, db)
-        self._features_list = self._config_parser.eval(self.__class__.__name__, "features_list")        
+        self._source_list = self._config_parser.eval(self.__class__.__name__, "source_list")
+        self._features_list = self._config_parser.eval(self.__class__.__name__, "features_list")
+        self._delta_time = self._config_parser.eval(self.__class__.__name__, "delta_time")        
         self._prefix = self.__class__.__name__
 
     def execute(self, window_start=None):
         function_name = 'extract_temporal_features'
         start_time = time.time()
-        info_msg = "execute started for " + function_name + " started at " + str(start_time)        
-        print (info_msg)
+        info_msg = "execute started for " + function_name + " started at " + str(start_time)
         logging.info(info_msg)
         claims = self._db.get_claims()        
         try:
-            claim_features = []            
-            cnt=1
-            for claim in claims:
-                logging.info('Started ' +str(cnt)+ ' claim from ' +str(len(claims)) +' claims')
-                print('Started ' +str(cnt)+ ' claim from ' +str(len(claims)) +' claims')
-                cnt+=1
+            claim_features = []           
+            today_datetime = datetime.datetime.now()            
+            posts_dict=self._db.get_claim_id_posts_dict()            
+            for cnt,claim in enumerate(claims):
                 claim_id = claim.claim_id
-                # define authors,posts per claim
-                authors = self._db.get_claim_authors(claim_id)
-                posts_dict=self._db.get_claim_id_posts_dict()
-                posts=posts_dict[claim_id]
-                # create temporal data table per claim (pandas data frame)
-                # post_guid, author_guid, year, month, day, hour, minute, second
-                
-                ftr=1
-                for feature_name in self._features_list:
-                    logging.info('Started ' +str(ftr)+ ' feature from ' +str(len(self._features_list)) +' features')
-                    print('Started ' +str(ftr)+ ' feature from ' +str(len(self._features_list)) +' features')
-                    ftr+=1
-                    attribute_value = getattr(self, feature_name)(claim=claim,authors=authors,posts=posts) 
-                    if attribute_value is not None:
-                        attribute_name = "{0}_{1}".format(self._prefix, feature_name)
-                        # next line add envelope for feature
-                        claim_feature = BaseFeatureGenerator.create_author_feature(attribute_name, claim_id, attribute_value,
-                                                                                self._window_start, self._window_end)
-                        claim_features.append(claim_feature)
+                logging.info('Started ' +str(cnt+1)+ ' claim from ' +str(len(claims)) +' claims')                
+                for source in self._source_list:                   
+                    # define authors,posts per claim
+                    if source=='authors':
+                        s_list = self._db.get_claim_authors(claim_id)
+                    elif source=='posts': 
+                        s_list=posts_dict[claim_id]
+                    if len(s_list)==0:
+                        logging.info('The resulted list is empty for claim:'+str(claim_id))
+                        continue                                                      
+                    ll=[]
+                    for s in s_list:
+                        try:
+                            if source=='authors':
+                                created_at = s[43]
+                            elif source=='posts':
+                                created_at = s.created_at                                     
+                            if created_at is not None:                                                            
+                                creation_date = parser.parse(created_at)
+                                delta =int(divmod((today_datetime - creation_date).total_seconds(),60)[0])
+                                ll.append(delta)
+                            else:
+                                logging.info('Can not be created feature for ' +created_at)
+                        except:
+                            logging.info('Can not be parsed created_at, probably None value' )
+                            pass                      
+                    # normalization
+                    m=min(ll)
+                    lls = [i-m for i in ll]
+                    #sorting in ascending 
+                    lls.sort()
+                    #init start stop indexes 
+                    st_ind=0
+                    stop_ind=1     
+                    for delta in self._delta_time:
+                        for idx, val in enumerate(lls[st_ind:]):
+                            if val<=eval(delta):
+                                stop_ind=idx
+                        llsn=deepcopy(lls[st_ind:stop_ind])
+                        st_ind=stop_ind                                                
+                        for ftr,feature_name in enumerate(self._features_list):
+                            logging.info('Started ' +str(ftr+1)+ ' feature from ' +str(len(self._features_list)) +' features')                            
+                            try:
+                                attribute_value = getattr(self, feature_name)(llsn)
+                            except:
+                                attribute_value = 0
+                                print('Fail in extraction: '+feature_name) 
+                            if attribute_value is not None:
+                                attribute_name = "{0}_{1}_{2}_{3}".format(self._prefix, source, str(eval(delta)), feature_name)
+                                # next line add envelope for feature
+                                claim_feature = BaseFeatureGenerator.create_author_feature(attribute_name, claim_id, attribute_value,
+                                                                                        self._window_start, self._window_end)
+                                claim_features.append(claim_feature)
+                                print('Appended: '+attribute_name)                        
         except:
-            print('Fail')
+            logging.error('Failed in extraction process!')
         stop_time = time.time()
         info_msg = "execute ended at " + str(stop_time)        
-        print (info_msg)
-        logging.info(info_msg)     
-        # used author_feature table - due to next use
-        self._db.add_author_features(claim_features)
-        # regular use:   
-        #self._db.add_claim_features(claim_features)
+        logging.info(info_msg)       
+        self._db.add_author_features(claim_features)        
         
     def cleanUp(self):
-        pass    
-    #a=[2, 8, 0, 4, 1, 9, 9, 0]
-    #scipy.stats.kurtosis(a, axis=0, fisher=True, bias=True)
-    #from scipy.stats import skew
-    #skew([1, 2, 3, 4, 5])
-    #skew([2, 8, 0, 4, 1, 9, 9, 0])
+        pass   
     
-    """ Author temporal properties """
-    def avg_account_age(self, **kwargs):
-        rez=10
-        try:
-            if 'authors' in kwargs.keys():
-                authors = kwargs['authors']
-                avg_num=0
-                auth_cnt=0                
-                for author in authors:
-                    created_at = author.created_at
-                    if created_at is not None:
-                        auth_cnt+=1
-                        account_creation_date = parser.parse(created_at).date()
-                        today_date = datetime.date.today()
-                        delta = today_date - account_creation_date
-                        avg_num+= delta.days                   
-                rez=avg_num/auth_cnt    
-        except: pass            
-        return rez
+    """ Temporal features from time delta list """
+    def t_avg(self, ll):                    
+        return sum(ll)/len(ll)
 
-    def std_dev_account_age(self, **kwargs):
-        rez=11
-        try:           
-            if 'authors' in kwargs.keys():
-                authors = kwargs['authors']
-                avg_num=[]                
-                for author in authors:
-                    created_at = author.created_at
-                    if created_at is not None:                        
-                        account_creation_date = parser.parse(created_at).date()
-                        today_date = datetime.date.today()
-                        delta = today_date - account_creation_date
-                        avg_num.append(delta.days)                             
-                rez= np.std(avg_num)            
-        except: pass            
-        return rez
+    def t_std_dev(self, ll):          
+        return np.std(ll)
 
-    def min_account_age(self, **kwargs):
-        rez=12
-        try:           
-            if 'authors' in kwargs.keys():
-                authors = kwargs['authors']
-                avg_num=[]                
-                for author in authors:
-                    created_at = author.created_at
-                    if created_at is not None:                        
-                        account_creation_date = parser.parse(created_at).date()
-                        today_date = datetime.date.today()
-                        delta = today_date - account_creation_date
-                        avg_num.append(delta.days)             
-                rez= min(avg_num)            
-        except: pass            
-        return rez 
+    def t_min(self, ll):           
+        return min(ll)        
     
-    def max_account_age(self, **kwargs):
-        rez=13
-        try:           
-            if 'authors' in kwargs.keys():
-                authors = kwargs['authors']
-                avg_num=[]                
-                for author in authors:
-                    created_at = author.created_at
-                    if created_at is not None:                        
-                        account_creation_date = parser.parse(created_at).date()
-                        today_date = datetime.date.today()
-                        delta = today_date - account_creation_date
-                        avg_num.append(delta.days)          
-                rez= max(avg_num)            
-        except: pass            
-        return rez 
+    def t_max(self, ll):           
+        return max(ll)
+  
+    def t_skewness(self, ll):           
+        return skew(ll)        
+    
+    def t_kurtosis(self, ll):           
+        return kurtosis(ll)
     
     
-    
-    """ Posts temporal properties """
-    def avg_posts_age(self, **kwargs):
-        rez=10
-        try:
-            if 'posts' in kwargs.keys():
-                posts = kwargs['posts']
-                avg_num=0
-                post_cnt=0                
-                for post in posts:
-                    created_at = post.created_at
-                    if created_at is not None:
-                        post_cnt+=1
-                        post_creation_date = parser.parse(created_at).date()
-                        post_creation_time = parser.parse(created_at).time()
-                        today_date = datetime.date.today()
-                        delta = today_date - post_creation_date
-                        avg_num+= delta.days                   
-                rez=avg_num/post_cnt    
-        except: pass            
-        return rez
-
-    def std_dev_posts_age(self, **kwargs):
-        rez=11
-        try:           
-            if 'posts' in kwargs.keys():
-                posts = kwargs['posts']
-                avg_num=[]                              
-                for post in posts:
-                    created_at = post.created_at
-                    if created_at is not None:                        
-                        post_creation_date = parser.parse(created_at).date()
-                        today_date = datetime.date.today()
-                        delta = today_date - post_creation_date
-                        avg_num.append(delta.days)                             
-                rez= np.std(avg_num)            
-        except: pass            
-        return rez
-
-    def min_posts_age(self, **kwargs):
-        rez=12
-        try:           
-            if 'posts' in kwargs.keys():
-                posts = kwargs['posts']
-                avg_num=[]                               
-                for post in posts:
-                    created_at = post.created_at
-                    if created_at is not None:                        
-                        post_creation_date = parser.parse(created_at).date()
-                        today_date = datetime.date.today()
-                        delta = today_date - post_creation_date
-                        avg_num.append(delta.days)              
-                rez= min(avg_num)            
-        except: pass            
-        return rez 
-    
-    def max_posts_age(self, **kwargs):
-        rez=13
-        try:           
-            if 'posts' in kwargs.keys():
-                posts = kwargs['posts']
-                avg_num=[]                               
-                for post in posts:
-                    created_at = post.created_at
-                    if created_at is not None:                        
-                        post_creation_date = parser.parse(created_at).date()
-                        today_date = datetime.date.today()
-                        delta = today_date - post_creation_date
-                        avg_num.append(delta.days)
-                rez= max(avg_num)            
-        except: pass            
-        return rez 
-
-    
+  
