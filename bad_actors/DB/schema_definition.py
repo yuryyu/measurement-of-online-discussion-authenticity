@@ -110,7 +110,7 @@ class AuthorConnection(Base):
     destination_author_guid = Column(Unicode, primary_key=True)
     connection_type = Column(Unicode, primary_key=True)
     weight = Column(FLOAT, default=0.0)
-    claim_id = Column(Integer, ForeignKey('claims.claim_id'), primary_key=True) # not exist in Aviad
+    claim_id = Column(Integer, ForeignKey('claims.claim_id'), primary_key=True, autoincrement=False, nullable=True) # not exist in Aviad
     insertion_date = Column(Unicode, default=None)
 
     def __repr__(self):
