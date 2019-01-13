@@ -8,6 +8,7 @@ from collections import namedtuple
 
 from twitter import TwitterError
 import csv
+import time
 from DB.schema_definition import Post, Author, Post_citation
 from commons.commons import *
 from commons.commons import get_current_time_as_string, cleanForAuthor
@@ -83,10 +84,17 @@ class FollowerFriendDataComplementor(Method_Executor):
                 candidats=candidats_guid[self._start_chunk_number:self._stop_chunk_number]
                 ff_candidats=[]
                 for author_guid in candidats:
-                    author_id=self._db.get_author_osnid_by_author_guid(author_guid)
-                    ff_candidats.append(author_id)                 
+                    try:
+                        author_id=self._db.get_author_osnid_by_author_guid(author_guid)                        
+                        if author_id!=1:
+                            ff_candidats.append(author_id)
+                    except:
+                        pass                     
         
         logging.info("Number of all candidates for crowling: "+str(len(ff_candidats)))
+        if len(ff_candidats)==0:
+            logging.warning("Number of all candidates for crowling =0, process stoped! ")
+            return
         self._start_chunk_number
         self._stop_chunk_number
         print("---crawl_followers_by_author_ids---")
@@ -100,7 +108,8 @@ class FollowerFriendDataComplementor(Method_Executor):
         getattr(self._social_network_crawler, crawl_users_by_author_ids_func_name)(ff_candidats,
                                                                                    connection_type, author_type,
                                                                                    are_user_ids, insertion_type)
-        self._db.convert_temp_author_connections_to_author_connections(self._domain)
+        # must be resolved ASAP
+        #self._db.convert_temp_author_connections_to_author_connections(self._domain)
 
     def convert_temp_author_connections_to_author_connections(self):
         logging.info("---starting convert temp_author_connections to author_connections----")

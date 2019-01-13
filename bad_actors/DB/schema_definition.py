@@ -1994,8 +1994,9 @@ class DB():
             AuthorConnection.source_author_guid == source_author_guid).all();
     
     def get_author_osnid_by_author_guid(self, author_guid):        
-        rc=self.session.query(Author).filter(
-            Author.author_guid == author_guid[0]).all();        
+        rc=self.session.query(Author).filter(Author.author_guid == author_guid[0]).all();
+        if len(rc)==0:
+            return 1        
         return rc[0].author_osn_id
     
     def add_post_retweeter_connections(self, post_retweeter_connections):

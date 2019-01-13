@@ -39,7 +39,9 @@ class NetworkxFeatureGenerator(AbstractController):
             claim_features = []
             for table_name in self._table_names:
                 #df=self._db.df_from_table(table_name)               
-                df = pd.read_csv(self._csv_file, names=['source_author_guid','destination_author_guid','connection_type','weight','insertion_date','claim_id'])                            
+                df = pd.read_csv(self._csv_file, names=['source_author_guid','destination_author_guid','connection_type','weight','claim_id','insertion_date'], low_memory=False)                            
+                #df = pd.read_csv(self._csv_file, names=['source_author_guid','destination_author_guid','claim_id'], low_memory=False)                            
+               
                 grps = df.groupby(self._group_by)              
                 if len(grps)==1:
                     self._db.update_table_group_by(table_name,self._group_by) # create in scheme
