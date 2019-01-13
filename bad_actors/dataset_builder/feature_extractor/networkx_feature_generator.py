@@ -41,7 +41,11 @@ class NetworkxFeatureGenerator(AbstractController):
                 #df=self._db.df_from_table(table_name)
                 #df = pd.read_csv(self._csv_file, names=['source_author_guid','destination_author_guid',
                 #                                        'connection_type','weight','claim_id','insertion_date'], low_memory=False)
-                author_connections_with_claim_id = self._db.get_connections_with_claims()
+                print('Getting existing author connections with claim_id...')
+                author_connections_with_claim_id = self._db.get_author_connections_with_claim_id()
+                print('Checking author connections for claim id...')
+                author_connections_with_claim_id.extend(self._db.make_connections_with_claim_id()[0])
+                print(author_connections_with_claim_id[0])
                 list_of_con_dicts = []
                 for author_con in author_connections_with_claim_id:
                     connections_dict = {'source_author_guid': author_con.source_author_guid,
