@@ -1044,6 +1044,17 @@ class DB():
         print('Deleting author connections with no topic id')
         self.delete_author_connections_missing_claim()
 
+    def get_authors_missing_posts(self, author_pairs):
+        authors_missing_posts = []
+        tested_authors = []
+        for pair in author_pairs:
+            for author_guid in pair:
+                if author_guid not in tested_authors:
+                    if len(self.session.query(Post).filter(Post.author_guid == unicode(author_guid)).all()) == 0:
+                        authors_missing_posts.append(author_guid)
+                    tested_authors.append(author_guid)
+        print('{} authors missing posts'.format(len(authors_missing_posts)))
+
     ###########################################################
     # authors
     ###########################################################

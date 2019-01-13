@@ -3,10 +3,10 @@ import pandas as pd
 import json
 import sqlite3
 
-AUTHORS_PATH = r"E:\all_temp_author_connections.csv"
-JSON_PATH = r"C:\Users\Developer_1\Documents\friendships.json"
+AUTHORS_PATH = r"E:\temp_author_connections_293_2.csv"
+JSON_PATH = r"C:\Users\Developer_1\Documents\friendships2.json"
 AUTHORS_CSV_PATH = r"E:\authors_293_2.csv"
-DB_PATH = r"E:\TR1_twitter_293(1).db"
+DB_PATH = r"E:\bad_actors_Fake_News_Snopes_Twitter_yuri_data_loaded.db"
 
 def extract_connections_from_csv(path = AUTHORS_PATH):
     
@@ -55,7 +55,8 @@ def temp_connections_from_csv_if_not_exist(path = AUTHORS_CSV_PATH):
     cur = conn.cursor()
     query = "insert or ignore into temp_author_connections values (?,?,?,?,?);"
     for row in df.itertuples():
-        print('\rRow [{}/{}]'.format(i, num_rows), end='')
+        if i % 1000 == 0:
+            print('\rRow [{}/{}]'.format(i, num_rows), end='')
         i += 1
         cur.execute(query, row[1:])
     conn.commit()
