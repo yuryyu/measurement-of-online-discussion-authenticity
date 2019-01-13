@@ -2,6 +2,8 @@ from unittest import TestCase
 from DB.schema_definition import *
 from configuration.config_class import getConfig
 from data_exporter.ranked_authors_exporter import RankedAuthorsExporter
+import csv
+import os
 
 class TestRankedAuthorsExporter(TestCase):
     def setUp(self):
@@ -10,9 +12,21 @@ class TestRankedAuthorsExporter(TestCase):
         self._db.setUp()
         self._ranked_authors_exporter = RankedAuthorsExporter(self._db)
         self.make_authors_posts_and_connections()
+        self.csv_location = self.config.eval('RankedAuthorsExporter', 'output_file_path')
+
+    def tearDown(self):
+        self._db.session.close_all()
+        self._db.deleteDB()
+        self._db.session.close()
+        os.remove(self.csv_location)
 
     def test_ranked_authors_exporter(self):
-
+        self.make_authors_posts_and_connections()
+        self._ranked_authors_exporter.execute(window_start=1)
+        with open(self.csv_location, 'rb') as f:
+            reader = csv.reader(f)
+            rows = list(reader)
+            print rows
 
     def make_authors_posts_and_connections(self):
         self._author_guid1 = compute_author_guid_by_author_name(u'BillGates')

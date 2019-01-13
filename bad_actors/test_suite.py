@@ -24,7 +24,7 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(mes
 # from dataset_builder.unit_tests.dataset_builder_unittests import DatasetBuilderTest
 # from dataset_builder.unit_tests.feature_extractor_unittests import FeatureExtractorTest
 #from preprocessing_tools.unit_tests.test_app_Importer import TestAppImporter
-from preprocessing_tools.unit_tests.test_rank_app_importer import TestRankAppImporter
+#from preprocessing_tools.unit_tests.test_rank_app_importer import TestRankAppImporter
 #from preprocessing_tools.tsv_importer import TestCSVDataImport
 #from preprocessing_tools.unit_tests.test_leadspotting_posts_importer import TestLeadspottingPostsImporter
 #from preprocessing_tools.unit_tests.test_leadspotting_claim_details_importer import TestClaimDetailsImporter
@@ -36,7 +36,8 @@ from preprocessing_tools.unit_tests.test_rank_app_importer import TestRankAppImp
 # from old_tweets_crawler.test_old_tweets_crawler import TestOldTweetsCrawler
 # from dataset_builder.unit_tests.test_image_downloader import TestImageDownloader
 # from topic_distribution_visualization.test_claim_to_topic_converter import TestClaimToTopicConverter
-# from missing_data_complementor.unit_tests.test_AddAuthorConnectionClaimId import AddAuthorConnectionClaimIdTests
+#from missing_data_complementor.unit_tests.test_AddAuthorConnectionClaimId import AddAuthorConnectionClaimIdTests
+from data_exporter.unittests.test_ranked_authors_exporter import TestRankedAuthorsExporter
 
 if __name__ == "__main__":
     unittest.main(argv=[sys.argv[0]])

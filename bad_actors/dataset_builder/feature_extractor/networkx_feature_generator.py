@@ -38,9 +38,22 @@ class NetworkxFeatureGenerator(AbstractController):
         try:
             claim_features = []
             for table_name in self._table_names:
-                #df=self._db.df_from_table(table_name)               
-                df = pd.read_csv(self._csv_file, names=['source_author_guid','destination_author_guid','connection_type','weight','claim_id','insertion_date'], low_memory=False)                            
-                #df = pd.read_csv(self._csv_file, names=['source_author_guid','destination_author_guid','claim_id'], low_memory=False)                            
+                #df=self._db.df_from_table(table_name)
+                #df = pd.read_csv(self._csv_file, names=['source_author_guid','destination_author_guid',
+                #                                        'connection_type','weight','claim_id','insertion_date'], low_memory=False)
+                author_connections_with_claim_id = self._db.get_connections_with_claims()
+                list_of_con_dicts = []
+                for author_con in author_connections_with_claim_id:
+                    connections_dict = {'source_author_guid': author_con.source_author_guid,
+                                        'destination_author_guid': author_con.destination_author_guid,
+                                        'connection_type': author_con.connection_type,
+                                        'weight': author_con.weight,
+                                        'claim_id': author_con.claim_id,
+                                        'insertion_date': author_con.insertion_date}
+                    list_of_con_dicts.append(connections_dict)
+                df = pd.DataFrame(list_of_con_dicts)
+
+                #df = pd.read_csv(self._csv_file, names=['source_author_guid','destination_author_guid','claim_id'], low_memory=False)
                
                 grps = df.groupby(self._group_by)              
                 if len(grps)==1:
