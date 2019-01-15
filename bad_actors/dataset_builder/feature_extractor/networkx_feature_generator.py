@@ -71,8 +71,11 @@ class NetworkxFeatureGenerator(AbstractController):
             grps = df.groupby(self._group_by)              
             
             for cnt, grp in enumerate(grps):
-                logging.info('Started ' +str(cnt)+ ' group from ' +str(len(grps)) +' groups')                                       
-                G = nx.from_pandas_dataframe(grp[1], self._source[0], self._target[0])
+                logging.info('Started ' +str(cnt)+ ' group from ' +str(len(grps)) +' groups')
+                if nx.__version__[0] == '1':
+                    G = nx.from_pandas_dataframe(grp[1], self._source[0], self._target[0])
+                else:
+                    G = nx.from_pandas_edgelist(grp[1], self._source[0], self._target[0])
                 claim_ext_id = grp[0]
                 #claim_id = self._db.claim_ext_id_to_claim_id(claim_ext_id)[0]
                 claim_id =claim_ext_id                                        
@@ -113,7 +116,7 @@ class NetworkxFeatureGenerator(AbstractController):
         try:
             if 'degree'==ff:                
                 res =G.degree().values()
-            elif ff in ['density', 'average_clustering']:
+            elif ff in ['density', 'average_clustering', 'number_of_nodes', 'number_of_edges']:
                 res = eval('nx.'+ff+'(G)')
                 return {ff:res}
             else:
