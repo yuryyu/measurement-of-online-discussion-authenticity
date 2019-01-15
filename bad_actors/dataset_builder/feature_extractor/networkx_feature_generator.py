@@ -116,9 +116,15 @@ class NetworkxFeatureGenerator(AbstractController):
         try:
             if 'degree'==ff:                
                 res =G.degree().values()
-            elif ff in ['density', 'average_clustering', 'number_of_nodes', 'number_of_edges']:
+            elif ff in ['density', 'average_clustering', 'number_of_nodes', 'number_of_edges',
+                        'number_connected_components']:
                 res = eval('nx.'+ff+'(G)')
                 return {ff:res}
+            elif ff == 'fraction_of_isolates':
+                number_of_nodes = nx.number_of_nodes(G)
+                function_name = 'number_' + ff.split('_', 1)[1]
+                res = eval('nx.' + function_name + '(G)') / number_of_nodes
+                return {ff: res}
             else:
                 res = eval('nx.'+ff+'(G).values()')            
         except:
