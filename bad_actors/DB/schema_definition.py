@@ -1002,7 +1002,7 @@ class DB():
         return claims_per_author
 
     def add_claim_id_to_author_connections(self):
-        connections_to_save, author_pairs_missing_post = self.get_connections_with_claims()
+        connections_to_save, author_pairs_missing_post = self.make_connections_with_claim_id()
         for a, b in author_pairs_missing_post:
             print('No posts found for one of the authors with id: {} and {}'.format(a, b))
         print('Saving {} new author connections'.format(len(connections_to_save)))
@@ -1012,8 +1012,10 @@ class DB():
         self.session.commit()
         print('Deleting author connections with no topic id')
         self.delete_author_connections_missing_claim()
+        self.get_authors_missing_posts(author_pairs_missing_post)
 
-    def get_connections_with_claims(self):
+
+    def make_connections_with_claim_id(self):
         claims_per_author = self.get_author_claim_dict()
         authors_connections_query = r"""
                     select source_author_guid, destination_author_guid, connection_type, claim_id, weight, insertion_date
@@ -1021,32 +1023,51 @@ class DB():
                     where claim_id is null
                     """
         data = self.session.execute(authors_connections_query).fetchall()
-        connections_to_save = []
-        i = 0
-        num_connections = len(data)
-        author_pairs_missing_post = []
-        for source_author, dest_author, c_type, claim, weight, date in data:
-            # if claim == None:
-            try:
-                if i % 100 == 0:
-                    msg = '\rMaking new author connections for old connection [{}/{}]'.format(i, num_connections)
-                    print(msg, end='')
-                i += 1
-                # self.delete_author_connection(source_author, dest_author, c_type)
-                joint_claims = claims_per_author[source_author].intersection(claims_per_author[dest_author])
-                for claim in joint_claims:
-                    author_connection = AuthorConnection()
-                    author_connection.source_author_guid = source_author
-                    author_connection.destination_author_guid = dest_author
-                    author_connection.connection_type = unicode(c_type)
-                    author_connection.weight = unicode(weight)
-                    author_connection.insertion_date = unicode(date)
-                    author_connection.claim_id = claim
-                    connections_to_save.append(author_connection)
-            except KeyError:
-                author_pairs_missing_post.append((source_author, dest_author))
-        print('\r')
-        return connections_to_save, author_pairs_missing_post
+        if len(data) > 0:
+            connections_to_save = []
+            i = 0
+            num_connections = len(data)
+            author_pairs_missing_post = []
+            for source_author, dest_author, c_type, claim, weight, date in data:
+                # if claim == None:
+                try:
+                    if i % 100 == 0:
+                        msg = '\rMaking new author connections for old connection [{}/{}]'.format(i, num_connections)
+                        print(msg, end='')
+                    i += 1
+                    # self.delete_author_connection(source_author, dest_author, c_type)
+                    joint_claims = claims_per_author[source_author].intersection(claims_per_author[dest_author])
+                    for claim in joint_claims:
+                        author_connection = AuthorConnection()
+                        author_connection.source_author_guid = source_author
+                        author_connection.destination_author_guid = dest_author
+                        author_connection.connection_type = unicode(c_type)
+                        author_connection.weight = unicode(weight)
+                        author_connection.insertion_date = unicode(date)
+                        author_connection.claim_id = claim
+                        connections_to_save.append(author_connection)
+                except KeyError:
+                    author_pairs_missing_post.append((source_author, dest_author))
+            print('\r')
+            return connections_to_save, author_pairs_missing_post
+        else:
+            return [], []
+
+
+    def get_authors_missing_posts(self, author_pairs):
+        authors_missing_posts = []
+        tested_authors = []
+        for pair in author_pairs:
+            for author_guid in pair:
+                if author_guid not in tested_authors:
+                    if len(self.session.query(Post).filter(Post.author_guid == unicode(author_guid)).all()) == 0:
+                        authors_missing_posts.append(author_guid)
+                    tested_authors.append(author_guid)
+        print('{} authors missing posts'.format(len(authors_missing_posts)))
+
+    def get_author_connections_with_claim_id(self):
+        return self.session.query(AuthorConnection).filter(AuthorConnection.claim_id != None).all()
+
     ###########################################################
     # authors
     ###########################################################
