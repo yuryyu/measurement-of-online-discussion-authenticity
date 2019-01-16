@@ -32,28 +32,30 @@ class FootprintFeatureGenerator(AbstractController):
         claims = self._db.get_claims()        
         try:
             claim_features = []            
-            cnt=1
-            for claim in claims:
+            
+            for cnt,claim in enumerate(claims):
                 logging.info('Started ' +str(cnt)+ ' claim from ' +str(len(claims)) +' claims')
                 print('Started ' +str(cnt)+ ' claim from ' +str(len(claims)) +' claims')
-                cnt+=1
+                if cnt > 10: break
                 claim_id = claim.claim_id
                 # define authors per claim
                 authors = self._db.get_claim_authors(claim_id)
                 posts_dict=self._db.get_claim_id_posts_dict()
                 posts=posts_dict[claim_id]
-                ftr=1
-                for feature_name in self._features_list:
+                
+                for ftr,feature_name in enumerate(self._features_list):
                     logging.info('Started ' +str(ftr)+ ' feature from ' +str(len(self._features_list)) +' features')
                     print('Started ' +str(ftr)+ ' feature from ' +str(len(self._features_list)) +' features')
-                    ftr+=1
-                    attribute_value = getattr(self, feature_name)(claim=claim,authors=authors,posts=posts) # entrance to method with "claim" param, return feature
-                    if attribute_value is not None:
-                        attribute_name = "{0}_{1}".format(self._prefix, feature_name)
-                        # next line add envelope for feature
-                        claim_feature = BaseFeatureGenerator.create_author_feature(attribute_name, claim_id, attribute_value,
-                                                                                self._window_start, self._window_end)
-                        claim_features.append(claim_feature)
+                    try:
+                        attribute_value = float(getattr(self, feature_name)(claim=claim,authors=authors,posts=posts)) # entrance to method with "claim" param, return feature
+                    except:
+                        attribute_value = -1.0                    
+                    
+                    attribute_name = "{0}_{1}".format(self._prefix, feature_name)
+                    # next line add envelope for feature
+                    claim_feature = BaseFeatureGenerator.create_author_feature(attribute_name, claim_id, attribute_value,
+                                                                            self._window_start, self._window_end)
+                    claim_features.append(claim_feature)
         except:
             print('Fail')
         stop_time = time.time()
@@ -70,7 +72,7 @@ class FootprintFeatureGenerator(AbstractController):
     
     """ Author account properties """
     def avg_account_age(self, **kwargs):
-        rez=10
+        rez=-1
         try:
             if 'authors' in kwargs.keys():
                 authors = kwargs['authors']
@@ -89,7 +91,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez
 
     def std_dev_account_age(self, **kwargs):
-        rez=11
+        rez=-1
         try:           
             if 'authors' in kwargs.keys():
                 authors = kwargs['authors']
@@ -106,7 +108,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez
 
     def min_account_age(self, **kwargs):
-        rez=12
+        rez=-1
         try:           
             if 'authors' in kwargs.keys():
                 authors = kwargs['authors']
@@ -123,7 +125,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez 
     
     def max_account_age(self, **kwargs):
-        rez=13
+        rez=-1
         try:           
             if 'authors' in kwargs.keys():
                 authors = kwargs['authors']
@@ -141,7 +143,7 @@ class FootprintFeatureGenerator(AbstractController):
     
     
     def avg_author_screen_name_length(self, **kwargs):
-        rez=100
+        rez=-1
         try:
             if 'authors' in kwargs.keys():
                 authors = kwargs['authors']
@@ -153,7 +155,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez
     
     def std_dev_author_screen_name_length(self, **kwargs):
-        rez=101
+        rez=-1
         try:           
             if 'authors' in kwargs.keys():
                 authors = kwargs['authors']
@@ -165,7 +167,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez 
     
     def min_author_screen_name_length(self, **kwargs):
-        rez=102
+        rez=-1
         try:           
             if 'authors' in kwargs.keys():
                 authors = kwargs['authors']
@@ -177,7 +179,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez 
     
     def max_author_screen_name_length(self, **kwargs):
-        rez=103
+        rez=-1
         try:           
             if 'authors' in kwargs.keys():
                 authors = kwargs['authors']
@@ -191,7 +193,7 @@ class FootprintFeatureGenerator(AbstractController):
     
     """ Posts properties """
     def avg_posts_age(self, **kwargs):
-        rez=10
+        rez=-1
         try:
             if 'posts' in kwargs.keys():
                 posts = kwargs['posts']
@@ -210,7 +212,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez
 
     def std_dev_posts_age(self, **kwargs):
-        rez=11
+        rez=-1
         try:           
             if 'posts' in kwargs.keys():
                 posts = kwargs['posts']
@@ -227,7 +229,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez
 
     def min_posts_age(self, **kwargs):
-        rez=12
+        rez=-1
         try:           
             if 'posts' in kwargs.keys():
                 posts = kwargs['posts']
@@ -244,7 +246,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez 
     
     def max_posts_age(self, **kwargs):
-        rez=13
+        rez=-1
         try:           
             if 'posts' in kwargs.keys():
                 posts = kwargs['posts']
@@ -261,7 +263,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez 
 
     def avg_num_of_retweets(self, **kwargs):
-        rez=10
+        rez=-1
         try:
             if 'posts' in kwargs.keys():
                 posts = kwargs['posts']
@@ -273,7 +275,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez
 
     def std_dev_num_of_retweets(self, **kwargs):
-        rez=11
+        rez=-1
         try:           
             if 'posts' in kwargs.keys():
                 posts = kwargs['posts']
@@ -285,7 +287,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez
 
     def min_num_of_retweets(self, **kwargs):
-        rez=12
+        rez=-1
         try:           
             if 'posts' in kwargs.keys():
                 posts = kwargs['posts']
@@ -297,7 +299,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez 
     
     def max_num_of_retweets(self, **kwargs):
-        rez=13
+        rez=-1
         try:           
             if 'posts' in kwargs.keys():
                 posts = kwargs['posts']
@@ -309,7 +311,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez 
 
     def avg_posts_num_of_favorites(self, **kwargs):
-        rez=10
+        rez=-1
         try:
             if 'posts' in kwargs.keys():
                 posts = kwargs['posts']
@@ -321,7 +323,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez
 
     def std_dev_posts_num_of_favorites(self, **kwargs):
-        rez=11
+        rez=-1
         try:           
             if 'posts' in kwargs.keys():
                 posts = kwargs['posts']
@@ -333,7 +335,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez
 
     def min_posts_num_of_favorites(self, **kwargs):
-        rez=12
+        rez=-1
         try:           
             if 'posts' in kwargs.keys():
                 posts = kwargs['posts']
@@ -345,7 +347,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez 
     
     def max_posts_num_of_favorites(self, **kwargs):
-        rez=13
+        rez=-1
         try:           
             if 'posts' in kwargs.keys():
                 posts = kwargs['posts']
@@ -359,7 +361,7 @@ class FootprintFeatureGenerator(AbstractController):
 
     """ Followers """
     def avg_num_of_followers(self, **kwargs):
-        rez=100
+        rez=-1
         try:
             if 'authors' in kwargs.keys():
                 authors = kwargs['authors']
@@ -371,7 +373,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez
     
     def std_dev_num_of_followers(self, **kwargs):
-        rez=101
+        rez=-1
         try:           
             if 'authors' in kwargs.keys():
                 authors = kwargs['authors']
@@ -383,7 +385,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez 
     
     def min_num_of_followers(self, **kwargs):
-        rez=102
+        rez=-1
         try:           
             if 'authors' in kwargs.keys():
                 authors = kwargs['authors']
@@ -395,7 +397,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez 
     
     def max_num_of_followers(self, **kwargs):
-        rez=103
+        rez=-1
         try:           
             if 'authors' in kwargs.keys():
                 authors = kwargs['authors']
@@ -408,7 +410,7 @@ class FootprintFeatureGenerator(AbstractController):
     
     """ Friends """
     def avg_num_of_friends(self, **kwargs):
-        rez=200
+        rez=-1
         try:           
             if 'authors' in kwargs.keys():
                 authors = kwargs['authors']
@@ -420,7 +422,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez       
 
     def std_dev_num_of_friends(self, **kwargs):
-        rez=201
+        rez=-1
         try:           
             if 'authors' in kwargs.keys():
                 authors = kwargs['authors']
@@ -432,7 +434,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez
     
     def min_num_of_friends(self, **kwargs):
-        rez=202
+        rez=-1
         try:           
             if 'authors' in kwargs.keys():
                 authors = kwargs['authors']
@@ -444,7 +446,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez
     
     def max_num_of_friends(self, **kwargs):
-        rez=203
+        rez=-1
         try:           
             if 'authors' in kwargs.keys():
                 authors = kwargs['authors']
@@ -457,7 +459,7 @@ class FootprintFeatureGenerator(AbstractController):
         
     """ Statuses """
     def avg_num_of_statuses(self, **kwargs):
-        rez=300
+        rez=-1
         try:
             if 'authors' in kwargs.keys():
                 authors = kwargs['authors']
@@ -469,7 +471,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez
     
     def std_dev_num_of_statuses(self, **kwargs):
-        rez=301
+        rez=-1
         try:           
             if 'authors' in kwargs.keys():
                 authors = kwargs['authors']
@@ -481,7 +483,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez 
     
     def min_num_of_statuses(self, **kwargs):
-        rez=302
+        rez=-1
         try:           
             if 'authors' in kwargs.keys():
                 authors = kwargs['authors']
@@ -493,7 +495,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez 
     
     def max_num_of_statuses(self, **kwargs):
-        rez=303
+        rez=-1
         try:           
             if 'authors' in kwargs.keys():
                 authors = kwargs['authors']
@@ -506,7 +508,7 @@ class FootprintFeatureGenerator(AbstractController):
     
     """ Favorites """
     def avg_num_of_favorites(self, **kwargs):
-        rez=400
+        rez=-1
         try:
             if 'authors' in kwargs.keys():
                 authors = kwargs['authors']
@@ -518,7 +520,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez
     
     def std_dev_num_of_favorites(self, **kwargs):
-        rez=401
+        rez=-1
         try:           
             if 'authors' in kwargs.keys():
                 authors = kwargs['authors']
@@ -530,7 +532,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez 
     
     def min_num_of_favorites(self, **kwargs):
-        rez=402
+        rez=-1
         try:           
             if 'authors' in kwargs.keys():
                 authors = kwargs['authors']
@@ -542,7 +544,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez 
     
     def max_num_of_favorites(self, **kwargs):
-        rez=403
+        rez=-1
         try:           
             if 'authors' in kwargs.keys():
                 authors = kwargs['authors']
@@ -556,7 +558,7 @@ class FootprintFeatureGenerator(AbstractController):
     
     """ Listed """
     def avg_num_of_listed_count(self, **kwargs):
-        rez=500
+        rez=-1
         try:
             if 'authors' in kwargs.keys():
                 authors = kwargs['authors']
@@ -568,7 +570,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez
     
     def std_dev_num_of_listed_count(self, **kwargs):
-        rez=501
+        rez=-1
         try:           
             if 'authors' in kwargs.keys():
                 authors = kwargs['authors']
@@ -580,7 +582,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez 
     
     def min_num_of_listed_count(self, **kwargs):
-        rez=502
+        rez=-1
         try:           
             if 'authors' in kwargs.keys():
                 authors = kwargs['authors']
@@ -592,7 +594,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez 
     
     def max_num_of_listed_count(self, **kwargs):
-        rez=503
+        rez=-1
         try:           
             if 'authors' in kwargs.keys():
                 authors = kwargs['authors']
@@ -606,7 +608,7 @@ class FootprintFeatureGenerator(AbstractController):
     
     """ Protected """
     def avg_num_of_protected(self, **kwargs):
-        rez=600
+        rez=-1
         try:
             if 'authors' in kwargs.keys():
                 authors = kwargs['authors']
@@ -618,7 +620,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez
     
     def std_dev_num_of_protected(self, **kwargs):
-        rez=601
+        rez=-1
         try:           
             if 'authors' in kwargs.keys():
                 authors = kwargs['authors']
@@ -630,7 +632,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez 
     
     def min_num_of_protected(self, **kwargs):
-        rez=602
+        rez=-1
         try:           
             if 'authors' in kwargs.keys():
                 authors = kwargs['authors']
@@ -642,7 +644,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez 
     
     def max_num_of_protected(self, **kwargs):
-        rez=603
+        rez=-1
         try:           
             if 'authors' in kwargs.keys():
                 authors = kwargs['authors']
@@ -656,7 +658,7 @@ class FootprintFeatureGenerator(AbstractController):
     
     """ Verified """
     def avg_num_of_verified(self, **kwargs):
-        rez=700
+        rez=-1
         try:
             if 'authors' in kwargs.keys():
                 authors = kwargs['authors']
@@ -668,7 +670,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez
     
     def std_dev_num_of_verified(self, **kwargs):
-        rez=701
+        rez=-1
         try:           
             if 'authors' in kwargs.keys():
                 authors = kwargs['authors']
@@ -680,7 +682,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez 
     
     def min_num_of_verified(self, **kwargs):
-        rez=702
+        rez=-1
         try:           
             if 'authors' in kwargs.keys():
                 authors = kwargs['authors']
@@ -692,7 +694,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez 
     
     def max_num_of_verified(self, **kwargs):
-        rez=703
+        rez=-1
         try:           
             if 'authors' in kwargs.keys():
                 authors = kwargs['authors']
@@ -705,7 +707,7 @@ class FootprintFeatureGenerator(AbstractController):
     
     """ Ratios """
     def avg_friends_followers_ratio(self, **kwargs):
-        rez=0.802
+        rez=-1
         try:           
             if 'authors' in kwargs.keys():
                 authors = kwargs['authors']
@@ -718,7 +720,7 @@ class FootprintFeatureGenerator(AbstractController):
         return rez        
         
     def std_dev_friends_followers_ratio(self, **kwargs):
-        rez=0.805
+        rez=-1
         try:           
             if 'authors' in kwargs.keys():
                 authors = kwargs['authors']
