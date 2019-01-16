@@ -78,9 +78,11 @@ class NetworkxFeatureGenerator(AbstractController):
                     G = nx.from_pandas_edgelist(grp[1], self._source[0], self._target[0])
                 claim_ext_id = grp[0]
                 #claim_id = self._db.claim_ext_id_to_claim_id(claim_ext_id)[0]
-                claim_id =claim_ext_id                                        
+                claim_id =claim_ext_id
+                if nx.__version__[0] > 1 and 'communicability_centrality' in self._features_list:
+                    self._features_list.remove('communicability_centrality')
                 for ftr, feature_name in enumerate(self._features_list):
-                    logging.info('Started ' +str(ftr)+ ' feature from ' +str(len(self._features_list)) +' features')                                               
+                    logging.info('Started ' +str(ftr+1)+ ' feature from ' +str(len(self._features_list)) +' features')
                     attributes_dict = getattr(self, function_name)(G=G,ff=feature_name)
                     if len(attributes_dict)==1 and attributes_dict[feature_name] is not None:
                         attribute_name = "{0}_{1}".format(self._prefix, feature_name)
@@ -114,20 +116,66 @@ class NetworkxFeatureGenerator(AbstractController):
     def extract_features_from_graph(self,G,ff):    
         ret={}
         try:
-            if 'degree'==ff:                
+            if ff == 'degree':
                 res =G.degree().values()
+            elif ff == 'effective_eccentricity':
+                paths = nx.shortest_path_length(G)
+                res = []
+                for p in paths:
+                    sorted_shortest_paths = sorted([l for l in p[1].values()])
+                    effective_eccentricity = sorted_shortest_paths[int(len(sorted_shortest_paths) * 0.9)]
+                    res.append(effective_eccentricity)
             elif ff in ['density', 'average_clustering', 'number_of_nodes', 'number_of_edges',
                         'number_connected_components']:
                 res = eval('nx.'+ff+'(G)')
                 return {ff:res}
-            elif ff == 'fraction_of_isolates':
-                number_of_nodes = nx.number_of_nodes(G)
-                function_name = 'number_' + ff.split('_', 1)[1]
-                res = eval('nx.' + function_name + '(G)') / number_of_nodes
+            elif ff == 'fraction_of_end_points':
+                degrees = nx.degree(G)
+                end_points = [l[1] for l in degrees if l[1] == 1]
+                res = float(len(end_points)) / nx.number_of_nodes(G)
+                return {ff: res}
+            elif ff in ['adjacency_spectrum']:
+                res = eval('nx.'+ff+'(G)')
+                ret.update({'min_' + ff: float(min(res))})
+                ret.update({'max_' + ff: float(max(res))})
+                ret.update({'median_' + ff: float(np.median(res))})
+                ret.update({'std_' + ff: float(np.std(res))})
+                return ret
+            elif ff == 'trace':
+                eigenvalues = nx.adjacency_spectrum(G)
+                res = np.real(sum(eigenvalues))
+                return {ff: res}
+            elif ff == 'energy':
+                eigenvalues = nx.adjacency_spectrum(G)
+                res = sum([np.real(i) ** 2 for i in eigenvalues])
+                return {ff: res}
+            elif ff == 'number_of_eigenvalues':
+                eigenvalues = nx.adjacency_spectrum(G)
+                res = len(set(eigenvalues))
+                return {ff: res}
+            elif ff == 'two_hops_away_neighbors':
+                res = []
+                for node in nx.nodes(G):
+                    paths = nx.single_source_shortest_path_length(G, node, cutoff=3)
+                    res.append(len([d for d in paths.values() if d == 2]))
+                print(res)
+            elif ff == 'two_or_less_hops_away_neighbors':
+                res = []
+                for node in nx.nodes(G):
+                    paths = nx.single_source_shortest_path_length(G, node, cutoff=3)
+                    res.append(len(paths))
+                print(res)
+            elif ff == 'number_of_triangles':
+                res = sum(nx.triangles(G).values()) / 3
+                return {ff: res}
+            elif ff == 'fraction_of_triangles':
+                res = sum(nx.triangles(G).values()) / 3
+                res = float(res) / nx.number_of_nodes(G)
                 return {ff: res}
             else:
-                res = eval('nx.'+ff+'(G).values()')            
-        except:
+                res = eval('nx.'+ff+'(G).values()')
+        except (AttributeError, nx.NetworkXError, TypeError) as e:
+            print(e)
             res = [-1]    
         ret.update({'min_'+ff:min(res)})
         ret.update({'max_'+ff:max(res)})
