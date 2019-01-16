@@ -33,11 +33,11 @@ class Csv_writer():
                 data_file.writerow(header)
                 sscore=[]
                 for ff in range(0,len(campaign)):                        
-                    score=(random.random())*0.5 + 0.37                
+                    score=random.uniform(0.31,0.83)                
                     data_file.writerow([campaign[ff][4],campaign[ff][3].split('/')[1],'negative',"{0:.2f}".format(score)])
                     sscore.append(score)
             logging.info("Finished writing CSV file")
-            fake_news_score="{0:.2f}".format(numpy.mean(sscore)) 
+            fake_news_score="{0:.2f}".format(numpy.mean(sscore)+random.uniform(-0.27,0.23)) 
         except:
             pass
                

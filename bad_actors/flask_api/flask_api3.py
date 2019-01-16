@@ -8,7 +8,6 @@ from configuration.config_class import getConfig
 import urllib
 import pandas
 import threading
-
 import time
 #import gzip
 
@@ -27,6 +26,7 @@ db_table1_campaigns      = "campaigns"
 db_table2_campaigns_data = "campaigns_data"
 db_table3                = "author_friend"  
 db_table4                = "author_follower"
+encod='utf-8' # "windows-1252"   or 'utf-8'
 db_path_file_BU = db_path_file.replace(".db", "BACKUP{}.db".format(datetime.datetime.now()).replace(':',"-").replace(" ","-"))
 
 if os.path.exists(db_path_file) and back_up :
@@ -82,25 +82,29 @@ def check_campaignID(campaign_id):
         return False
     return True
 
-def dwnload_csv_db(db_path_file, db_table, scv_url):
+def dwnload_csv_db(db_path_file, db_table, scv_url, path_to_store=''):
     sts=0
+    logging.info("Downloading csv file")    
+    try:        
+        df = pandas.read_csv(scv_url, encoding=encod, quotechar='"', delimiter=',')        
+        logging.info("Writing csv file to " + path_to_store)
+        df.to_csv(path_to_store,encoding=encod)
+        logging.info("Csv file is stored: " + path_to_store) 
+    except:
+        logging.info("Read and save csv file operation is failed")
+        return 401
+    ''' Insertion to DB part'''        
     try:          
         with sqlite3.connect(db_path_file) as con:            
             if scv_url != '':
-                logging.info("Adding csv file")           
-#                 df = pandas.read_csv(scv_url, encoding="windows-1252", quotechar='"', delimiter=',')
-                df = pandas.read_csv(scv_url, encoding='utf-8', quotechar='"', delimiter=',')      
-                logging.info("Reading csv file") 
+                logging.info("Adding data to table: " + db_table)               
                 df.to_sql(db_table, con, if_exists='append', index=False)
-                logging.info("Added data from csv file")
-            else:
-                sts=406 # invalid scv url or empty                                  
+                logging.info("Added data from csv file")                                                  
     except:       
         con.close()
-        logging.info("Error in scv download or insert to DB operation")
-        sts=401 # invalid scv url or file format                    
-    finally:           
-        con.close() 
+        logging.info("Error in data insertion to DB")
+        sts=406 # data can not be stored in DB                    
+     
     return sts
 
 def run_function(campaign_id):              
@@ -131,37 +135,32 @@ def update_claim_id(db_table,claim_id):
         logging.error("Error in table update operation")                    
         
     
-def dld_csv_with_check(request):
-    
-    rez=dwnload_csv_db(db_path_file, db_table2_campaigns_data, request.json['csv_url'])
-    logging.info("Rez 1 for "+str(rez))
+def dld_csv_with_check(request):    
+    path_to_store='C:\\input\\csv_'+str(request.json['campaign_id'])    
+    rez=dwnload_csv_db(db_path_file, db_table2_campaigns_data, request.json['csv_url'],path_to_store)
+    logging.info("Rez "+str(rez)+" for "+str(request.json['campaign_id']))
     if rez>0:
-        return rez          
-    
+        return rez   
     if ifexist(request,'csv_url_friends'):
-        
-        rez=dwnload_csv_db(db_path_file, db_table3, request.json['csv_url_friends'])
-        logging.info("Rez 2 for "+str(rez))
+        path_to_store1='C:\\input\\csv_friends_'+str(request.json['campaign_id'])
+        rez=dwnload_csv_db(db_path_file, db_table3, request.json['csv_url_friends'],path_to_store1)
+        logging.info("Rez "+str(rez)+" for "+str(request.json['campaign_id']))
         if rez>0:            
             delete_table(db_table2_campaigns_data)
             return rez
         else:
-            update_claim_id(db_table3,request.json['campaign_id'])
-                         
-             
+            update_claim_id(db_table3,request.json['campaign_id'])            
     if ifexist(request,'csv_url_followers'):
-        rez=dwnload_csv_db(db_path_file, db_table4, request.json['csv_url_followers'])
-        logging.info("Rez 3 for "+str(rez))
+        path_to_store2='C:\\input\\csv_followers_'+str(request.json['campaign_id'])
+        rez=dwnload_csv_db(db_path_file, db_table4, request.json['csv_url_followers'],path_to_store2)
+        logging.info("Rez "+str(rez)+" for "+str(request.json['campaign_id']))
         if rez>0:            
             delete_table(db_table2_campaigns_data)
             delete_table(db_table3)
             return rez
         else:
-            update_claim_id(db_table4,request.json['campaign_id'])
-             
-    return 0
-    
-          
+            update_claim_id(db_table4,request.json['campaign_id'])             
+    return 0         
         
 # add campaign from csv to campaings_list table and in database 
 @app.route('/api/v1/campaigns/add_campaign/', methods=['POST'])
@@ -170,7 +169,7 @@ def add_campaign():
     if request.method == 'POST':
         # check if campaign id exist
         if not check_campaignID(request.json['campaign_id']):
-            logging.info("Campaign does not exist")
+            logging.info("Campaign does not exist, adding campaign")
             # add data to campaign_data table
             rez=dld_csv_with_check(request)
             if rez>0: abort(rez)
@@ -323,8 +322,6 @@ def get_output_file(name):
     return resp
 
 
-
-
 ''' Handlers Part   '''
 # error handlers
 @app.errorhandler(400)
@@ -333,11 +330,15 @@ def invalid_input(error):
 
 @app.errorhandler(401)
 def invalid_csv(error):
-    return make_response(jsonify({'error': 'Invalid scv url or file format'}),401)
+    return make_response(jsonify({'error': 'Invalid scv url or file empty, can not be downloaded'}),401)
 
 @app.errorhandler(404)
 def not_found(error):
     return make_response(jsonify({'error': 'Not found!'}), 404)
+
+@app.errorhandler(406)
+def data_warning(error):
+    return make_response(jsonify({'warning': 'Data can not be stored in DB'}), 406)
 
 @app.errorhandler(409)
 def object_exists(error):
@@ -355,9 +356,7 @@ def internal_error(error):
 def thread_error(error):
     return make_response(jsonify({'error': 'Previos analyzer run is not ended'}), 501)
 
-@app.errorhandler(406)
-def csv_warning(error):
-    return make_response(jsonify({'warning': 'Invalid scv url or empty'}), 406)
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
