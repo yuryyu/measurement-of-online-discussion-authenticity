@@ -36,7 +36,7 @@ class FootprintFeatureGenerator(AbstractController):
             for cnt,claim in enumerate(claims):
                 logging.info('Started ' +str(cnt)+ ' claim from ' +str(len(claims)) +' claims')
                 print('Started ' +str(cnt)+ ' claim from ' +str(len(claims)) +' claims')
-                if cnt > 10: break
+                #if cnt > 10: break
                 claim_id = claim.claim_id
                 # define authors per claim
                 authors = self._db.get_claim_authors(claim_id)
