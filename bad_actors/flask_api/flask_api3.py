@@ -19,7 +19,7 @@ app = Flask(__name__)
 
 ''' DB Init Part '''
 import sqlite3
-from_scrach = True
+from_scrach = False
 back_up = False
 db_path_file = '{}\\data\\input\\Leadspotting_twitter_database.db'.format(project_folder)
 db_table1_campaigns      = "campaigns"
@@ -139,28 +139,27 @@ def dld_csv_with_check(request):
     path_to_store='C:\\input\\csv_'+str(request.json['campaign_id'])    
     rez=dwnload_csv_db(db_path_file, db_table2_campaigns_data, request.json['csv_url'],path_to_store)
     logging.info("Rez "+str(rez)+" for "+str(request.json['campaign_id']))
-    if rez>0:
-        return rez   
-    if ifexist(request,'csv_url_friends'):
+      
+    if ifexist(request,'csv_friends'):
         path_to_store1='C:\\input\\csv_friends_'+str(request.json['campaign_id'])
-        rez=dwnload_csv_db(db_path_file, db_table3, request.json['csv_url_friends'],path_to_store1)
+        rez=dwnload_csv_db(db_path_file, db_table3, request.json['csv_friends'],path_to_store1)
         logging.info("Rez "+str(rez)+" for "+str(request.json['campaign_id']))
-        if rez>0:            
-            delete_table(db_table2_campaigns_data)
-            return rez
-        else:
-            update_claim_id(db_table3,request.json['campaign_id'])            
-    if ifexist(request,'csv_url_followers'):
+#         if rez>0:            
+#             delete_table(db_table2_campaigns_data)
+#             return rez
+#         else:
+#             update_claim_id(db_table3,request.json['campaign_id'])            
+    if ifexist(request,'csv_followers'):
         path_to_store2='C:\\input\\csv_followers_'+str(request.json['campaign_id'])
-        rez=dwnload_csv_db(db_path_file, db_table4, request.json['csv_url_followers'],path_to_store2)
+        rez=dwnload_csv_db(db_path_file, db_table4, request.json['csv_followers'],path_to_store2)
         logging.info("Rez "+str(rez)+" for "+str(request.json['campaign_id']))
-        if rez>0:            
-            delete_table(db_table2_campaigns_data)
-            delete_table(db_table3)
-            return rez
-        else:
-            update_claim_id(db_table4,request.json['campaign_id'])             
-    return 0         
+#         if rez>0:            
+#             delete_table(db_table2_campaigns_data)
+#             delete_table(db_table3)
+#             return rez
+#         else:
+#             update_claim_id(db_table4,request.json['campaign_id'])             
+    return rez         
         
 # add campaign from csv to campaings_list table and in database 
 @app.route('/api/v1/campaigns/add_campaign/', methods=['POST'])
