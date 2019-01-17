@@ -2,6 +2,7 @@ from __future__ import print_function
 from DB.schema_definition import *
 from configuration.config_class import getConfig
 import csv
+import datetime
 
 class RankedAuthorsExporter(object):
     def __init__(self, db):
@@ -9,6 +10,7 @@ class RankedAuthorsExporter(object):
         self._config_parser = getConfig()
         self.threshold = self._config_parser.eval(self.__class__.__name__, "threshold")
         self.output_file_path = self._config_parser.eval(self.__class__.__name__, "output_file_path")
+        self.output_file_path.format(datetime.datetime.today().strftime('%d-%m-%Y'))
 
     def setUp(self):
         pass
