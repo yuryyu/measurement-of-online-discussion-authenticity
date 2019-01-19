@@ -72,6 +72,8 @@ from dataset_builder.feature_extractor.footprint_feature_generator import Footpr
 from dataset_builder.feature_extractor.networkx_feature_generator import NetworkxFeatureGenerator
 from dataset_builder.feature_extractor.temporal_feature_generator import TemporalFeatureGenerator
 from missing_data_complementor.followerfriend_data_complementor import FollowerFriendDataComplementor
+from dataset_builder.feature_extractor.LDAtopic_feature_generator import LDATopicFeatureGenerator
+
 
 ###############################################################
 # MODULES
@@ -134,6 +136,8 @@ modules_dict["FootprintFeatureGenerator"] = FootprintFeatureGenerator
 modules_dict["NetworkxFeatureGenerator"] = NetworkxFeatureGenerator
 modules_dict["TemporalFeatureGenerator"] = TemporalFeatureGenerator
 modules_dict["FollowerFriendDataComplementor"] = FollowerFriendDataComplementor
+modules_dict["LDATopicFeatureGenerator"] = LDATopicFeatureGenerator
+
 
 ## SETUP
 logging.config.fileConfig(getConfig().get("DEFAULT", "Logger_conf_file"))
