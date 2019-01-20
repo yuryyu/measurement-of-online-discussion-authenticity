@@ -38,7 +38,7 @@ class LDATopicFeatureGenerator(AbstractController):
     num_of_terms_in_topic = 12
     stopword_file = lib/eng_stopwords.txt
     stem_language = ENG     
-    features_list = ['t_min', 't_max', 't_std_dev', 't_avg', 't_skewness', 't_kurtosis']
+    features_list = ['topic_jaccard_distance_claim_min', 'topic_jaccard_distance_claim_max', 'topic_jaccard_distance_claim_std_dev', 't_avg', 'topic_jaccard_distance_claim_skewness', 'topic_jaccard_distance_claim_kurtosis']
         
     """
     def __init__(self, db, **kwargs):
@@ -129,22 +129,22 @@ class LDATopicFeatureGenerator(AbstractController):
         return post_topic_max
     
     """ Aggregated features from list """
-    def t_avg(self, ll):                    
+    def topic_jaccard_distance_claim_avg(self, ll):                    
         return sum(ll)/len(ll)
 
-    def t_std_dev(self, ll):          
+    def topic_jaccard_distance_claim_std_dev(self, ll):          
         return np.std(ll)
 
-    def t_min(self, ll):           
+    def topic_jaccard_distance_claim_min(self, ll):           
         return min(ll)        
     
-    def t_max(self, ll):           
+    def topic_jaccard_distance_claim_max(self, ll):           
         return max(ll)
   
-    def t_skewness(self, ll):           
+    def topic_jaccard_distance_claim_skewness(self, ll):           
         return skew(ll)        
     
-    def t_kurtosis(self, ll):           
+    def topic_jaccard_distance_claim_kurtosis(self, ll):           
         return kurtosis(ll)
     
     
