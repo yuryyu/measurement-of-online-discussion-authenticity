@@ -53,6 +53,7 @@ from experimental_environment.load_datasets import Load_Datasets
 from experimental_environment.predictor import Predictor
 from missing_data_complementor.missing_data_complementor import MissingDataComplementor
 from missing_data_complementor.add_author_connection_claim_id import AddAuthorConnectionClaimId
+from missing_data_complementor.category_filler_for_claims import CategoryFillerForClaims
 from preprocessing_tools.create_authors_table import CreateAuthorTables
 from preprocessing_tools.csv_importer import CsvImporter
 from preprocessing_tools.data_preprocessor import Preprocessor
@@ -72,6 +73,8 @@ from dataset_builder.feature_extractor.footprint_feature_generator import Footpr
 from dataset_builder.feature_extractor.networkx_feature_generator import NetworkxFeatureGenerator
 from dataset_builder.feature_extractor.temporal_feature_generator import TemporalFeatureGenerator
 from missing_data_complementor.followerfriend_data_complementor import FollowerFriendDataComplementor
+from dataset_builder.feature_extractor.LDAtopic_feature_generator import LDATopicFeatureGenerator
+
 
 ###############################################################
 # MODULES
@@ -93,6 +96,7 @@ modules_dict["Twitter_Crawler"] = Twitter_Crawler
 modules_dict["OldTweetsCrawler"] = OldTweetsCrawler
 modules_dict["MissingDataComplementor"] = MissingDataComplementor
 modules_dict["AddAuthorConnectionClaimId"] = AddAuthorConnectionClaimId
+modules_dict["CategoryFillerForClaims"] = CategoryFillerForClaims
 modules_dict["Load_Datasets"] = Load_Datasets
 modules_dict["Image_Tags_Extractor"] = Image_Tags_Extractor
 modules_dict["Image_Downloader"] = Image_Downloader
@@ -134,6 +138,8 @@ modules_dict["FootprintFeatureGenerator"] = FootprintFeatureGenerator
 modules_dict["NetworkxFeatureGenerator"] = NetworkxFeatureGenerator
 modules_dict["TemporalFeatureGenerator"] = TemporalFeatureGenerator
 modules_dict["FollowerFriendDataComplementor"] = FollowerFriendDataComplementor
+modules_dict["LDATopicFeatureGenerator"] = LDATopicFeatureGenerator
+
 
 ## SETUP
 logging.config.fileConfig(getConfig().get("DEFAULT", "Logger_conf_file"))

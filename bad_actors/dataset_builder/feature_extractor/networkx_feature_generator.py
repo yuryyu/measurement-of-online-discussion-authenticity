@@ -141,6 +141,9 @@ class NetworkxFeatureGenerator(AbstractController):
                 ret.update({'median_' + ff: float(np.median(res))})
                 ret.update({'std_' + ff: float(np.std(res))})
                 return ret
+            elif ff == 'second_largest_eigenvalue':
+                res = np.real(sorted(nx.adjacency_spectrum(G))[1])
+                return {ff: res}
             elif ff == 'trace':
                 eigenvalues = nx.adjacency_spectrum(G)
                 res = np.real(sum(eigenvalues))
@@ -171,6 +174,10 @@ class NetworkxFeatureGenerator(AbstractController):
             elif ff == 'fraction_of_triangles':
                 res = sum(nx.triangles(G).values()) / 3
                 res = float(res) / nx.number_of_nodes(G)
+                return {ff: res}
+            elif ff == 'giant_connected_ratio':
+                gc_nodes = len(max(nx.connected_components(G), key=len))
+                res = float(gc_nodes) / nx.number_of_nodes(G)
                 return {ff: res}
             else:
                 res = eval('nx.'+ff+'(G).values()')
