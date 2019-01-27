@@ -746,6 +746,13 @@ class DB():
             return unicode(text)
         return text
 
+    def add_columns(self, table, columns):
+        for col in columns:
+            query = 'alter table {0} add column {1} {2}'
+            query = text(query.format(table, col['name'], col['type']))
+            self.session.execute(query)
+        self.session.commit()
+
     ###########################################################
     # posts
     ###########################################################
@@ -1498,7 +1505,11 @@ class DB():
         return self.session.query(Claim).all()
 
     def get_claims_missing_category(self):
-        return self.session.query(Claim).filter(Claim.main_category == None or Claim.secondary_category == None).all()
+        return self.session.query(Claim).filter(or_(Claim.main_category == None, Claim.secondary_category == None)).all()
+
+    def get_claims_columns(self):
+        tuples = self.session.execute('PRAGMA table_info(claims)').fetchall()
+        return [tup[1] for tup in tuples]
 
     def get_table_dictionary(self, table_name):
         table = self.get_table_by_name(table_name)
