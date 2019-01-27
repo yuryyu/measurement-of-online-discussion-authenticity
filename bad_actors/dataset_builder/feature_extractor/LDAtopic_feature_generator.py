@@ -127,24 +127,25 @@ class LDATopicFeatureGenerator(AbstractController):
             max_topic_probability = max(topic_id_to_probability, key=lambda item: item[1])            
             post_topic_max.append(max_topic_probability[1])
         return post_topic_max
-    
+
     """ Aggregated features from list """
-    def topic_jaccard_distance_claim_avg(self, ll):                    
+    # def topic_jaccard_distance_claim_avg(self, ll):
+    def t_avg(self, ll):
         return sum(ll)/len(ll)
 
-    def topic_jaccard_distance_claim_std_dev(self, ll):          
+    def t_std_dev(self, ll):
         return np.std(ll)
 
-    def topic_jaccard_distance_claim_min(self, ll):           
+    def t_claim_min(self, ll):
         return min(ll)        
     
-    def topic_jaccard_distance_claim_max(self, ll):           
+    def t_max(self, ll):
         return max(ll)
   
-    def topic_jaccard_distance_claim_skewness(self, ll):           
+    def t_skewness(self, ll):
         return skew(ll)        
     
-    def topic_jaccard_distance_claim_kurtosis(self, ll):           
+    def t_kurtosis(self, ll):
         return kurtosis(ll)
     
     
