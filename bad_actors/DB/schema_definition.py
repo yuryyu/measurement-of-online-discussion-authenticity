@@ -3905,7 +3905,10 @@ class DB():
         claim_id_posts_dict = defaultdict(list)
         post_dict = self.get_post_dictionary()
         for claim_id, post_id in self.get_claim_tweet_connections():
-            claim_id_posts_dict[claim_id].append(post_dict[post_id])
+            try:
+                claim_id_posts_dict[claim_id].append(post_dict[post_id])
+            except KeyError:
+                pass
         return claim_id_posts_dict
     
     def update_campain_table(self, campaign_id, key, value):        
