@@ -138,3 +138,6 @@ class GraphFeatureGenerator:
             author_dictionary[author_guid] = tuple
         return author_dictionary
 
+    def is_well_defined(self):
+        return True
+

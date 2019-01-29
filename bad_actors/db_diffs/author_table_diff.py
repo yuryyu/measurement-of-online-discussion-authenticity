@@ -2,7 +2,7 @@ from __future__ import print_function
 #import csv
 #from configuration.config_class import getConfig
 from DB.schema_definition import *
-from db_diffs.Secondary_DB import SecondaryDB
+from DB.secondary_DB import SecondaryDB
 
 
 class AuthorTableDiff(object):

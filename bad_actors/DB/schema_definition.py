@@ -1133,7 +1133,6 @@ class DB():
         self.session.execute(query)
         self.session.commit()
 
-
     def get_all_authors(self):
         result = self.session.query(Author).all()
         return result
@@ -2016,7 +2015,8 @@ class DB():
                 print(msg, end="")
                 self.add_author_connection(author_connection)
         except:
-            pass        
+            pass
+        print('\r')
         self.session.commit()
 
     def delete_author_connections_missing_claim(self):
