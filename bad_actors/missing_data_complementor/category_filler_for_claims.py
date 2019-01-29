@@ -63,6 +63,7 @@ class CategoryFillerForClaims(AbstractController):
                 cats.append(BeautifulSoup(str(li)).find('a').contents[0])
             else:
                 cats.append(None)
+        return cats
 
     def get_categories_politifact(self, url):
         hdr = self._header
