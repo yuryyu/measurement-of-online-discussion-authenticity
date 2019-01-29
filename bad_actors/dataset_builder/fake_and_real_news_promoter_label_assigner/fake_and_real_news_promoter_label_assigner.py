@@ -187,11 +187,31 @@ class FakeAndRealNewsPromoterLabelAssigner(Method_Executor):
                 #    author.author_type = self._real_news_promoter_label
 
 
+#                 df = claim_by_author_guid_df.groupby(['claim_id', 'verdict']).count().reset_index().groupby(
+#                     ['verdict']).count().reset_index()
+# 
+#                 num_of_fake_news_claims = df[(df["verdict"] == 'fake_news')]['claim_id'].values[0]
+#                 num_of_real_news_claims = df[(df["verdict"] == 'real_news')]['claim_id'].values[0]
+# 
+# 
+#                 author_guid_binary_verdict = (author_guid, num_of_distinct_claims, num_of_fake_news_claims,
+#                                               num_of_real_news_claims,
+#                                               num_of_fake_news_posts,
+#                                               num_of_real_news_posts, author.author_type)
+#                 self._author_guid_by_binary_verdict_tuples.append(author_guid_binary_verdict)
+
                 df = claim_by_author_guid_df.groupby(['claim_id', 'verdict']).count().reset_index().groupby(
                     ['verdict']).count().reset_index()
 
-                num_of_fake_news_claims = df[(df["verdict"] == 'fake_news')]['claim_id'].values[0]
-                num_of_real_news_claims = df[(df["verdict"] == 'real_news')]['claim_id'].values[0]
+                num_of_fake_news_claims = 0
+                num_of_real_news_claims = 0
+                fake_news_df = df[(df["verdict"] == 'fake_news')]
+                if not fake_news_df.empty:
+                    num_of_fake_news_claims = fake_news_df['claim_id'].values[0]
+
+                real_news_df = df[(df["verdict"] == 'real_news')]
+                if not real_news_df.empty:
+                    num_of_real_news_claims = real_news_df['claim_id'].values[0]
 
 
                 author_guid_binary_verdict = (author_guid, num_of_distinct_claims, num_of_fake_news_claims,
@@ -199,6 +219,8 @@ class FakeAndRealNewsPromoterLabelAssigner(Method_Executor):
                                               num_of_fake_news_posts,
                                               num_of_real_news_posts, author.author_type)
                 self._author_guid_by_binary_verdict_tuples.append(author_guid_binary_verdict)
+                
+                
 
             author_guid_by_verict_tuple = self._author_guid_by_verdicts_dict[author_guid]
             author_guid_by_verict_tuple += (num_of_distinct_claims, num_of_posts, author.author_type,)

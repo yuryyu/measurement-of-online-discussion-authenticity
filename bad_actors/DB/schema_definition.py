@@ -3902,6 +3902,16 @@ class DB():
         
         return claim_id
 
+    def get_claim_post_author_connections(self):
+        q = """
+            SELECT claim_tweet_connection.claim_id, claim_tweet_connection.post_id, posts.author_guid, claims.verdict
+            FROM claim_tweet_connection
+            INNER JOIN posts ON (posts.post_id  =  claim_tweet_connection.post_id)
+            INNER JOIN claims ON (claims.claim_id  =  claim_tweet_connection.claim_id)
+            """
+        query = text(q)
+        result = self.session.execute(query)
+        return list(result)
 
     def get_author_word_embedding(self, author_guid, table_name, target_field_name):
         ans = {}
