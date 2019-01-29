@@ -75,6 +75,7 @@ from dataset_builder.feature_extractor.networkx_feature_generator import Network
 from dataset_builder.feature_extractor.temporal_feature_generator import TemporalFeatureGenerator
 from missing_data_complementor.followerfriend_data_complementor import FollowerFriendDataComplementor
 from dataset_builder.feature_extractor.LDAtopic_feature_generator import LDATopicFeatureGenerator
+from dataset_builder.fake_and_real_news_promoter_label_assigner import FakeAndRealNewsPromoterLabelAssigner
 
 
 ###############################################################
@@ -141,6 +142,7 @@ modules_dict["NetworkxFeatureGenerator"] = NetworkxFeatureGenerator
 modules_dict["TemporalFeatureGenerator"] = TemporalFeatureGenerator
 modules_dict["FollowerFriendDataComplementor"] = FollowerFriendDataComplementor
 modules_dict["LDATopicFeatureGenerator"] = LDATopicFeatureGenerator
+modules_dict["FakeAndRealNewsPromoterLabelAssigner"] = FakeAndRealNewsPromoterLabelAssigner
 
 
 ## SETUP

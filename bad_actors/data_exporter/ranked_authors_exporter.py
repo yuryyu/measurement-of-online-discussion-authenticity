@@ -10,7 +10,8 @@ class RankedAuthorsExporter(object):
         self._config_parser = getConfig()
         self.threshold = self._config_parser.eval(self.__class__.__name__, "threshold")
         self.output_file_path = self._config_parser.eval(self.__class__.__name__, "output_file_path")
-        self.output_file_path = self.output_file_path.format(datetime.datetime.today().strftime('%d/%m/%Y'), self.threshold)
+        self.output_file_path = self.output_file_path.format(
+            datetime.datetime.today().strftime('%d/%m/%Y'), self.threshold)
 
     def setUp(self):
         pass
