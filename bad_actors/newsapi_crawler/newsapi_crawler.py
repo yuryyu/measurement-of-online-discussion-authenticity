@@ -3,16 +3,13 @@ from __future__ import print_function
 import urllib
 from bs4 import BeautifulSoup
 from commons.method_executor import Method_Executor
-# from preprocessing_tools.abstract_controller import AbstractController
 from generic_newsapi_crawler import Generic_NewsAPI_Crawler
 from preprocessing_tools.Topic_Term_Manager import Topic_Term_Manager
 
 
 class NewsAPI_Crawler(Method_Executor):
-# class NewsAPI_Crawler(AbstractController):
     def __init__(self, db):
         Method_Executor.__init__(self, db)
-        # AbstractController.__init__(self, db)
         # taken from http://techslides.com/hacking-the-google-trends-api
         self._google_trends_url = "https://trends.google.com/trends/hottrends/atom/feed?pn=p1"
         self._retrieve_news_by_keywords = self._config_parser.eval(self.__class__.__name__, "retrieve_news_by_keywords")
@@ -21,26 +18,6 @@ class NewsAPI_Crawler(Method_Executor):
         self._generic_newsapi_crawler = Generic_NewsAPI_Crawler(self._db, self._keys)
         self._topic_term_manager = Topic_Term_Manager(db)
 
-    """
-    def execute(self, window_start=None):
-        # Logger setup.
-        start_time = time.time()
-        info_msg = "execute started for newsAPI Crawler started at " + str(start_time)
-        logging.info(info_msg)
-        claims = self._db.get_claims()
-        logging.info("Cooperation execute window_start %s" % self._window_start)
-
-        try:
-            self.get_most_popular_posts_by_google_trends()
-        except Exception as ex:
-            template = "An exception of type {0} occurred. Arguments:\n{1!r}"
-            message = template.format(type(ex).__name__, ex.args)
-            print(message)
-            logging.error('Failed in the new crawling process!')
-        stop_time = time.time()
-        info_msg = "execute ended at " + str(stop_time)
-        logging.info(info_msg)
-    """
 
     def get_most_popular_posts_by_google_trends(self):
         while True:
