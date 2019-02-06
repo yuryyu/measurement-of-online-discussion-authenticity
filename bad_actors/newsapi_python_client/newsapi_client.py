@@ -2,7 +2,7 @@ import requests
 from newsapi_auth import NewsApiAuth
 import const
 from newsapi_exception import NewsAPIException
-
+import os
 
 class NewsApiClient(object):
 
@@ -11,9 +11,26 @@ class NewsApiClient(object):
     _cur_request_counter = 0
 
     def __init__(self, keys):
-        self._keys = keys
-        self.auth = NewsApiAuth(keys=self._keys, cur_request_counter=self._cur_request_counter)  # todo: check.
 
+        self._counter_file_path = os.path.join("newsapi_python_client", "cur_request_counter.txt")
+
+        try:
+            # Relative path to 'bad_actors'.
+            fp = open(self._counter_file_path, 'r')
+            self._cur_request_counter = int(fp.readline())
+        except IOError:
+            fp = open(self._counter_file_path, 'w')
+            fp.write("0")
+
+        self._keys = keys
+        self.auth = NewsApiAuth(keys=self._keys, cur_request_counter=NewsApiClient._cur_request_counter)
+
+    def _update_counter_file(self):
+        with open(self._counter_file_path, 'r') as fp:
+            cur_req = int(fp.readline())
+            cur_req += 1
+        with open(self._counter_file_path, 'w+') as fp:
+            fp.write(str(cur_req))
 
     def get_top_headlines(self, q=None, sources=None, language='en', country=None, category=None, page_size=None,
                           page=None):
@@ -47,7 +64,8 @@ class NewsApiClient(object):
         """
 
         NewsApiClient._cur_request_counter += 1
-        self.auth = NewsApiAuth(keys=self._keys, cur_request_counter=self._cur_request_counter)
+        self.auth.set_request_counter(NewsApiClient._cur_request_counter)
+        self._update_counter_file()
 
         # Define Payload
         payload = {}
@@ -165,7 +183,8 @@ class NewsApiClient(object):
         """
 
         NewsApiClient._cur_request_counter += 1
-        self.auth = NewsApiAuth(keys=self._keys, cur_request_counter=self._cur_request_counter)
+        self.auth.set_request_counter(NewsApiClient._cur_request_counter)
+        self._update_counter_file()
 
         # Define Payload
         payload = {}
@@ -296,7 +315,8 @@ class NewsApiClient(object):
         """
 
         NewsApiClient._cur_request_counter += 1
-        self.auth = NewsApiAuth(keys=self._keys, cur_request_counter=self._cur_request_counter)
+        self.auth.set_request_counter(NewsApiClient._cur_request_counter)
+        self._update_counter_file()
 
         # Define Payload
         payload = {}
