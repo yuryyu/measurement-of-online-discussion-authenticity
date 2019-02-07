@@ -115,7 +115,7 @@ class WebCrawlersClient(object):
 
             process.crawl(self.ChequeadoSpider)
             process.start()  # the script will block here until the crawling is finished
-
+            print('stop point')
     def _filter_results(self, articles_dic, payload):
         """
         Used to filter scrapped data according to the flags given in the payload.
@@ -128,7 +128,7 @@ class WebCrawlersClient(object):
     class ChequeadoSpider(scrapy.Spider):
         name = 'chequeado_spider'
         start_urls = [
-            const.SUPPORTED_SITES["chequeado"],
+            const.SUPPORTED_SITES[0],
         ]
 
         def parse(self, response):

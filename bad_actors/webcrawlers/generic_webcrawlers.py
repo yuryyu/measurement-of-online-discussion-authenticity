@@ -11,11 +11,11 @@ import ast
 
 
 class GenericWebCrawlers(object):
-    def __init__(self, db, keys, query):
+    def __init__(self, db, query):
         # AbstractController.__init__(self, db)
         self._db = db
-        self._keys = keys
-        self._webcrawlers_client = WebCrawlersClient(self._keys)
+        #self._keys = keys
+        self._webcrawlers_client = WebCrawlersClient()
         self._config_parser = getConfig()
         self._domain = unicode(self._config_parser.get("DEFAULT", "domain"))
         self._query = query
