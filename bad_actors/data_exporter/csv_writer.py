@@ -23,7 +23,7 @@ class Csv_writer():
         logging.info("Start writing CSV file")
         header = ['author_osn_id', 'author_screen_name', 'prediction', 'probability'] 
         try:         
-            campaign = self.db.get_from_table(self.table, campaign_id)           
+            campaign = self.db.get_campaign_by_id(self.table, campaign_id)
             logging.info("Record "+str(campaign_id)+" successfully read pp")            
             logging.info(campaign[0])
             logging.info('length is '+str(len(campaign)))        

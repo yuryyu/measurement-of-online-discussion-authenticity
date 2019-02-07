@@ -103,6 +103,29 @@ class Author(Base):
             self.name, self.domain, self.author_guid, self.statuses_count)
 
 
+class AuthorFriend(Base):
+    __tablename__ = 'author_friend'
+
+    author_id = Column(Unicode, primary_key=True)
+    friend_id = Column(Unicode, primary_key=True)
+    campaign_id = Column(Integer, primary_key=True)
+
+    def __repr__(self):
+        return "<AuthorFriend(author_id='%s',friend_id='%s',campaign_id='%s')>" % (
+            self.author_id, self.friend_id, self.campaign_id)
+
+
+class AuthorFollower(Base):
+    __tablename__ = 'author_follower'
+
+    author_id = Column(Unicode, primary_key=True)
+    follower_id = Column(Unicode, primary_key=True)
+    campaign_id = Column(Integer, primary_key=True)
+
+    def __repr__(self):
+        return "<AuthorFriend(author_id='%s',follower_id='%s',campaign_id='%s')>" % (
+            self.author_id, self.follower_id, self.campaign_id)
+
 class AuthorConnection(Base):
     __tablename__ = 'author_connections'
 
@@ -161,7 +184,7 @@ class PostConnection(Base):
             self.source_post_osn_id, self.target_post_osn_id, self.connection_type, self.insertion_date)
 
 
-class Campaigns(Base):    
+class Campaign(Base):
     __tablename__ = 'campaigns'
     campaign_id         = Column(Integer,  unique=True, primary_key=True) 
     title               = Column(Unicode, default=None)      
@@ -172,7 +195,7 @@ class Campaigns(Base):
     status              = Column(Unicode, default=None)    
     fake_news_score     = Column(FLOAT, default=0.5)    
     def __repr__(self):
-        return "<Campaigns(campaign_id='%s', title='%s', category='%s', campaign_class='%s', campaign_date='%s',  insertion_date='%s', status='%s', fake_news_score='%s')>" % (
+        return "<Campaign(campaign_id='%s', title='%s', category='%s', campaign_class='%s', campaign_date='%s',  insertion_date='%s', status='%s', fake_news_score='%s')>" % (
             self.campaign_id,
             self.title,
             self.category,
@@ -182,7 +205,7 @@ class Campaigns(Base):
             self.status, 
             self.fake_news_score)
 
-class CampaignsData(Base):    
+class CampaignData(Base):
     __tablename__ = 'campaigns_data'
     campaign_id         = Column(Integer, default=0)    
     tweet_id            = Column(Unicode, primary_key=True) #should be unique - TBD      
@@ -194,9 +217,10 @@ class CampaignsData(Base):
     retweets            = Column(Integer, default=0)
     post_favorites      = Column(Integer, default=0)
     author_followers    = Column(Integer, default=0)
+    author_friends      = Column(Integer, default=0)
 
     def __repr__(self):
-        return "<Campaigns_Data(campaign_id='%s', tweet_id='%s', parent_tweet_id='%s', url='%s', author_id='%s', text='%s', date='%s', retweets='%s', post_favorites='%s', author_followers='%s')>" % (
+        return "<CampaignData(campaign_id='%s', tweet_id='%s', parent_tweet_id='%s', url='%s', author_id='%s', text='%s', date='%s', retweets='%s', post_favorites='%s', author_followers='%s')>" % (
             self.campaign_id,
             self.tweet_id,
             self.parent_tweet_id,
@@ -3937,12 +3961,12 @@ class DB():
         update_query = "UPDATE campaigns SET " + key + "=" + value + " WHERE campaign_id=" + str(campaign_id)
         self.update_query(update_query)        
    
-    def get_from_table(self, table_name, campaign_id):
-        query = """SELECT * FROM  {} where campaign_id={}""".format(table_name, campaign_id)
-        query = self.session.execute(query)
-        cursor = query.cursor
-        results = cursor.fetchall()
-        return results
+    def get_campaign_by_id(self, campaign_id):
+        self.session.close()
+        self.session = self.Session()
+        result = self.session.query(Campaign).filter(Campaign.campaign_id == campaign_id).all()
+        return result
+
     
     def insert_camp_data_to_posts(self, table_name, dict_line):        
         query ="INSERT INTO "+table_name+" (post_id, author, title, url, date, retweet_count, favorite_count) VALUES ( \
@@ -3968,4 +3992,22 @@ class DB():
         '"+str(dict_line[7])+"')"              
         self.session.execute(query)
         self.session.commit()
-    
+
+    def add_df_to_table(self, df, table):
+        logging.info("Adding data to table: " + table)
+        df.to_sql(table, con=self.engine, if_exists='append', index=False)
+        self.session.commit()
+
+    def add_campaign(self, campaign):
+        self.session.merge(campaign)
+        self.session.commit()
+
+    def add_campaign_data(self, campaign_data):
+        self.session.merge(campaign_data)
+        self.session.commit()
+
+    def add_author_follower_or_friend(self, row, table_name):
+        query = "Insert or ignore into {0} values ({1}, {2}, {3})".format(table_name, row[0], row[1], int(row[2]))
+        query = unicode(query)
+        self.session.execute(query)
+        self.session.commit()

@@ -37,7 +37,9 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(mes
 # from dataset_builder.unit_tests.test_image_downloader import TestImageDownloader
 # from topic_distribution_visualization.test_claim_to_topic_converter import TestClaimToTopicConverter
 #from missing_data_complementor.unit_tests.test_AddAuthorConnectionClaimId import AddAuthorConnectionClaimIdTests
-from data_exporter.unittests.test_ranked_authors_exporter import TestRankedAuthorsExporter
+#from data_exporter.unittests.test_ranked_authors_exporter import TestRankedAuthorsExporter
+#sys.argv[1] = 'configuration/cong_test_api'
+from flask_api.unit_tests.test_flask_api import TestFlaskAPI
 
 if __name__ == "__main__":
     unittest.main(argv=[sys.argv[0]])

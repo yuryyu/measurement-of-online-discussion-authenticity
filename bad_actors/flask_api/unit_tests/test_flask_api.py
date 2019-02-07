@@ -1,50 +1,158 @@
-import unittest
-import requests
-import json
-import sys
+from unittest import TestCase
+from configuration.config_class import getConfig
 import os
-
-sys.argv.append('configuration/config_api.ini')
-os.environ['HOME'] = "C:\\Users\\yuzba\\Documents\\GitHub\\measurement-of-online-discussion-authenticity\\bad_actors"
-
-from flask_api.validate_json import validate_json
-from flask_api.flask_api import app
-
-
-json_file = 'configuration/config_api.json'
-with open(json_file, 'r') as f:
-    json_config = json.load(f)
-test_data = json_config['test_data']
+from flask_api.flask_api3 import FlaskAPI
+from DB.schema_definition import *
+import json
+#from flask_api.flask_api3 import
+import tempfile
+import sys
 
 
-class TestIntegrations(unittest.TestCase):
 
+class TestFlaskAPI(TestCase):
     def setUp(self):
-        self.app = app.test_client()
+        self.config = getConfig()
+        self.api = FlaskAPI()
+        self.api.setUp()
+        self.app = self.api.app.test_client()
+        self.campaign_id_1 = 1
+        self.campaign_id_2 = 20
+        self.friends_csv_path = self.config.eval('FlaskAPI', 'path_to_friends_csv')
+        self.followers_csv_path = self.config.eval('FlaskAPI', 'path_to_followers_csv')
+        self.campaigns_csv_path = self.config.eval('FlaskAPI', 'path_to_campaigns_csv')
 
-    def test_add_campaign(self):
-        with app.app_context():
-            response1 = self.app.post('http://localhost:5000/api/v1/campaigns/add', data=json.dumps(test_data[0]),
-                                     headers={'Content-type': 'application/json'})
-            response2 = self.app.post('http://localhost:5000/api/v1/campaigns/add', data=json.dumps(test_data[1]),
-                                      headers={'Content-type': 'application/json'})
-            response3 = self.app.post('http://localhost:5000/api/v1/campaigns/add', data=json.dumps(test_data[2]),
-                                      headers={'Content-type': 'application/json'})
-            assert response1.status_code == requests.codes.ok
-            response_dict = json.loads(response1.data)
-            assert isinstance(response_dict['campaign_id'], int)
-            self.assertTrue(validate_json(test_data[0]))
-            assert 'error' in json.loads(response2.data).keys()
-            assert 'error' in json.loads(response3.data).keys()
+    def tearDown(self):
+        self.api._db.session.close()
+        self.api._db.deleteDB()
 
+    def check_post_good(self, url, dic, r):
+        response = self.app.post(url, json=dic)
+        if r not in response.data:
+            print response.data
+        assert response.status_code == 200
+        assert r in response.data
 
-    def test_query(self):
-        with app.app_context():
-            response = self.app.get('http://localhost:5000/api/v1/campaigns/{0}/status'.format('100'))
-            response_dict = json.loads(response.data)
-            assert response.status_code == requests.codes.ok
-            assert isinstance(response_dict['status'], (str, unicode))
-            assert isinstance(response_dict['fake_news_score'], (int, long, float, complex))
-            bad_response = response = self.app.get('http://localhost:5000/api/v1/campaigns/{0}/status'.format('29999'))
-            assert "error" in json.loads(bad_response.data).keys()
+    def check_post_bad(self, url, dic, code, r):
+        response = self.app.post(url, json=dic)
+        print response.status_code
+        assert response.status_code == code
+        assert r in response.data
+
+    def check_get_good(self, url, r):
+        response = self.app.get(url)
+        assert response.status_code == 200
+        assert r in response.data
+
+    def check_get_bad(self, url, code, r):
+        response = self.app.get(url)
+        assert response.status_code == code
+        assert r in response.data
+
+    def test_flow(self):
+        #Dicts to post to flask API
+        campaign_json = {
+            "campaign_id": self.campaign_id_1,
+            "csv_friends": self.friends_csv_path,
+            "csv_followers": self.followers_csv_path,
+            "csv_url": self.campaigns_csv_path
+        }
+        campaign_json_bad_id = {
+            "campaign_id": "test",
+            "csv_friends": self.friends_csv_path,
+            "csv_followers": self.followers_csv_path,
+            "csv_url": self.campaigns_csv_path
+        }
+        campaign_json_bad_url = {
+            "campaign_id": self.campaign_id_2,
+            "csv_friends": self.friends_csv_path,
+            "csv_followers": self.followers_csv_path,
+            "csv_url": self.friends_csv_path
+        }
+        list_json = {"campaign_id": self.campaign_id_1,
+                     "title": "Test campaign 5",
+                     "category": "Politics",
+                     "class": "False",
+                     "date": "06-09-18",
+                     "csv_url": self.campaigns_csv_path,
+                     "csv_friends": self.friends_csv_path,
+                     "csv_followers": self.followers_csv_path}
+        list_json_bad_id = {"campaign_id": 'test',
+                     "title": "Test campaign 5",
+                     "category": "Politics",
+                     "class": "False",
+                     "date": "06-09-18",
+                     "csv_url": self.campaigns_csv_path,
+                     "csv_friends": self.friends_csv_path,
+                     "csv_followers": self.followers_csv_path}
+        list_json_bad_url = {"campaign_id": self.campaign_id_1,
+                     "title": "Test campaign 5",
+                     "category": "Politics",
+                     "class": "False",
+                     "date": "06-09-18",
+                     "csv_url": self.followers_csv_path,
+                     "csv_friends": self.friends_csv_path,
+                     "csv_followers": self.followers_csv_path}
+        data_json = {
+            "campaign_id": self.campaign_id_1,
+            "tweet_id": "190",
+            "parent_tweet_id": "1",
+            "url": "www.bbc.co.uk",
+            "author_id": "2",
+            "text": "Hello World",
+            "date": "11/09/1999",
+            "retweets": 1,
+            "post_favorites": 0,
+            "author_followers": 0,
+            "author_friends": 2
+        }
+        data_json_bad_id = {
+            "campaign_id": self.campaign_id_2,
+            "tweet_id": "190",
+            "parent_tweet_id": "1",
+            "url": "www.bbc.co.uk",
+            "author_id": "2",
+            "text": "Hello World",
+            "date": "11/09/1999",
+            "retweets": 1,
+            "post_favorites": 0,
+            "author_followers": 0,
+            "author_friends": 2
+        }
+        data_json_missing_fields = {
+            "campaign_id": self.campaign_id_1,
+            "tweet_id": "190",
+            "parent_tweet_id": "1",
+            "url": "www.bbc.co.uk",
+            "retweets": 1,
+            "post_favorites": 0,
+            "author_followers": 0,
+            "author_friends": 2
+        }
+
+        #check good requests
+        self.check_post_good('/api/v1/campaigns/add_campaign/', campaign_json, 'Added data for campaign_id')
+        self.check_post_good('/api/v1/campaigns/add2list/', list_json, 'Added to campaigns table campaign_id')
+        self.check_post_good('/api/v1/campaigns/add_data/', data_json, 'Added data to campaigns_data table campaign_id')
+        self.check_get_good('/api/v1/run_analyze/{}'.format(self.campaign_id_1), 'Analyzer started for campaign_id: ')
+        self.check_get_good('/api/v1/campaigns/{}/status'.format(self.campaign_id_1), 'Campaign Title')
+        self.check_get_good('/api/v1/campaigns/{}/labeling'.format(self.campaign_id_1), "Labeling_csv")
+
+        #check bad requests
+        self.check_post_bad('/api/v1/campaigns/add_campaign/', campaign_json, 409, 'Item already exists')
+        self.check_post_bad('/api/v1/campaigns/add_campaign/', campaign_json_bad_id, 406, 'Data can not be stored in DB')
+        self.check_post_bad('/api/v1/campaigns/add_campaign/', campaign_json_bad_url, 406, 'Data can not be stored in DB')
+        self.check_post_bad('/api/v1/campaigns/add2list/', list_json_bad_id, 400, 'Invalid input, object invalid')
+        self.check_post_bad('/api/v1/campaigns/add2list/', list_json_bad_url, 406, 'Data can not be stored in DB')
+        self.check_post_bad('/api/v1/campaigns/add_data/', data_json_bad_id, 410, 'Campaign does not exist')
+        self.check_post_bad('/api/v1/campaigns/add_data/', data_json_missing_fields, 400, 'Invalid input, object invalid')
+        self.check_get_bad('/api/v1/run_analyze/{}'.format(self.campaign_id_2), 410, 'Campaign does not exist')
+        self.check_get_bad('/api/v1/campaigns/{}/status'.format(self.campaign_id_2), 410, 'Campaign does not exist')
+        self.check_get_bad('/api/v1/campaigns/{}/labeling'.format(self.campaign_id_2), 410, 'Campaign does not exist')
+
+        #check data in DB
+        assert len(self.api._db.get_campaign_by_id(self.campaign_id_1)) > 0
+        assert len(self.api._db.get_campaign_by_id(self.campaign_id_2)) == 0
+        assert len(self.api._db.session.query(AuthorFriend).all()) > 0
+        assert len(self.api._db.session.query(AuthorFollower).all()) > 0
 

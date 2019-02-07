@@ -191,7 +191,7 @@ try:
     # copy data from campaign to claims tables - used in train data pipeline
     copy_claims = False
     if copy_claims:
-        campaign = db.get_from_table('campaigns', campaign_id)
+        campaign = db.get_campaign_by_id('campaigns', campaign_id)
         try:
             print(campaign[0])              
             db.insert_camp_to_claims(tables[0],campaign[0])
@@ -204,7 +204,7 @@ try:
     # campaign_data to posts tables
     copy_data = False
     if copy_data:
-        campaign_data = db.get_from_table('campaigns_data', campaign_id)
+        campaign_data = db.get_campaign_by_id('campaigns_data', campaign_id)
         for ff in range(0,len(campaign_data)):                        
             #logging.info(campaign[ff])
             try:              
