@@ -347,6 +347,39 @@ class Target_Article_Item(Base):
         return "<Target_Article_Item(post_id='%s', type='%s', item_number='%s', content='%s')>" % (
             self.post_id, self._author_guid, self.type, self.item_number, self.content)
 
+class News_Article(Base):
+    __tablename__ = 'news_articles'
+
+    post_id = Column(Unicode, ForeignKey('posts.post_id', ondelete="CASCADE"), primary_key=True)
+    author_guid = Column(Unicode, ForeignKey('posts.author_guid', ondelete="CASCADE"), primary_key=True)
+    author = Column(Unicode, default=None)
+    published_date = Column(dt, default=None)
+    url = Column(Unicode, default=None)
+    title = Column(Unicode, default=None)
+    description = Column(Unicode, default=None)
+    keywords = Column(Unicode, default=None)
+
+
+    def __repr__(self):
+        return "<TargetArticle(post_id='%s', author_guid='%s', author='%s', published_date='%s', url='%s', title='%s', description='%s', keywords='%s')>" % (
+            self.post_id, self.author_guid, self.author, self.published_date, self.url, self.title, self.description, self.keywords)
+
+
+class News_Article_Item(Base):
+    __tablename__ = 'news_article_items'
+
+    post_id = Column(Unicode, ForeignKey('posts.post_id', ondelete="CASCADE"), primary_key=True)
+    author_guid = Column(Unicode, ForeignKey('posts.author_guid', ondelete="CASCADE"), primary_key=True)
+    source_newsapi_internal_id = Column(Unicode, default=None)
+    source_newsapi_internal_name = Column(Unicode, default=None)
+    content = Column(Unicode, default=None)
+    img_url = Column(Unicode, default=None)
+
+
+    def __repr__(self):
+        return "<Target_Article_Item(post_id='%s', author_guid='%s', source_newsapi_internal_id='%s', source_newsapi_internal_name='%s', content='%s', img_url='%s')>" % (
+            self.post_id, self._author_guid, self.source_newsapi_internal_id, self.source_newsapi_internal_name, self.content, self.img_url)
+
 
 class AuthorCitation(Base):
     __tablename__ = 'author_citations'
@@ -958,6 +991,36 @@ class DB():
             self.addPost(post)
         self.session.commit()
         if len(posts) != 0: print("")
+
+    def addArticle(self, article):
+        self.session.merge(article)
+
+    def addArticles(self, articles):
+        logging.info("total Articles inserted to DB: " + str(len(articles)))
+        i = 1
+        for article in articles:
+            if (i % 100 == 0):
+                msg = "\r Insert post to DB: [{}".format(i) + "/" + str(len(articles)) + ']'
+                print(msg, end="")
+            i += 1
+            self.addArticle(article)
+        self.session.commit()
+        if len(articles) != 0: print("")
+
+    def addArticleItem(self, article_item):
+        self.session.merge(article_item)
+
+    def addArticleItems(self, article_items):
+        logging.info("total Article Items inserted to DB: " + str(len(article_items)))
+        i = 1
+        for article_item in article_items:
+            if (i % 100 == 0):
+                msg = "\r Insert post to DB: [{}".format(i) + "/" + str(len(article_items)) + ']'
+                print(msg, end="")
+            i += 1
+            self.addArticleItem(article_item)
+        self.session.commit()
+        if len(article_items) != 0: print("")
 
     def updatePost(self, post):
         self.session.query(Post).filter(Post.url == post[0]).update(post[1])
