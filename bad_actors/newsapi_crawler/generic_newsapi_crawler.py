@@ -7,16 +7,17 @@ from commons.commons import compute_post_guid, compute_author_guid_by_author_nam
 from commons import commons
 import logging
 import datetime
-
+import ast
 
 class Generic_NewsAPI_Crawler(object):
-    def __init__(self, db, keys):
+    def __init__(self, db, keys, query):
         # AbstractController.__init__(self, db)
         self._db = db
         self._keys = keys
         self._newsapi_client = NewsApiClient(self._keys)
         self._config_parser = getConfig()
         self._domain = unicode(self._config_parser.get("DEFAULT", "domain"))
+        self._query = query
 
     def retrieve_and_save_data_from_newsapi_by_terms(self, terms):
 
@@ -32,7 +33,10 @@ class Generic_NewsAPI_Crawler(object):
     def get_articles_by_terms(self, terms):
         print("###### 'ENTERING: get_articles_by_terms'")
         all_articles = []
-        params = {'language': 'en', 'sort_by': 'relevancy', 'page_size': 100}  # Max page_size is 100.
+        # params = {'language': 'en', 'sort_by': 'relevancy', 'page_size': 100}  # Max page_size is 100.
+        params = ast.literal_eval(self._query)
+
+        print("###### 'NewsAPI_Crawler query: {}".format(params))
 
         for term in terms:
             i = 0
