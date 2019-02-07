@@ -78,6 +78,7 @@ from dataset_builder.feature_extractor.LDAtopic_feature_generator import LDATopi
 from dataset_builder.fake_and_real_news_promoter_label_assigner.fake_and_real_news_promoter_label_assigner import FakeAndRealNewsPromoterLabelAssigner
 from dataset_builder.feature_extractor.cooperation_topic_feature_generator import CooperationTopicFeatureGenerator
 from newsapi_crawler.newsapi_crawler import NewsAPI_Crawler
+from webcrawlers.webcrawlers import WebCrawlers
 
 ###############################################################
 # MODULES
@@ -146,6 +147,7 @@ modules_dict["LDATopicFeatureGenerator"] = LDATopicFeatureGenerator
 modules_dict["FakeAndRealNewsPromoterLabelAssigner"] = FakeAndRealNewsPromoterLabelAssigner
 modules_dict["CooperationTopicFeatureGenerator"] = CooperationTopicFeatureGenerator
 modules_dict["NewsAPI_Crawler"] = NewsAPI_Crawler
+modules_dict["WebCrawlers"] = WebCrawlers
 
 
 ## SETUP

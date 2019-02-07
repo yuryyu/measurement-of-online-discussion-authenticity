@@ -1,7 +1,7 @@
 from __future__ import print_function
 from configuration.config_class import getConfig
-from newsapi_python_client.newsapi_exception import NewsAPIException
-from newsapi_python_client.newsapi_client import NewsApiClient
+from webcrawlers_api.webcrawlers_exception import WebCrawlersAPIException
+from webcrawlers_api.webcrawlers_client import WebCrawlersClient
 from DB.schema_definition import Post, date, Claim, News_Article, News_Article_Item
 from commons.commons import compute_post_guid, compute_author_guid_by_author_name
 from commons import commons
@@ -9,12 +9,13 @@ import logging
 import datetime
 import ast
 
-class Generic_NewsAPI_Crawler(object):
+
+class GenericWebCrawlers(object):
     def __init__(self, db, keys, query):
         # AbstractController.__init__(self, db)
         self._db = db
         self._keys = keys
-        self._newsapi_client = NewsApiClient(self._keys)
+        self._webcrawlers_client = WebCrawlersClient(self._keys)
         self._config_parser = getConfig()
         self._domain = unicode(self._config_parser.get("DEFAULT", "domain"))
         self._query = query
@@ -39,8 +40,8 @@ class Generic_NewsAPI_Crawler(object):
             while True:
                 i += 1  # Page numbers begin at 1.
                 try:
-                    all_articles.append(self._newsapi_client.get_everything(q=term, page=i, **params))
-                except NewsAPIException:
+                    all_articles.append(self._webcrawlers_client.get_everything(q=term, page=i, **params))
+                except WebCrawlersClient:
                     print("Reached the last page of term: {}".format(term))
                     break  # Stops loop and moves to the next term.
 
