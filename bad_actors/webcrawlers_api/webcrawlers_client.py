@@ -1,8 +1,7 @@
-import requests
 import const
 from webcrawlers_exception import WebCrawlersAPIException
-import os
-
+import scrapy
+from scrapy.crawler import CrawlerProcess
 
 class WebCrawlersClient(object):
 
@@ -109,10 +108,38 @@ class WebCrawlersClient(object):
         return articles
 
     def _crawl_site(self, site_name):
-        pass
+        if site_name == "chequeado":
+            process = CrawlerProcess({
+                'USER_AGENT': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)'
+            })
+
+            process.crawl(self.ChequeadoSpider)
+            process.start()  # the script will block here until the crawling is finished
 
     def _filter_results(self, articles_dic, payload):
+        """
+        Used to filter scrapped data according to the flags given in the payload.
+        :param articles_dic:
+        :param payload:
+        :return:
+        """
         pass
 
-    def _crawl_chequeado(self):
-        pass
+    class ChequeadoSpider(scrapy.Spider):
+        name = 'chequeado_spider'
+        start_urls = [
+            const.SUPPORTED_SITES["chequeado"],
+        ]
+
+        def parse(self, response):
+            # todo: example for crawling using xpath.
+            for quote in response.xpath('//div[@class="quote"]'):
+                yield {
+                    'text': quote.xpath('./span[@class="text"]/text()').extract_first(),
+                    'author': quote.xpath('.//small[@class="author"]/text()').extract_first(),
+                    'tags': quote.xpath('.//div[@class="tags"]/a[@class="tag"]/text()').extract()
+                }
+
+            next_page_url = response.xpath('//li[@class="next"]/a/@href').extract_first()
+            if next_page_url is not None:
+                yield scrapy.Request(response.urljoin(next_page_url))
