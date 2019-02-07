@@ -1,13 +1,12 @@
-TOP_HEADLINES_URL = 'https://newsapi.org/v2/top-headlines'
-EVERYTHING_URL = 'https://newsapi.org/v2/everything'
-SOURCES_URL = 'https://newsapi.org/v2/sources'
+# List of supported sites names.
+SUPPORTED_SITES = ['chequeado', 'cotejo']
 
-countries = {'ae','ar','at','au','be','bg','br','ca','ch','cn','co','cu','cz','de','eg','fr','gb','gr','hk',
-             'hu','id','ie','il','in','it','jp','kr','lt','lv','ma','mx','my','ng','nl','no','nz','ph','pl',
-             'pt','ro','rs','ru','sa','se','sg','si','sk','th','tr','tw','ua','us','ve','za'}
+# List of supported sites URLS.
+SUPPORTED_URLS = {'chequeado': 'https://chequeado.com/', 'cotejo': 'https://cotejo.info/'}
 
-languages = {'ar','en','cn','de','es','fr','he','it','nl','no','pt','ru','sv','ud'}
+# List of in-site supported categories.
+SUPPORTED_CATEGORIES = {'chequeado': ['ultimas-noticias', 'el-explicador', 'mitos-y-enganos', 'falso-en-las-redes', 'investigaciones'],
+                        'cotejo':  ['category/cotejos-breves/', 'category/cotejado-a-fondo/', 'category/regionales/']}
 
-categories = {'business', 'entertainment', 'general', 'health', 'science', 'sports', 'technology'}
-
-sort_method = {'relevancy','popularity','publishedAt'}
+# List of URL page format (replace underscore with page number).
+PAGE_SUFFIX = {'chequeado': "page/_/", 'cotejo': "page/_/"}

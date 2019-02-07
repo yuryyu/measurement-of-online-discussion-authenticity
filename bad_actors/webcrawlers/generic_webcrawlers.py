@@ -33,7 +33,7 @@ class GenericWebCrawlers(object):
         # params = {'language': 'en', 'sort_by': 'relevancy', 'page_size': 100}  # Max page_size is 100.
         params = ast.literal_eval(self._query)
 
-        print("###### 'NewsAPI_Crawler query: {}".format(params))
+        print("###### 'Query: {}".format(params))
 
         for term in terms:
             i = 0
@@ -45,7 +45,7 @@ class GenericWebCrawlers(object):
                     print("Reached the last page of term: {}".format(term))
                     break  # Stops loop and moves to the next term.
 
-        print("##### All articles from newsAPI: {} ######".format(str(all_articles)))
+        print("##### All articles: {} ######".format(str(all_articles)))
         print("###### 'EXITING: get_articles_by_terms'")
         return self._parse_articles_lst_to_articles(all_articles)
 
