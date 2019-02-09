@@ -2,6 +2,11 @@ import const
 from webcrawlers_exception import WebCrawlersAPIException
 import scrapy
 from scrapy.crawler import CrawlerProcess
+import scrapy.crawler as crawler
+from multiprocessing import Process, Queue
+from twisted.internet import reactor
+#from bad_actors.webcrawlers.unittests import webcrawlers_tests
+from spiders import *
 
 class WebCrawlersClient(object):
 
@@ -109,13 +114,19 @@ class WebCrawlersClient(object):
 
     def _crawl_site(self, site_name):
         if site_name == "chequeado":
-            process = CrawlerProcess({
-                'USER_AGENT': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)'
-            })
-
-            process.crawl(self.ChequeadoSpider)
-            process.start()  # the script will block here until the crawling is finished
-            print('stop point')
+            
+            run_spider(ChequeadoSpider)
+            
+#             process = CrawlerProcess({
+#                 'USER_AGENT': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)'
+#             })
+#             process.crawl(ChequeadoSpider)
+#             process.start()            
+            
+    
+    
+    
+            
     def _filter_results(self, articles_dic, payload):
         """
         Used to filter scrapped data according to the flags given in the payload.
@@ -125,21 +136,4 @@ class WebCrawlersClient(object):
         """
         pass
 
-    class ChequeadoSpider(scrapy.Spider):
-        name = 'chequeado_spider'
-        start_urls = [
-            const.SUPPORTED_SITES[0],
-        ]
 
-        def parse(self, response):
-            # todo: example for crawling using xpath.
-            for quote in response.xpath('//div[@class="quote"]'):
-                yield {
-                    'text': quote.xpath('./span[@class="text"]/text()').extract_first(),
-                    'author': quote.xpath('.//small[@class="author"]/text()').extract_first(),
-                    'tags': quote.xpath('.//div[@class="tags"]/a[@class="tag"]/text()').extract()
-                }
-
-            next_page_url = response.xpath('//li[@class="next"]/a/@href').extract_first()
-            if next_page_url is not None:
-                yield scrapy.Request(response.urljoin(next_page_url))
