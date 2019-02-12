@@ -2,53 +2,78 @@ import scrapy
 import scrapy.crawler as crawler
 from multiprocessing import Process, Queue
 from twisted.internet import reactor
-
+import csv
+filename='D:\\chequeado_com-ultimas-noticias.csv'
+fieldnames = ['author',
+                'claim_id',
+                'title',
+                'description',                    
+                'url',
+                'publication_date',
+                'keywords',
+                'domain',
+                'main_category',
+                'secondary_category',
+                'verdict'] 
 
 class ChequeadoSpider(scrapy.Spider):
         name = 'chequeado_spider'
-        cnt=1
-        req_list=[]
+        cnt=1        
         start_urls = [
             "https://chequeado.com/ultimas-noticias/",
+            "https://cotejo.info/",
         ]
  
         def parse(self, response):      
 
-            for quote in response.css('div.post-inner'):
-                print({
-                    'claim': quote.css('h2.post-title  a::text').get().split(':')[1],
-                    'author': quote.css('h2.post-title  a::text').get().split(':')[0],
-                    'text': quote.css('div.four-fifth::text').get(),
+            csvfile=open(filename, 'ab+')
+                     
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)       
+            print(self.cnt)
+            #for quote in response.css('div.post-inner'):
+            for quote in response.css('article'):   
+                try:
+                    print({
+                        'author': quote.css('h2.post-title  a::text').get().split(':')[0], 
+                        'claim_id': quote.css('article').get().split(' ')[1].replace('id=',''),
+                        'title': quote.css('h2.post-title  a::text').get(),
+                        'description': quote.css('div.four-fifth::text').get(),                    
+                        'url': quote.css('h2.post-title  a').get().split(' ')[1].replace('href=',''),
+                        'publication_date': quote.css('div.four-fifth').get().split('(')[1].split(')')[0],
+                        'main_category': quote.css('article').get().split('category-')[1].split(' ')[0],
+                        'verdict': quote.css('article').get().split('calificaciones-')[1].split(' ')[0], 
+                        'secondary_category': quote.css('article').get().split('tag-')[1].split(' ')[0],                 
+                    })                
+                   
+                    writer.writerow({                   
+                        'author': quote.css('h2.post-title  a::text').get().split(':')[0].encode('utf8'),                    
+                        'claim_id': quote.css('article').get().split(' ')[1].replace('id=','').encode('utf8'),
+                        'title': quote.css('h2.post-title  a::text').get().split(':')[1].encode('utf8'),
+                        'description': quote.css('div.four-fifth::text').get().encode('utf8'),                    
+                        'url': quote.css('h2.post-title  a').get().split(' ')[1].replace('href=','').encode('utf8'),
+                        'publication_date': quote.css('div.four-fifth').get().split('(')[1].split(')')[0].encode('utf8'),
+                        'keywords': ' ',
+                        'domain': 'Claim',
+                        'main_category': quote.css('article').get().split('category-')[1].split(' ')[0].encode('utf8'),
+                        'secondary_category': quote.css('article').get().split('tag-')[1].split(' ')[0].encode('utf8'),
+                        'verdict': quote.css('article').get().split('calificaciones-')[1].split(' ')[0].encode('utf8'),                    
                 })
-                self.req_list.append({
-                    'claim': quote.css('h2.post-title  a::text').get().split(':')[1],
-                    'author': quote.css('h2.post-title  a::text').get().split(':')[0],
-                    'text': quote.css('div.four-fifth::text').get(),
-                })
-                
-            print(len(self.req_list))
-            pages = response.css('div.wp-pagenavi a::attr(href)').getall()
-            if self.cnt==0:
-                next_page=pages[0]
-            else:
-                next_page=pages[2]
-            if self.cnt==2:
-                return   
-                           
-            print(pages)
-            if next_page is not None:
-                self.cnt+=1                
-                next_page = response.urljoin('/ultimas-noticias/page/'+str(self.cnt)+'/')
-                #next_page = next_page.replace('/'+str(self.cnt)+'/','/'+str(self.cnt+1)+'/')
-                print('next page is '+next_page)                
-                yield scrapy.Request(next_page, callback=self.parse)
+                except:
+                    pass
+            csvfile.close()              
             
-#             page = response.url.split("/")[-2]
-#             filename = 'D:\\chequeado-%s.html' % page
-#             with open(filename, 'wb') as f:
-#                 f.write(response.body)
-
-
+            pages = response.css('div.wp-pagenavi a::attr(href)').getall()
+#             if self.cnt==0:
+#                 next_page=pages[0]
+#             else:
+#                 next_page=pages[2]
+            if self.cnt==2000:
+                return                           
+            
+            if pages is not None:
+                self.cnt+=1                
+                next_page = response.urljoin('/ultimas-noticias/page/'+str(self.cnt)+'/')                               
+                yield scrapy.Request(next_page, callback=self.parse)            
 
 def f(q,spider):
         try:
@@ -76,9 +101,14 @@ def run_spider(spider):
     
 if __name__ == '__main__':  
     
+    csvfile=open(filename, 'wb')   
+    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+    writer.writeheader()
+    csvfile.close()
+    
     CS=ChequeadoSpider
     run_spider(CS)
-    rez=CS.req_list   
+      
     
 
 
