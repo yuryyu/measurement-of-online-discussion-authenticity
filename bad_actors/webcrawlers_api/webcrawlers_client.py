@@ -1,8 +1,12 @@
-import requests
 import const
 from webcrawlers_exception import WebCrawlersAPIException
-import os
-
+import scrapy
+from scrapy.crawler import CrawlerProcess
+import scrapy.crawler as crawler
+from multiprocessing import Process, Queue
+from twisted.internet import reactor
+#from bad_actors.webcrawlers.unittests import webcrawlers_tests
+from spiders import *
 
 class WebCrawlersClient(object):
 
@@ -109,10 +113,27 @@ class WebCrawlersClient(object):
         return articles
 
     def _crawl_site(self, site_name):
-        pass
-
+        if site_name == "chequeado":
+            
+            run_spider(ChequeadoSpider)
+            
+#             process = CrawlerProcess({
+#                 'USER_AGENT': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)'
+#             })
+#             process.crawl(ChequeadoSpider)
+#             process.start()            
+            
+    
+    
+    
+            
     def _filter_results(self, articles_dic, payload):
+        """
+        Used to filter scrapped data according to the flags given in the payload.
+        :param articles_dic:
+        :param payload:
+        :return:
+        """
         pass
 
-    def _crawl_chequeado(self):
-        pass
+

@@ -11,11 +11,11 @@ import ast
 
 
 class GenericWebCrawlers(object):
-    def __init__(self, db, keys, query):
+    def __init__(self, db, query):
         # AbstractController.__init__(self, db)
         self._db = db
-        self._keys = keys
-        self._webcrawlers_client = WebCrawlersClient(self._keys)
+        #self._keys = keys
+        self._webcrawlers_client = WebCrawlersClient()
         self._config_parser = getConfig()
         self._domain = unicode(self._config_parser.get("DEFAULT", "domain"))
         self._query = query
@@ -36,14 +36,7 @@ class GenericWebCrawlers(object):
         print("###### 'Query: {}".format(params))
 
         for term in terms:
-            i = 0
-            while True:
-                i += 1  # Page numbers begin at 1.
-                try:
-                    all_articles.append(self._webcrawlers_client.get_everything(q=term, page=i, **params))
-                except WebCrawlersClient:
-                    print("Reached the last page of term: {}".format(term))
-                    break  # Stops loop and moves to the next term.
+            all_articles.append(self._webcrawlers_client.get_everything(q=term, **params))
 
         print("##### All articles: {} ######".format(str(all_articles)))
         print("###### 'EXITING: get_articles_by_terms'")

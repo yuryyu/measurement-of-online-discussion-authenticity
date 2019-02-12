@@ -14,9 +14,9 @@ class WebCrawlers(Method_Executor):
         self._google_trends_url = "https://trends.google.com/trends/hottrends/atom/feed?pn=p1"
         self._retrieve_news_by_keywords = self._config_parser.eval(self.__class__.__name__, "retrieve_news_by_keywords")
         self._num_of_top_terms = self._config_parser.eval(self.__class__.__name__, "num_of_top_terms")
-        self._keys = self._config_parser.eval(self.__class__.__name__, "keys_list")
+        #self._keys = self._config_parser.eval(self.__class__.__name__, "keys_list")
         self._query = self._config_parser.eval(self.__class__.__name__, "query")
-        self._generic_webcrawlers = GenericWebCrawlers(self._db, self._keys, self._query)
+        self._generic_webcrawlers = GenericWebCrawlers(self._db, self._query)
         self._topic_term_manager = Topic_Term_Manager(db)
 
     def get_most_popular_posts_by_google_trends(self):
