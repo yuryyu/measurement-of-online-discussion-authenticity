@@ -6,23 +6,18 @@ from multiprocessing import Process, Queue
 from twisted.internet import reactor
 #from bad_actors.commons.commons import *
 import csv
-<<<<<<< HEAD
+
 #import unicodecsv as csv
 import datetime
 import locale
 locale.setlocale(locale.LC_ALL, 'esp_esp')
 cheq_filename = 'C:\\users\\admin\\Documents\\chequeado_com-ultimas-noticias.csv'
 cotejo_filename = 'C:\\users\\admin\\Documents\\cotejo.csv'
-fieldnames = ['author',
-                'claim_id',
-=======
 import uuid
 import unicodedata
 import datetime
-
-filename='D:\\chequeado_com-ultimas-noticias-12-2-19-293.csv'
-fieldnames = [  'claim_id',
->>>>>>> 32e02223c22ad86139e8921ecf78209c20c6043b
+fieldnames = ['author',
+                'claim_id',
                 'title',
                 'description',                    
                 'url',
@@ -114,11 +109,8 @@ def catclean(catteg):
 
 class ChequeadoSpider(scrapy.Spider):
         name = 'chequeado_spider'
-<<<<<<< HEAD
-        cnt = 10
-=======
+
         cnt=293        
->>>>>>> 32e02223c22ad86139e8921ecf78209c20c6043b
         start_urls = [
             "https://chequeado.com/ultimas-noticias/"
         ]
@@ -132,44 +124,7 @@ class ChequeadoSpider(scrapy.Spider):
             #for quote in response.css('div.post-inner'):
             for quote in response.css('article'):   
                 try:
-<<<<<<< HEAD
-                    p_date = quote.css('div.four-fifth').get().split('(')[1].split(')')[0]
-                    publication_date = datetime.datetime.strptime(p_date, '%d de %B de %Y').strftime('%Y-%m-%d %H:%M:%S')
-                    verdict = translate_verdict(quote.css('article').get().split('calificaciones-')[1].split(' ')[0])
-                    title = quote.css('h2.post-title  a::text').get().split(':')[1].replace(u'“', '')
-                    author = quote.css('h2.post-title  a::text').get().split(':')[0]
-                    description = quote.css('div.four-fifth::text').get()
-                    url = quote.css('h2.post-title  a').get().split(' ')[1].replace('href=', '').replace('"', '')
-                    main_category = quote.css('article').get().split('category-')[1].split(' ')[0]
-                    secondary_category = quote.css('article').get().split('tag-')[1].split(' ')[0]
-                    raw_claim_id = quote.css('article').get().split(' ')[1].replace('id=','')
-                    domain = 'Claim'
-                    print({
-                        'author': author,
-                        'claim_id': raw_claim_id,
-                        'title': title,
-                        'description': description,
-                        'url': url,
-                        'publication_date': publication_date,
-                        'main_category': main_category,
-                        'verdict': verdict,
-                        'secondary_category': secondary_category,
-                    })                
 
-                    writer.writerow({                   
-                        'author': author.encode('utf8'),
-                        'claim_id': raw_claim_id.encode('utf8'),
-                        'title': title.encode('utf-8'),
-                        'description': description.encode('utf8'),
-                        'url': url.encode('utf8'),
-                        'publication_date': publication_date,
-                        'keywords': ' ',
-                        'domain': domain,
-                        'main_category': main_category.encode('utf8'),
-                        'secondary_category': main_category.encode('utf8'),
-                        'verdict': verdict,
-                    })
-=======
                     print({                         
                         
                         'publication_date': str_to_date(quote.css('div.four-fifth').get().split('(')[1].split(')')[0]),
@@ -178,7 +133,8 @@ class ChequeadoSpider(scrapy.Spider):
                                         
                     })                
                    
-                    writer.writerow({                                           
+                    writer.writerow({
+                        'author': createunicodedata(quote.css('h2.post-title  a::text').get().split(':')[0]),
                         'claim_id': createunicodedata(generate_random_guid(quote.css('article').get().split(' ')[1].replace('id=',''))),
                         'title': createunicodedata(quote.css('h2.post-title  a::text').get()),
                         'description': createunicodedata(quote.css('div.four-fifth::text').get()),                    
@@ -190,7 +146,7 @@ class ChequeadoSpider(scrapy.Spider):
                         'secondary_category': createunicodedata(catclean(quote.css('article').get().split('tag-')[1].split(' ')[0])),
                         'verdict': createunicodedata(verdict_en(quote.css('article').get().split('calificaciones-')[1].split(' ')[0])),                    
                 })
->>>>>>> 32e02223c22ad86139e8921ecf78209c20c6043b
+
                 except:
                     pass
             csvfile.close()              
@@ -307,7 +263,6 @@ def run_spider(spiders):
         raise result
     
     
-<<<<<<< HEAD
 if __name__ == '__main__':
     ChS = ChequeadoSpider
     CoS = CotejoSpider
@@ -316,18 +271,6 @@ if __name__ == '__main__':
 
     
 
-=======
-if __name__ == '__main__':  
-    
-    
-    csvfile=open(filename, 'wb')   
-    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-    writer.writeheader()
-    csvfile.close()
-     
-    CS=ChequeadoSpider
-    run_spider(CS)
-      
    
 """writer.writerow({                   
                         'author': quote.css('h2.post-title  a::text').get().split(':')[0].encode('utf8'),                     
@@ -343,7 +286,6 @@ if __name__ == '__main__':
                         'verdict': quote.css('article').get().split('calificaciones-')[1].split(' ')[0].encode('utf8'),                    
                 })
                """
->>>>>>> 32e02223c22ad86139e8921ecf78209c20c6043b
 
 
 
