@@ -10,3 +10,13 @@ SUPPORTED_CATEGORIES = {'chequeado': ['ultimas-noticias', 'el-explicador', 'mito
 
 # List of URL page format (replace underscore with page number).
 PAGE_SUFFIX = {'chequeado': "page/_/", 'cotejo': "page/_/"}
+
+EN_SP_VERDICTS = {'TRUE': ['verdadero', 'cumplida'],
+                  'mostly-TRUE': ['verdadero-pero'],
+                  'FALSE': ['falso', 'insostenible'],
+                  'exaggerated': ['exagerado'],
+                  'deceitful': ['enganoso'],
+                  'unfulfilled': ['incumplida'],
+                  'hasty': ['apresurado'],
+                  'questionable': ['discutible'],
+                  'in progress': ['en-progreso-demorada']}
