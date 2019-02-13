@@ -1,0 +1,4 @@
+campaign_id,tweet_id,parent_tweet_id,url,author_id,text,date,retweets,post_favorites,author_followers,author_friends
+1,1,0,www.bbc.co.uk,1,Hello World,11/9/1999,0,0,0,0
+1,2,1,www.bbc.co.uk,2,Hello World,11/9/1999,0,0,0,0
+2,3,0,www.bbc.co.uk,1,Hello World,11/9/1999,0,0,0,0

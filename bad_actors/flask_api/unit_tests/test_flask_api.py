@@ -1,13 +1,6 @@
 from unittest import TestCase
-from configuration.config_class import getConfig
-import os
 from flask_api.flask_api3 import FlaskAPI
 from DB.schema_definition import *
-import json
-#from flask_api.flask_api3 import
-import tempfile
-import sys
-
 
 
 class TestFlaskAPI(TestCase):
