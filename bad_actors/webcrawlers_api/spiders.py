@@ -85,13 +85,13 @@ def catclean(catteg):
 
 class ChequeadoSpider(scrapy.Spider):
         name = 'chequeado_spider'
-        cnt = 292
+        cnt = 293
         start_urls = [
             "https://chequeado.com/ultimas-noticias/"
         ]
         csvfile = open(cheq_filename, 'ab+')
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-        writer.writeheader()
+        #writer.writeheader()
 
         def parse(self, response):
             print(self.cnt)
@@ -137,13 +137,13 @@ class ChequeadoSpider(scrapy.Spider):
 
 class CotejoSpider(scrapy.Spider):
     name = 'cotejo_spider'
-    cnt = 4
+    cnt = 5
     start_urls = [
         "https://cotejo.info/category/cotejado-a-fondo/"
     ]
     csvfile = open(cotejo_filename, 'ab+')
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-    writer.writeheader()
+    #writer.writeheader()
 
     def get_author(self, article_url):
         html = urllib2.urlopen(article_url).read()
@@ -226,7 +226,7 @@ def f(q, spiders):
             runner = crawler.CrawlerRunner({'USER_AGENT': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)'})
             for spider in spiders:
                 deferred = runner.crawl(spider)
-            reactor.run()
+            #reactor.run()
             deferred.addBoth(lambda _: reactor.stop())
             print('reactor, stop-start')
             reactor.run()
@@ -237,7 +237,7 @@ def f(q, spiders):
 
 
 # the wrapper to make it run more times
-def run_spider(spiders):
+def run_spiders(spiders):
     
     q = Queue()
     p = Process(target=f, args=(q,spiders))
@@ -250,8 +250,13 @@ def run_spider(spiders):
     
     
 if __name__ == '__main__':
+    for file in [cheq_filename, cotejo_filename]:
+        csvfile = open(file, 'wb')
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        csvfile.close()
     ChS = ChequeadoSpider
     CoS = CotejoSpider
-    run_spider([ChS, CoS])
+    run_spiders([ChS, CoS])
     #run_spider([ChS])
 
