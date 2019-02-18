@@ -15,6 +15,7 @@ import unicodedata
 import datetime
 import re
 import urllib2
+import urlparse
 import sys
 from bs4 import BeautifulSoup
 fieldnames = ['author',
@@ -53,6 +54,7 @@ def str_to_date(dd, d_format='%d de %B de %Y'):
         
 def verdict_en(verdict):
     dict_v={'verdadero':'True',
+            'verdad': 'True',
             'falso':'False',
             'enganoso':'Deceitful',
             'apresurado':'Hasty',
@@ -66,7 +68,8 @@ def verdict_en(verdict):
             'insostenible':'Untenable',
             'inchequeable':'Unbreakable',
             'mentira': 'lie',
-            'contejado a fondo': 'thoroughly discussed'
+            'contejado a fondo': 'thoroughly discussed',
+            'media-verdad': 'half-true'
             }
     try:        
         verd=dict_v[verdict.lower().split('"')[0]]
@@ -124,8 +127,8 @@ class ChequeadoSpider(scrapy.Spider):
                 return
             next_page_link = response.css('a.nextpostslink').get()
             if next_page_link is None:
-                self.csvfile.close()
-                print 'finished Chequedo.com spider'
+                #self.csvfile.close()
+                #print 'finished Chequedo.com spider'
                 return
 
             if pages is not None:
@@ -137,9 +140,13 @@ class ChequeadoSpider(scrapy.Spider):
 
 class CotejoSpider(scrapy.Spider):
     name = 'cotejo_spider'
-    cnt = 5
+    cnt = {"https://cotejo.info/category/cotejado-a-fondo/": 1,
+           "https://cotejo.info/category/regionales/": 1,
+           "https://cotejo.info/category/cotejos-breves/": 1}
     start_urls = [
-        "https://cotejo.info/category/cotejado-a-fondo/"
+        "https://cotejo.info/category/cotejado-a-fondo/",
+        "https://cotejo.info/category/regionales/",
+        "https://cotejo.info/category/cotejos-breves/"
     ]
     csvfile = open(cotejo_filename, 'ab+')
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
@@ -171,16 +178,19 @@ class CotejoSpider(scrapy.Spider):
         return author
 
     def parse(self, response):
-        print(self.cnt)
+        print response.request.url.split('page')[0] + ' page ' + str(self.cnt[response.request.url.split('page')[0]])
         for quote in response.css('div[class*=blog-post]'):
             try:
                 url = quote.css('div.bp-details a::attr(href)').get()
-                verdict = quote.css('div.mom-post-meta').xpath('./span[3]/a[2]/text()').get()
-                if not verdict:
-                    verdict = 'Unknown'
-                else:
-                    verdict = verdict_en(verdict)
                 classes = quote.xpath('@class').get().split(' ')
+                if 'category-mentira' in classes:
+                    verdict = verdict_en('mentira')
+                elif 'category-verdad' in classes:
+                    verdict = verdict_en('verdad')
+                elif 'category-media-verdad' in classes:
+                    verdict =verdict_en('media-verdad')
+                else:
+                    verdict = 'Unknown'
                 for cls in classes:
                     match = re.search('^post-(\d*)', cls)
                     if match:
@@ -212,12 +222,15 @@ class CotejoSpider(scrapy.Spider):
             except:
                 pass
         num_pages = len(response.css('div.pagination a::attr(href)').getall()) + 1
-        self.cnt += 1
-        if self.cnt > num_pages:
-            print 'finished Cotejo.info spider'
-            self.csvfile.close()
+        self.cnt[response.url.split('page')[0]] += 1
+        if self.cnt[response.url.split('page')[0]] > num_pages:
+            #self.cnt[response.url.split('page')[0]] = 1
             return
-        next_page = response.urljoin('/category/cotejado-a-fondo/page/' + str(self.cnt) + '/')
+        page_str = 'page/' + str(self.cnt[response.url.split('page')[0]]) + '/'
+        if 'page' in response.request.url:
+            next_page = response.request.url[:-7] + page_str
+        else:
+            next_page = response.request.url + page_str
         yield scrapy.Request(next_page, callback=self.parse)
 
 
@@ -257,6 +270,6 @@ if __name__ == '__main__':
         csvfile.close()
     ChS = ChequeadoSpider
     CoS = CotejoSpider
-    run_spiders([ChS, CoS])
-    #run_spider([ChS])
+    #run_spiders([ChS, CoS])
+    run_spiders([CoS])
 
