@@ -37,7 +37,7 @@ class FakeNewsSnopesImporter(PostImporter):
             except (KeyError, ValueError, TypeError) as e:
                 logging.warn("[-] Failed to parse row : {0}".format(e))
 
-        self._db.addPosts(claims)
+        self._db.add_claims(claims)
 
     def _convert_row_to_post(self, row):
         post = Post()

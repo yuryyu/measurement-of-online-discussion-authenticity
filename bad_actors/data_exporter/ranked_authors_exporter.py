@@ -1,20 +1,19 @@
 from __future__ import print_function
 from DB.schema_definition import *
-from configuration.config_class import getConfig
 import csv
 import datetime
+from configuration.config_class import getConfig
+from preprocessing_tools.abstract_controller import AbstractController
 
-class RankedAuthorsExporter(object):
+
+class RankedAuthorsExporter(AbstractController):
     def __init__(self, db):
-        self._db = db
-        self._config_parser = getConfig()
+        AbstractController.__init__(self, db)
         self.threshold = self._config_parser.eval(self.__class__.__name__, "threshold")
         self.output_file_path = self._config_parser.eval(self.__class__.__name__, "output_file_path")
         self.output_file_path = self.output_file_path.format(
-            datetime.datetime.today().strftime('%d/%m/%Y'), self.threshold)
+            datetime.datetime.today().strftime('%d-%m-%Y'), self.threshold)
 
-    def setUp(self):
-        pass
 
     def execute(self, window_start):
         ranked_authors = self.get_ranked_authors()
@@ -64,5 +63,3 @@ class RankedAuthorsExporter(object):
             writer.writerow(['author_guid', 'author_screen_name', 'claim_id', 'post_id', 'post_speed', 'first_{}'.format(self.threshold)])
             writer.writerows(ranked_authors)
 
-    def is_well_defined(self):
-        return True

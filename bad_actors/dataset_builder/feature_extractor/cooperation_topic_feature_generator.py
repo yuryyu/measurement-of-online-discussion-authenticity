@@ -43,7 +43,7 @@ class CooperationTopicFeatureGenerator(AbstractController):
     num_of_terms_in_topic = 12
     stopword_file = lib/eng_stopwords.txt
     stem_language = ENG     
-    features_list = ['topic_jaccard_distance_claim_min', 'topic_jaccard_distance_claim_max', 'topic_jaccard_distance_claim_std_dev', 't_avg', 'topic_jaccard_distance_claim_skewness', 'topic_jaccard_distance_claim_kurtosis']
+    features_list = ['topic_jaccard_distance_claim_min', 'topic_jaccard_distance_claim_max', 'topic_jaccard_distance_claim_std_dev', 'topic_jaccard_avg', 'topic_jaccard_distance_claim_skewness', 'topic_jaccard_distance_claim_kurtosis']
         
     """
     def __init__(self, db, **kwargs):
@@ -212,26 +212,26 @@ class CooperationTopicFeatureGenerator(AbstractController):
 
     """ Aggregated features from list """
     # topic_jaccard_distance_claim_avg
-    def t_avg(self, ll):
+    def topic_jaccard_avg(self, ll):
         return sum(ll)/len(ll)
 
     # topic_jaccard_distance_claim_std_dev
-    def t_std_dev(self, ll):
+    def topic_jaccard_std_dev(self, ll):
         return np.std(ll)
 
     # topic_jaccard_distance_claim_min
-    def t_min(self, ll):
+    def topic_jaccard_min(self, ll):
         return min(ll)
 
     # topic_jaccard_distance_claim_max
-    def t_max(self, ll):
+    def topic_jaccard_max(self, ll):
         return max(ll)
     # topic_jaccard_distance_claim_skewness
-    def t_skewness(self, ll):
+    def topic_jaccard_skewness(self, ll):
         return skew(ll)
 
     # topic_jaccard_distance_claim_kurtosis
-    def t_kurtosis(self, ll):
+    def topic_jaccard_kurtosis(self, ll):
         return kurtosis(ll)
 
 

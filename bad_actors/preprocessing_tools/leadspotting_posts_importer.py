@@ -14,8 +14,8 @@ class LeadspottingPostsImporter(CsvImporter):
         CsvImporter.__init__(self, db)
         config_parser = getConfig()
         self._author_prop_dict = []
-        self.start_date = config_parser.eval("DEFAULT", "start_date")
-        self.end_date = config_parser.eval("DEFAULT", "end_date")
+        #self.start_date = config_parser.eval("DEFAULT", "start_date")
+        #self.end_date = config_parser.eval("DEFAULT", "end_date")
 
     def updateClaims(self):
         claims_list = [unicode(x['claim_id']) for x in self._listdic]
